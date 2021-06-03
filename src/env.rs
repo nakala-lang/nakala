@@ -24,7 +24,7 @@ impl<'parent> Env<'parent> {
             .ok_or_else(|| format!("binding with name `{}` does not exist", name))
     }
 
-    pub(crate) fn get_binding_value_without_err_msg(&self, name: &str) -> Option<Val> {
+    fn get_binding_value_without_err_msg(&self, name: &str) -> Option<Val> {
         self.bindings.get(name).cloned().or_else(|| {
             self.parent
                 .and_then(|parent| parent.get_binding_value_without_err_msg(name))
