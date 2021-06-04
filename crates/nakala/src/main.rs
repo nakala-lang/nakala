@@ -1,4 +1,4 @@
-use nakala::parser::parse;
+use parser::parse;
 use std::io::{self, Write};
 
 fn main() -> io::Result<()> {
