@@ -16,18 +16,11 @@ fn main() -> io::Result<()> {
         let parse = parse(&input);
         println!("{}", parse.debug_tree());
 
-        let root = ast::Root::cast(parse.syntax()).unwrap();
+        let mut ast_tree = ast::Root::cast(parse.syntax()).unwrap();
+        ast_tree = dbg!(ast_tree);
 
-        dbg!(root
-            .stmts()
-            .filter_map(|stmt| if let ast::Stmt::VariableDef(var_def) = stmt {
-                Some(var_def.value())
-            } else {
-                None
-            })
-            .collect::<Vec<_>>());
-
-        dbg!(hir::lower(root));
+        let hir_tree = hir::lower(ast_tree);
+        dbg!(hir_tree);
 
         input.clear();
     }
