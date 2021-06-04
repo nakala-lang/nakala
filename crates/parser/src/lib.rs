@@ -30,7 +30,6 @@ impl Parse {
     pub fn debug_tree(&self) -> String {
         let mut s = String::new();
 
-        let syntax_node = SyntaxNode::new_root(self.green_node.clone());
         let tree = format!("{:#?}", self.syntax());
 
         // We cut off the last byte because formatting the SyntaxNode adds on a newline at the end.
