@@ -11,7 +11,7 @@ pub fn lower(ast: ast::Root) -> (Database, Vec<Stmt>) {
     (db, stmts)
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Stmt {
     VariableDef { name: SmolStr, value: Expr },
     Expr(Expr),
@@ -19,7 +19,7 @@ pub enum Stmt {
 
 type ExprIdx = Idx<Expr>;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Expr {
     Missing,
     Binary {
@@ -39,7 +39,7 @@ pub enum Expr {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum BinaryOp {
     Add,
     Sub,
@@ -47,7 +47,7 @@ pub enum BinaryOp {
     Div,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum UnaryOp {
     Neg,
 }
