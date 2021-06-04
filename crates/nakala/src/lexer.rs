@@ -39,6 +39,12 @@ pub(crate) enum SyntaxKind {
     #[token("}")]
     RBrace,
 
+    #[token("(")]
+    LParen,
+
+    #[token(")")]
+    RParen,
+
     #[error]
     Error,
 
@@ -152,5 +158,15 @@ mod tests {
     #[test]
     fn lex_right_brace() {
         check("}", SyntaxKind::RBrace);
+    }
+
+    #[test]
+    fn lex_left_parenthesis() {
+        check("(", SyntaxKind::LParen);
+    }
+
+    #[test]
+    fn lex_right_parenthesis() {
+        check(")", SyntaxKind::RParen);
     }
 }
