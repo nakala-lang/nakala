@@ -1,4 +1,4 @@
-use nakala::parser::Parser;
+use nakala::parser::parse;
 use std::io::{self, Write};
 
 fn main() -> io::Result<()> {
@@ -13,7 +13,7 @@ fn main() -> io::Result<()> {
 
         stdin.read_line(&mut input)?;
 
-        let parse = Parser::new(&input).parse();
+        let parse = parse(&input);
         println!("{}", parse.debug_tree());
 
         input.clear();
