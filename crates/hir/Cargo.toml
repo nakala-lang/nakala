@@ -10,3 +10,4 @@ edition = "2018"
 smol_str = "0.1.17"
 ast = {path = "../ast"}
 syntax = {path = "../syntax"}
+la-arena = "0.2.0"
