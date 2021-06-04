@@ -8,4 +8,3 @@ edition = "2018"
 
 [dependencies]
 syntax = {path = "../syntax"}
-smol_str = "0.1.17"
