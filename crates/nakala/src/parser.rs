@@ -41,6 +41,10 @@ impl<'l, 'input> Parser<'l, 'input> {
         self.events
     }
 
+    fn at(&mut self, kind: SyntaxKind) -> bool {
+        self.peek() == Some(kind)
+    }
+
     fn start_node(&mut self, kind: SyntaxKind) {
         self.events.push(Event::StartNode {
             kind,
