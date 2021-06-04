@@ -68,3 +68,5 @@ impl rowan::Language for NakalaLanguage {
 }
 
 pub type SyntaxNode = rowan::SyntaxNode<NakalaLanguage>;
+pub type SyntaxToken = rowan::SyntaxToken<NakalaLanguage>;
+pub type SyntaxElement = rowan::SyntaxElement<NakalaLanguage>;
