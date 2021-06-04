@@ -46,12 +46,8 @@ impl<'t, 'input> Parser<'t, 'input> {
     }
 
     fn bump(&mut self) {
-        let Token { kind, text } = self.source.next_token().unwrap();
-
-        self.events.push(Event::AddToken {
-            kind: *kind,
-            text: (*text).into(),
-        });
+        self.source.next_token().unwrap();
+        self.events.push(Event::AddToken);
     }
 
     fn peek(&mut self) -> Option<SyntaxKind> {
