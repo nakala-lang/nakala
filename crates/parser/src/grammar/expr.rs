@@ -13,7 +13,10 @@ fn expr_binding_power(p: &mut Parser, minimum_binding_power: u8) -> Option<Compl
             Some(SyntaxKind::Minus) => BinaryOp::Sub,
             Some(SyntaxKind::Star) => BinaryOp::Mul,
             Some(SyntaxKind::Slash) => BinaryOp::Div,
-            _ => return None, // we'll handle error later
+
+            // We're not at an operator; we don't know what to do next, so we just return from
+            // the function and let the caller decide
+            _ => break,
         };
 
         let (left_binding_power, right_binding_power) = op.binding_power();
@@ -39,7 +42,10 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
         Some(SyntaxKind::Ident) => variable_ref(p),
         Some(SyntaxKind::Minus) => prefix_expr(p),
         Some(SyntaxKind::LParen) => paren_expr(p),
-        _ => return None,
+        _ => {
+            p.error();
+            return None;
+        }
     };
 
     Some(cm)
@@ -80,12 +86,9 @@ fn paren_expr(p: &mut Parser) -> CompletedMarker {
     assert!(p.at(SyntaxKind::LParen));
 
     let m = p.start();
-
     p.bump();
     expr_binding_power(p, 0);
-
-    assert_eq!(p.peek(), Some(SyntaxKind::RParen));
-    p.bump();
+    p.expect(SyntaxKind::RParen);
 
     m.complete(p, SyntaxKind::ParenExpr)
 }
@@ -368,6 +371,19 @@ Root@0..7
                       Literal@10..12
                         Number@10..11 "3"
                         Whitespace@11..12 " ""#]],
+        );
+    }
+
+    #[test]
+    fn parse_unclosed_parentheses() {
+        check(
+            "(foo",
+            expect![[r#"
+Root@0..4
+  ParenExpr@0..4
+    LParen@0..1 "("
+    VariableRef@1..4
+      Ident@1..4 "foo""#]],
         );
     }
 }
