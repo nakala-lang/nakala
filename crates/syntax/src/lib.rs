@@ -3,7 +3,7 @@ use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
 
 #[derive(Debug, Copy, Clone, PartialEq, FromPrimitive, ToPrimitive)]
-pub(crate) enum SyntaxKind {
+pub enum SyntaxKind {
     Whitespace,
     FnKw,
     LetKw,
@@ -29,7 +29,7 @@ pub(crate) enum SyntaxKind {
 }
 
 impl SyntaxKind {
-    pub(crate) fn is_trivia(self) -> bool {
+    pub fn is_trivia(self) -> bool {
         matches!(self, Self::Whitespace | Self::Comment)
     }
 }
@@ -58,7 +58,7 @@ impl From<TokenKind> for SyntaxKind {
 }
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub(crate) enum NakalaLanguage {}
+pub enum NakalaLanguage {}
 
 impl rowan::Language for NakalaLanguage {
     type Kind = SyntaxKind;
@@ -72,4 +72,4 @@ impl rowan::Language for NakalaLanguage {
     }
 }
 
-pub(crate) type SyntaxNode = rowan::SyntaxNode<NakalaLanguage>;
+pub type SyntaxNode = rowan::SyntaxNode<NakalaLanguage>;
