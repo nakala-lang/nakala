@@ -17,6 +17,8 @@ As nakala is in its very early stages, the language does not have many features.
 Prefix, Infix, and Postfix binary expression support
 ```
 1 + 4 * 10 + -4
+
+200 + (5 * (100 + 4))
 ```
 
 #### Comments
@@ -27,6 +29,11 @@ You can have comments placed within expressions
 + 5512312 # add a large number
 ```
 
+#### Variable Declaration and References
+```
+let a = 200 + (5 * (100 + 4))
+let b = a
+```
 
 ## Usage
 Nakala comes with a REPL CLI tool located in `/crates/nakala`. You can clone the project and run the following to use it:
