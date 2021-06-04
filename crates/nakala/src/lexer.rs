@@ -53,7 +53,10 @@ pub(crate) enum SyntaxKind {
 
     Root,
     BinaryExpr,
+    Literal,
+    ParenExpr,
     PrefixExpr,
+    VariableRef,
 }
 
 impl SyntaxKind {
