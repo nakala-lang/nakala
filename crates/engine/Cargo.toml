@@ -1,5 +1,5 @@
 [package]
-name = "nakala"
+name = "engine"
 version = "0.1.0"
 authors = ["Reagan McFarland <reagan.mcfarland1059@gmail.com>"]
 edition = "2018"
@@ -7,7 +7,4 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-parser = {path = "../parser"}
-ast = {path = "../ast"}
-hir = {path = "../hir"}
-engine = {path = "../engine"}
+hir = {path = "../hir" }

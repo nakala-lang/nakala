@@ -19,8 +19,11 @@ fn main() -> io::Result<()> {
         let mut ast_tree = ast::Root::cast(parse.syntax()).unwrap();
         ast_tree = dbg!(ast_tree);
 
-        let hir_tree = hir::lower(ast_tree);
-        dbg!(hir_tree);
+        let mut hir = hir::lower(ast_tree);
+        hir = dbg!(hir);
+
+        let result = engine::eval(hir);
+        println!("{:?}", result);
 
         input.clear();
     }
