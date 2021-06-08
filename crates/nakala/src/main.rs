@@ -100,14 +100,10 @@ impl LineEditor {
         //self.stdout.write_all(parse.debug_tree().as_bytes());
 
         let ast_tree = ast::Root::cast(parse.syntax()).unwrap();
-        //ast_tree = dbg!(ast_tree);
 
         let hir = hir::lower(ast_tree);
-        self.stdout
-            .queue(Print(format!("{:?}", hir.1)))
-            .unwrap()
-            .flush()
-            .unwrap();
+
+        self.print_big_string(format!("{:#?}", hir.1)).unwrap();
 
         // let result = engine::eval(hir);
         // println!("{:?}", result);
@@ -160,6 +156,15 @@ impl LineEditor {
             .queue(MoveToColumn(0))?
             .queue(Print(body_msg))?
             .flush()?;
+
+        Ok(())
+    }
+
+    fn print_big_string(&mut self, big_string: String) -> Result<()> {
+        for chunk in big_string.split("\n") {
+            self.stdout.queue(Print(chunk))?;
+            self.new_line()?;
+        }
 
         Ok(())
     }
