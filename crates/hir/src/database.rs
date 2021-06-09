@@ -4,7 +4,7 @@ use syntax::SyntaxKind;
 
 #[derive(Debug, PartialEq, Default)]
 pub struct Database {
-    exprs: Arena<Expr>,
+    pub exprs: Arena<Expr>,
 }
 
 impl Database {

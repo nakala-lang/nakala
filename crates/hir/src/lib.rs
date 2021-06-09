@@ -17,9 +17,9 @@ pub enum Stmt {
     Expr(Expr),
 }
 
-type ExprIdx = Idx<Expr>;
+pub type ExprIdx = Idx<Expr>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
     Missing,
     Binary {
@@ -39,7 +39,7 @@ pub enum Expr {
     },
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum BinaryOp {
     Add,
     Sub,
@@ -47,7 +47,7 @@ pub enum BinaryOp {
     Div,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum UnaryOp {
     Neg,
 }

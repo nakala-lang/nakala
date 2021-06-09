@@ -103,10 +103,11 @@ impl LineEditor {
 
         let hir = hir::lower(ast_tree);
 
-        self.print_big_string(format!("{:#?}", hir.1)).unwrap();
+        //self.print_big_string(format!("{:#?}", hir.1)).unwrap();
 
-        // let result = engine::eval(hir);
-        // println!("{:?}", result);
+        let result = engine::eval(hir);
+        self.new_line().unwrap();
+        println!("{:?}", result);
     }
 
     fn new_line(&mut self) -> Result<()> {
@@ -161,7 +162,7 @@ impl LineEditor {
     }
 
     fn print_big_string(&mut self, big_string: String) -> Result<()> {
-        for chunk in big_string.split("\n") {
+        for chunk in big_string.split('\n') {
             self.stdout.queue(Print(chunk))?;
             self.new_line()?;
         }
