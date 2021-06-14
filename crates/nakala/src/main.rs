@@ -41,7 +41,7 @@ impl LineEditor {
 
     pub fn dispatch_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
         if key_event == KILL_KEY_EVENT {
-            std::process::exit(0);
+            self.exit();
         }
 
         let KeyEvent { code, .. } = key_event;
@@ -168,6 +168,12 @@ impl LineEditor {
         }
 
         Ok(())
+    }
+
+    fn exit(&self) -> Result<()> {
+        // Cleanup
+        crossterm::terminal::disable_raw_mode()?;
+        std::process::exit(0);
     }
 }
 
