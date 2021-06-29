@@ -2,6 +2,7 @@ use super::EngineError;
 use crate::val::Val;
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct Env {
     // holds variable definitions
     bindings: HashMap<String, Val>,

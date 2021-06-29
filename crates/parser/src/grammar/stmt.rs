@@ -3,6 +3,10 @@ use super::*;
 pub(super) fn stmt(p: &mut Parser) -> Option<CompletedMarker> {
     if p.at(TokenKind::LetKw) {
         variable_def(p)
+    } else if p.at(TokenKind::FnKw) {
+        function_def(p)
+    } else if p.at(TokenKind::LBrace) {
+        block::block(p)
     } else {
         expr::expr(p)
     }
@@ -19,6 +23,19 @@ fn variable_def(p: &mut Parser) -> Option<CompletedMarker> {
     expr::expr(p);
 
     Some(m.complete(p, SyntaxKind::VariableDef))
+}
+
+fn function_def(p: &mut Parser) -> Option<CompletedMarker> {
+    assert!(p.at(TokenKind::FnKw));
+    let m = p.start();
+    p.bump();
+
+    p.expect(TokenKind::Ident);
+    p.expect(TokenKind::LBrace);
+
+    func::func(p);
+
+    Some(m.complete(p, SyntaxKind::Func))
 }
 
 #[cfg(test)]

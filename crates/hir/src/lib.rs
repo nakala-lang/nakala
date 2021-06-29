@@ -13,8 +13,20 @@ pub fn lower(ast: ast::Root) -> (Database, Vec<Stmt>) {
 
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
-    VariableDef { name: SmolStr, value: Expr },
+    VariableDef(VariableDef),
+    CodeBlock(CodeBlock),
     Expr(Expr),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct CodeBlock {
+    pub stmts: Vec<Box<Stmt>>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct VariableDef {
+    pub name: SmolStr,
+    pub value: Expr,
 }
 
 pub type ExprIdx = Idx<Expr>;

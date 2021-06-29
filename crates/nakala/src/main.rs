@@ -100,7 +100,7 @@ impl LineEditor {
 
     fn parse_buffer(&mut self) {
         let parse = parse(&self.buffer);
-        //self.stdout.write_all(parse.debug_tree().as_bytes());
+        //self.print_big_string(parse.debug_tree());
 
         let ast_tree = ast::Root::cast(parse.syntax()).unwrap();
 

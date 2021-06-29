@@ -1,4 +1,6 @@
+mod block;
 mod expr;
+mod func;
 mod stmt;
 
 use crate::parser::marker::CompletedMarker;

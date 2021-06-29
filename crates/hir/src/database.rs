@@ -1,4 +1,4 @@
-use crate::{BinaryOp, Expr, Stmt, UnaryOp};
+use crate::{BinaryOp, CodeBlock, Expr, Stmt, UnaryOp, VariableDef};
 use la_arena::Arena;
 use syntax::SyntaxKind;
 
@@ -10,14 +10,28 @@ pub struct Database {
 impl Database {
     pub(crate) fn lower_stmt(&mut self, ast: ast::Stmt) -> Option<Stmt> {
         let result = match ast {
-            ast::Stmt::VariableDef(ast) => Stmt::VariableDef {
+            ast::Stmt::VariableDef(ast) => Stmt::VariableDef(VariableDef {
                 name: ast.name()?.text().into(),
                 value: self.lower_expr(ast.value()),
-            },
+            }),
+            ast::Stmt::CodeBlock(ast) => Stmt::CodeBlock(CodeBlock {
+                stmts: self.lower_block(ast).stmts,
+            }),
             ast::Stmt::Expr(ast) => Stmt::Expr(self.lower_expr(Some(ast))),
         };
 
         Some(result)
+    }
+
+    pub(crate) fn lower_block(&mut self, ast: ast::CodeBlock) -> CodeBlock {
+        let mut stmts = vec![];
+        for stmt in ast.stmts() {
+            match self.lower_stmt(*stmt) {
+                Some(hir_stmt) => stmts.push(Box::new(hir_stmt)),
+                None => {}
+            }
+        }
+        CodeBlock { stmts }
     }
 
     pub(crate) fn lower_expr(&mut self, ast: Option<ast::Expr>) -> Expr {
