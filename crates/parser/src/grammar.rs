@@ -1,4 +1,3 @@
-mod block;
 mod expr;
 mod func;
 mod stmt;
