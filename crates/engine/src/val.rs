@@ -1,9 +1,10 @@
 use super::EngineError;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Val {
-    Number(i128),
     Missing, // filler name
+    Unit,    // Unit tuple
+    Number(i128),
 }
 
 impl Val {

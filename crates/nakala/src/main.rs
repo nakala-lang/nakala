@@ -3,6 +3,7 @@ use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent}
 use crossterm::style::{style, Attribute, Color, Print, PrintStyledContent};
 use crossterm::QueueableCommand;
 use crossterm::Result;
+use engine::env::Env;
 use parser::parse;
 use std::io::{self, Stdout, Write};
 
@@ -22,6 +23,7 @@ fn main() -> Result<()> {
 pub struct LineEditor {
     stdout: Stdout,
     buffer: String,
+    env: Env,
     prompt: &'static str,
 }
 
@@ -30,6 +32,7 @@ impl LineEditor {
         let mut le = Self {
             stdout: io::stdout(),
             buffer: String::new(),
+            env: Env::default(),
             prompt,
         };
 
@@ -105,7 +108,7 @@ impl LineEditor {
 
         //self.print_big_string(format!("{:#?}", hir.1)).unwrap();
 
-        let engine_result = engine::eval(hir);
+        let engine_result = engine::eval(&mut self.env, hir);
         self.new_line().unwrap();
         match engine_result {
             Ok(res) => {
@@ -118,14 +121,13 @@ impl LineEditor {
     }
 
     fn print_error(&mut self, err: Box<dyn std::error::Error>) -> Result<()> {
-        let error_header = style("ERROR: \n")
-            .with(Color::Red)
-            .attribute(Attribute::Bold);
+        let error_header = style("ERROR: ").with(Color::Red).attribute(Attribute::Bold);
         self.stdout
             .queue(PrintStyledContent(error_header))?
-            .queue(MoveToColumn(0))?
             .queue(Print(err.to_string()))?
             .flush()?;
+
+        self.new_line()?;
 
         Ok(())
     }
