@@ -27,8 +27,26 @@ You can have comments placed within expressions
 #### Variable Declaration and References
 ```
 let a = 200 + (5 * (100 + 4))
+
 let b = a
 ```
+
+#### Code Blocks
+```
+let x = {
+  # first let's declare a variable
+  let temp = 100
+
+  # now lets create another variable
+  let temp2 = 500
+
+  # add them together. The final statement in a block is the value returned
+  temp + temp2
+}
+```
+
+#### (Rudimentary) Error Handling
+
 
 ## Project Layout
 There are a fair amount of moving parts, and just like azrg, I have also split up all the components into separate crates. Below is a dependency graph to visualize how it all links together:
