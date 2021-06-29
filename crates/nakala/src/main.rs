@@ -111,7 +111,7 @@ impl LineEditor {
         let engine_result = engine::eval(&mut self.env, hir);
         match engine_result {
             Ok(res) => {
-                println!("{}", res);
+                println!(" {}", res);
             }
             Err(err) => {
                 self.print_error(Box::new(err)).unwrap();
