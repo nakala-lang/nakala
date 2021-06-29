@@ -7,6 +7,7 @@ pub enum EngineError {
     InvalidSubOperation,
     InvalidMulOperation,
     InvalidDivOperation,
+    InvalidNegOperation,
     BindingAlreadyExists { binding_name: String },
     BindingUndefined { binding_name: String },
     Unknown,
@@ -29,6 +30,9 @@ impl std::fmt::Display for EngineError {
             }
             EngineError::InvalidDivOperation => {
                 f.write_str("Could not find div handler for the provided types")
+            }
+            EngineError::InvalidNegOperation => {
+                f.write_str("Could not find neg handler for the provided type")
             }
             EngineError::BindingAlreadyExists { binding_name } => f.write_str(
                 format!("The binding `{}` already exists in the scope", binding_name).as_str(),
