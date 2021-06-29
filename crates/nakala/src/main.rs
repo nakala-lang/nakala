@@ -41,7 +41,7 @@ impl LineEditor {
 
     pub fn dispatch_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
         if key_event == KILL_KEY_EVENT {
-            self.exit();
+            self.exit().expect("Failed to exit");
         }
 
         let KeyEvent { code, .. } = key_event;
@@ -105,9 +105,29 @@ impl LineEditor {
 
         //self.print_big_string(format!("{:#?}", hir.1)).unwrap();
 
-        let result = engine::eval(hir);
+        let engine_result = engine::eval(hir);
         self.new_line().unwrap();
-        println!("{:?}", result);
+        match engine_result {
+            Ok(res) => {
+                println!("{:?}", res);
+            }
+            Err(err) => {
+                self.print_error(Box::new(err)).unwrap();
+            }
+        };
+    }
+
+    fn print_error(&mut self, err: Box<dyn std::error::Error>) -> Result<()> {
+        let error_header = style("ERROR: \n")
+            .with(Color::Red)
+            .attribute(Attribute::Bold);
+        self.stdout
+            .queue(PrintStyledContent(error_header))?
+            .queue(MoveToColumn(0))?
+            .queue(Print(err.to_string()))?
+            .flush()?;
+
+        Ok(())
     }
 
     fn new_line(&mut self) -> Result<()> {
@@ -161,6 +181,7 @@ impl LineEditor {
         Ok(())
     }
 
+    #[allow(dead_code)]
     fn print_big_string(&mut self, big_string: String) -> Result<()> {
         for chunk in big_string.split('\n') {
             self.stdout.queue(Print(chunk))?;
