@@ -11,19 +11,13 @@ pub fn lower(ast: ast::Root) -> (Database, Vec<Stmt>) {
     (db, stmts)
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     VariableDef(VariableDef),
-    CodeBlock(CodeBlock),
     Expr(Expr),
 }
 
-#[derive(Debug, PartialEq)]
-pub struct CodeBlock {
-    pub stmts: Vec<Box<Stmt>>,
-}
-
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct VariableDef {
     pub name: SmolStr,
     pub value: Expr,
@@ -48,6 +42,9 @@ pub enum Expr {
     },
     VariableRef {
         var: SmolStr,
+    },
+    CodeBlock {
+        stmts: Vec<Stmt>,
     },
 }
 

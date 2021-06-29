@@ -52,6 +52,8 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
         prefix_expr(p)
     } else if p.at(TokenKind::LParen) {
         paren_expr(p)
+    } else if p.at(TokenKind::LBrace) {
+        code_block(p)
     } else {
         p.error();
         return None;
@@ -100,6 +102,29 @@ fn paren_expr(p: &mut Parser) -> CompletedMarker {
     p.expect(TokenKind::RParen);
 
     m.complete(p, SyntaxKind::ParenExpr)
+}
+
+fn code_block(p: &mut Parser) -> CompletedMarker {
+    assert!(p.at(TokenKind::LBrace));
+
+    let m = p.start();
+    p.bump();
+
+    loop {
+        if p.at(TokenKind::RBrace) {
+            p.bump();
+            break;
+        }
+
+        if p.at_end() {
+            // shouldn't have gotten here
+            break;
+        }
+
+        stmt::stmt(p);
+    }
+
+    m.complete(p, SyntaxKind::CodeBlock)
 }
 
 enum BinaryOp {

@@ -5,8 +5,6 @@ pub(super) fn stmt(p: &mut Parser) -> Option<CompletedMarker> {
         variable_def(p)
     } else if p.at(TokenKind::FnKw) {
         function_def(p)
-    } else if p.at(TokenKind::LBrace) {
-        block::block(p)
     } else {
         expr::expr(p)
     }

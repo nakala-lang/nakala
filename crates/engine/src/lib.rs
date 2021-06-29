@@ -1,4 +1,4 @@
-use hir::{BinaryOp, CodeBlock, Database, Expr, ExprIdx, Stmt, UnaryOp, VariableDef};
+use hir::{BinaryOp, Database, Expr, ExprIdx, Stmt, UnaryOp, VariableDef};
 use std::ops::Index;
 
 pub mod env;
@@ -10,34 +10,31 @@ use error::EngineError;
 use val::Val;
 
 pub fn eval(env: &mut Env, hir: (Database, Vec<Stmt>)) -> Result<Val, EngineError> {
-    // an entire program is basically just one giant code block :)
-    eval_code_block(
-        env,
-        &hir.0,
-        hir.1.into_iter().map(|x| Box::new(x)).collect(),
-    )
+    let (db, stmts) = hir;
+    let mut return_val = Val::Unit;
+
+    for stmt in stmts {
+        return_val = eval_stmt(env, &db, stmt)?;
+    }
+
+    Ok(return_val)
 }
 
 fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineError> {
     match stmt {
         Stmt::Expr(expr) => eval_expr(env, &db, expr.to_owned()),
-        Stmt::CodeBlock(CodeBlock { stmts }) => eval_code_block(env, &db, stmts),
         Stmt::VariableDef(VariableDef { name, value }) => {
             eval_variable_def(env, &db, name.to_string(), value.to_owned())
         }
     }
 }
 
-fn eval_code_block(
-    env: &mut Env,
-    db: &Database,
-    stmts: Vec<Box<Stmt>>,
-) -> Result<Val, EngineError> {
+fn eval_code_block(env: &Env, db: &Database, stmts: Vec<Stmt>) -> Result<Val, EngineError> {
     let mut block_env = env.clone();
     let mut return_val = Val::Unit;
 
     for stmt in stmts {
-        return_val = eval_stmt(&mut block_env, &db, *stmt)?;
+        return_val = eval_stmt(&mut block_env, &db, stmt)?;
     }
 
     Ok(return_val)
@@ -49,6 +46,7 @@ fn eval_expr(env: &Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {
         Expr::Literal { n } => Ok(Val::Number(n.into())),
         Expr::VariableRef { var } => env.get_binding(var.to_string()),
         Expr::Unary { op, expr } => eval_unary_expr(env, &db, op, db.exprs.index(expr).to_owned()),
+        Expr::CodeBlock { stmts } => eval_code_block(env, &db, stmts),
         _ => Err(EngineError::InvalidExpression(expr)),
     }
 }

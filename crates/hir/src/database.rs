@@ -1,4 +1,4 @@
-use crate::{BinaryOp, CodeBlock, Expr, Stmt, UnaryOp, VariableDef};
+use crate::{BinaryOp, Expr, Stmt, UnaryOp, VariableDef};
 use la_arena::Arena;
 use syntax::SyntaxKind;
 
@@ -14,24 +14,10 @@ impl Database {
                 name: ast.name()?.text().into(),
                 value: self.lower_expr(ast.value()),
             }),
-            ast::Stmt::CodeBlock(ast) => Stmt::CodeBlock(CodeBlock {
-                stmts: self.lower_block(ast).stmts,
-            }),
             ast::Stmt::Expr(ast) => Stmt::Expr(self.lower_expr(Some(ast))),
         };
 
         Some(result)
-    }
-
-    pub(crate) fn lower_block(&mut self, ast: ast::CodeBlock) -> CodeBlock {
-        let mut stmts = vec![];
-        for stmt in ast.stmts() {
-            match self.lower_stmt(*stmt) {
-                Some(hir_stmt) => stmts.push(Box::new(hir_stmt)),
-                None => {}
-            }
-        }
-        CodeBlock { stmts }
     }
 
     pub(crate) fn lower_expr(&mut self, ast: Option<ast::Expr>) -> Expr {
@@ -42,6 +28,7 @@ impl Database {
                 ast::Expr::ParenExpr(ast) => self.lower_expr(ast.expr()),
                 ast::Expr::UnaryExpr(ast) => self.lower_unary(ast),
                 ast::Expr::VariableRef(ast) => self.lower_variable_ref(ast),
+                ast::Expr::CodeBlock(ast) => self.lower_code_block(ast),
             }
         } else {
             Expr::Missing
@@ -85,6 +72,17 @@ impl Database {
         Expr::VariableRef {
             var: ast.name().unwrap().text().into(),
         }
+    }
+
+    fn lower_code_block(&mut self, ast: ast::CodeBlock) -> Expr {
+        let mut stmts = vec![];
+        for stmt in ast.stmts() {
+            match self.lower_stmt(*stmt) {
+                Some(hir_stmt) => stmts.push(hir_stmt),
+                None => {}
+            }
+        }
+        Expr::CodeBlock { stmts }
     }
 }
 

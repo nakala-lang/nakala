@@ -91,6 +91,7 @@ pub enum Expr {
     ParenExpr(ParenExpr),
     UnaryExpr(UnaryExpr),
     VariableRef(VariableRef),
+    CodeBlock(CodeBlock),
 }
 
 impl Expr {
@@ -101,6 +102,7 @@ impl Expr {
             SyntaxKind::ParenExpr => Self::ParenExpr(ParenExpr(node)),
             SyntaxKind::PrefixExpr => Self::UnaryExpr(UnaryExpr(node)),
             SyntaxKind::VariableRef => Self::VariableRef(VariableRef(node)),
+            SyntaxKind::CodeBlock => Self::CodeBlock(CodeBlock(node)),
             _ => return None,
         };
 
@@ -125,14 +127,12 @@ impl CodeBlock {
 pub enum Stmt {
     VariableDef(VariableDef),
     Expr(Expr),
-    CodeBlock(CodeBlock),
 }
 
 impl Stmt {
     pub fn cast(node: SyntaxNode) -> Option<Self> {
         let result = match node.kind() {
             SyntaxKind::VariableDef => Self::VariableDef(VariableDef(node)),
-            SyntaxKind::CodeBlock => Self::CodeBlock(CodeBlock(node)),
             _ => Self::Expr(Expr::cast(node)?),
         };
 
