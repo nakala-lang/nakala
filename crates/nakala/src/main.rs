@@ -1,3 +1,4 @@
+use clap::{App, Arg, ArgMatches};
 use crossterm::cursor::{MoveLeft, MoveToColumn};
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
 use crossterm::style::{style, Attribute, Color, Print, PrintStyledContent};
@@ -6,9 +7,50 @@ use crossterm::Result;
 use engine::env::Env;
 use parser::parse;
 use std::io::{self, Stdout, Write};
+use std::path::Path;
 
-fn main() -> Result<()> {
-    let mut le = LineEditor::new("> ")?;
+fn main() {
+    let matches = App::new("nakala")
+        .version("0.1.0")
+        .author("Reagan McFarland")
+        .arg(
+            Arg::with_name("file")
+                .value_name("FILE")
+                .help("Run a .nak program")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("parse")
+                .long("--show-parse")
+                .takes_value(false)
+                .help("Show the raw parse tree when using the REPL"),
+        )
+        .arg(
+            Arg::with_name("hir")
+                .long("--show-hir")
+                .takes_value(false)
+                .help("Show the HIR tree when using the REPL"),
+        )
+        .get_matches();
+
+    // If a file is passed in
+    if let Some(path) = matches.value_of("file") {
+        let path = Path::new(path);
+        if path.exists() {
+            unimplemented!("Not yet implemented")
+        } else {
+            eprintln!("File does not exist.");
+        }
+    } else {
+        match cli_main(matches) {
+            Ok(_) => {}
+            Err(_) => eprintln!("An error occurred."),
+        }
+    }
+}
+
+fn cli_main(cli_args: ArgMatches) -> Result<()> {
+    let mut le = LineEditor::new("> ", cli_args)?;
     crossterm::terminal::enable_raw_mode()?;
 
     loop {
@@ -25,15 +67,19 @@ pub struct LineEditor {
     buffer: String,
     env: Env,
     prompt: &'static str,
+    show_parse: bool,
+    show_hir: bool,
 }
 
 impl LineEditor {
-    pub fn new(prompt: &'static str) -> Result<Self> {
+    pub fn new(prompt: &'static str, cli_args: ArgMatches) -> Result<Self> {
         let mut le = Self {
             stdout: io::stdout(),
             buffer: String::new(),
             env: Env::default(),
             prompt,
+            show_parse: cli_args.is_present("parse"),
+            show_hir: cli_args.is_present("hir"),
         };
 
         le.print_version_message()?;
@@ -90,6 +136,7 @@ impl LineEditor {
         match self.buffer.as_str() {
             "help" => self.print_help_message()?,
             "version" => self.print_version_message()?,
+            "__env" => self.print_env()?,
             _ => self.parse_buffer(),
         }
 
@@ -108,19 +155,19 @@ impl LineEditor {
     }
 
     fn parse_buffer(&mut self) {
-        if self.buffer.eq("__env") {
-            self.print_env().unwrap();
-            return;
-        }
-
         let parse = parse(&self.buffer);
-        //self.print_big_string(parse.debug_tree());
+        if self.show_parse {
+            self.print_big_string(parse.debug_tree())
+                .expect("Failed to print big string");
+        }
 
         let ast_tree = ast::Root::cast(parse.syntax()).unwrap();
 
         let hir = hir::lower(ast_tree);
-
-        //self.print_big_string(format!("{:#?}", hir.1)).unwrap();
+        if self.show_hir {
+            self.print_big_string(format!("{:#?}", hir.1))
+                .expect("Failed to print big string");
+        }
 
         let engine_result = engine::eval(&mut self.env, hir);
         match engine_result {
