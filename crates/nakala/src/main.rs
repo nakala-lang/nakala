@@ -109,10 +109,9 @@ impl LineEditor {
         //self.print_big_string(format!("{:#?}", hir.1)).unwrap();
 
         let engine_result = engine::eval(&mut self.env, hir);
-        self.new_line().unwrap();
         match engine_result {
             Ok(res) => {
-                println!("{:?}", res);
+                println!("{}", res);
             }
             Err(err) => {
                 self.print_error(Box::new(err)).unwrap();

@@ -18,7 +18,6 @@ pub fn eval(env: &mut Env, hir: (Database, Vec<Stmt>)) -> Result<Val, EngineErro
         Stmt::VariableDef { name, value } => {
             eval_variable_def(env, &db, name.to_string(), value.to_owned())
         }
-        _ => todo!(),
     }
 }
 

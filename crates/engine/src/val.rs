@@ -37,6 +37,15 @@ impl Val {
     }
 }
 
+impl std::fmt::Display for Val {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Val::Number(n) => f.write_str(format!("{}", n).as_str()),
+            _ => Ok(()),
+        }
+    }
+}
+
 impl From<Val> for i128 {
     fn from(v: Val) -> i128 {
         match v {
