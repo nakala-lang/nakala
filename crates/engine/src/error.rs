@@ -30,6 +30,12 @@ impl std::fmt::Display for EngineError {
             EngineError::InvalidDivOperation => {
                 f.write_str("Could not find div handler for the provided types")
             }
+            EngineError::BindingAlreadyExists { binding_name } => f.write_str(
+                format!("The binding `{}` already exists in the scope", binding_name).as_str(),
+            ),
+            EngineError::BindingUndefined { binding_name } => f.write_str(
+                format!("The binding `{}` is undefined in the scope", binding_name).as_str(),
+            ),
             EngineError::Unknown => f.write_str("An unknown error occurred"),
         }
     }
