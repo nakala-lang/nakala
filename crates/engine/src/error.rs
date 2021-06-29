@@ -7,6 +7,8 @@ pub enum EngineError {
     InvalidSubOperation,
     InvalidMulOperation,
     InvalidDivOperation,
+    BindingAlreadyExists { binding_name: String },
+    BindingUndefined { binding_name: String },
     Unknown,
 }
 
