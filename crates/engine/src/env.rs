@@ -25,6 +25,10 @@ impl Env {
 
         Ok(Val::Unit)
     }
+
+    pub fn get_all_bindings(&self) -> Vec<(String, Val)> {
+        self.bindings.clone().into_iter().collect()
+    }
 }
 
 impl std::default::Default for Env {

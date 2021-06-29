@@ -98,7 +98,21 @@ impl LineEditor {
         Ok(())
     }
 
+    fn print_env(&mut self) -> Result<()> {
+        let mut env_str = String::new();
+        for (k, v) in self.env.get_all_bindings() {
+            env_str.push_str(format!("`{:?}`: `{:?}`\n", k, v).as_str());
+        }
+
+        self.print_big_string(env_str)
+    }
+
     fn parse_buffer(&mut self) {
+        if self.buffer.eq("__env") {
+            self.print_env().unwrap();
+            return;
+        }
+
         let parse = parse(&self.buffer);
         //self.print_big_string(parse.debug_tree());
 
