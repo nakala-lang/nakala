@@ -1,4 +1,4 @@
-use hir::{BinaryOp, Database, Expr, ExprIdx, Stmt};
+use hir::{BinaryOp, Database, Expr, ExprIdx, Stmt, UnaryOp};
 use std::ops::Index;
 
 pub mod env;
@@ -26,6 +26,7 @@ fn eval_expr(env: &Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {
         Expr::Binary { op, lhs, rhs } => eval_binary_expr(&env, &db, op, lhs, rhs),
         Expr::Literal { n } => Ok(Val::Number(n.into())),
         Expr::VariableRef { var } => env.get_binding(var.to_string()),
+        Expr::Unary { op, expr } => eval_unary_expr(env, &db, op, db.exprs.index(expr).to_owned()),
         _ => Err(EngineError::InvalidExpression(expr)),
     }
 }
@@ -38,6 +39,13 @@ fn eval_variable_def(
 ) -> Result<Val, EngineError> {
     let val = eval_expr(env, db, value)?;
     env.set_binding(name, val)
+}
+
+fn eval_unary_expr(env: &Env, db: &Database, op: UnaryOp, expr: Expr) -> Result<Val, EngineError> {
+    let val = eval_expr(env, db, expr)?;
+    match op {
+        UnaryOp::Neg => val.neg(),
+    }
 }
 
 fn eval_binary_expr(

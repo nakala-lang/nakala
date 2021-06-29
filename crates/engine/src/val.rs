@@ -35,6 +35,13 @@ impl Val {
             _ => Err(EngineError::InvalidDivOperation),
         }
     }
+
+    pub(crate) fn neg(&self) -> Result<Self, EngineError> {
+        match self {
+            Val::Number(n) => Ok(Val::Number(-n)),
+            _ => Err(EngineError::InvalidNegOperation),
+        }
+    }
 }
 
 impl std::fmt::Display for Val {
