@@ -12,7 +12,7 @@ pub enum TokenKind {
     #[token("let")]
     LetKw,
 
-    #[regex("[A-Za-z][A-Za-z0-9]*")]
+    #[regex("[A-Za-z][A-Za-z0-9_]*")]
     Ident,
 
     #[regex("[0-9]+")]
