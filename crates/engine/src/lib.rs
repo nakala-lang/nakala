@@ -1,4 +1,4 @@
-use hir::{BinaryOp, Database, Expr, ExprIdx, Stmt, UnaryOp, VariableDef};
+use hir::{BinaryOp, Database, Expr, ExprIdx, Hir, Stmt, UnaryOp, VariableDef};
 use std::ops::Index;
 
 pub mod env;
@@ -9,8 +9,9 @@ use env::Env;
 use error::EngineError;
 use val::Val;
 
-pub fn eval(env: &mut Env, hir: (Database, Vec<Stmt>)) -> Result<Val, EngineError> {
-    let (db, stmts) = hir;
+pub fn eval(env: &mut Env, hir: Hir) -> Result<Val, EngineError> {
+    let db = hir.db;
+    let stmts = hir.stmts;
     let mut return_val = Val::Unit;
 
     for stmt in stmts {
