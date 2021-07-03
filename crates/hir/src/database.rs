@@ -2,7 +2,7 @@ use crate::{BinaryOp, Expr, Stmt, UnaryOp, VariableDef};
 use la_arena::Arena;
 use syntax::SyntaxKind;
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub struct Database {
     pub exprs: Arena<Expr>,
 }
