@@ -37,7 +37,7 @@ impl LineEditor {
 
     pub fn dispatch_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
         if key_event == KILL_KEY_EVENT {
-            self.exit().expect("Failed to exit");
+            self.exit();
         }
 
         let KeyEvent { code, .. } = key_event;
@@ -85,7 +85,9 @@ impl LineEditor {
                 print!("{:?}", val);
             }
             Err(err) => {
-                self.print_error(Box::new(err));
+                if self.print_error(Box::new(err)).is_err() {
+                    self.exit();
+                }
             }
         }
     }
@@ -195,9 +197,9 @@ impl LineEditor {
         Ok(())
     }
 
-    fn exit(&self) -> Result<()> {
+    fn exit(&self) {
         // Cleanup
-        crossterm::terminal::disable_raw_mode()?;
+        crossterm::terminal::disable_raw_mode().expect("Failed to disable raw mode");
         std::process::exit(0);
     }
 }

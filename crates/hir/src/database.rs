@@ -77,9 +77,8 @@ impl Database {
     fn lower_code_block(&mut self, ast: ast::CodeBlock) -> Expr {
         let mut stmts = vec![];
         for stmt in ast.stmts() {
-            match self.lower_stmt(*stmt) {
-                Some(hir_stmt) => stmts.push(hir_stmt),
-                None => {}
+            if let Some(hir_stmt) = self.lower_stmt(stmt) {
+                stmts.push(hir_stmt);
             }
         }
         Expr::CodeBlock { stmts }
@@ -124,10 +123,10 @@ mod tests {
 
         assert_eq!(
             hir,
-            Stmt::VariableDef {
+            Stmt::VariableDef(VariableDef {
                 name: "foo".into(),
                 value: Expr::VariableRef { var: "bar".into() }
-            }
+            })
         )
     }
 
@@ -142,10 +141,10 @@ mod tests {
     fn lower_variable_def_without_value() {
         check_stmt(
             "let a =",
-            Stmt::VariableDef {
+            Stmt::VariableDef(VariableDef {
                 name: "a".into(),
                 value: Expr::Missing,
-            },
+            }),
         );
     }
 

@@ -112,7 +112,6 @@ fn code_block(p: &mut Parser) -> CompletedMarker {
 
     loop {
         if p.at(TokenKind::RBrace) {
-            p.bump();
             break;
         }
 
@@ -123,6 +122,8 @@ fn code_block(p: &mut Parser) -> CompletedMarker {
 
         stmt::stmt(p);
     }
+
+    p.expect(TokenKind::RBrace);
 
     m.complete(p, SyntaxKind::CodeBlock)
 }
@@ -427,15 +428,157 @@ Root@0..7
         check(
             "(1+",
             expect![[r#"
-Root@0..3
-  ParenExpr@0..3
-    LParen@0..1 "("
-    InfixExpr@1..3
+                Root@0..3
+                  ParenExpr@0..3
+                    LParen@0..1 "("
+                    InfixExpr@1..3
+                      Literal@1..2
+                        Number@1..2 "1"
+                      Plus@2..3 "+"
+                error at 2..3: expected number, identifier, ‘-’, ‘(’ or ‘{’
+                error at 2..3: expected ‘)’"#]],
+        );
+    }
+
+    #[test]
+    fn parse_code_block() {
+        check(
+            "{1+2}",
+            expect![[r#"
+Root@0..5
+  CodeBlock@0..5
+    LBrace@0..1 "{"
+    InfixExpr@1..4
       Literal@1..2
         Number@1..2 "1"
       Plus@2..3 "+"
-error at 2..3: expected number, identifier, ‘-’ or ‘(’
-error at 2..3: expected ‘)’"#]],
+      Literal@3..4
+        Number@3..4 "2"
+    RBrace@4..5 "}""#]],
+        );
+    }
+
+    #[test]
+    fn parse_variable_definition_code_block() {
+        check(
+            "let x = {1+2}",
+            expect![[r#"
+Root@0..13
+  VariableDef@0..13
+    LetKw@0..3 "let"
+    Whitespace@3..4 " "
+    Ident@4..5 "x"
+    Whitespace@5..6 " "
+    Equals@6..7 "="
+    Whitespace@7..8 " "
+    CodeBlock@8..13
+      LBrace@8..9 "{"
+      InfixExpr@9..12
+        Literal@9..10
+          Number@9..10 "1"
+        Plus@10..11 "+"
+        Literal@11..12
+          Number@11..12 "2"
+      RBrace@12..13 "}""#]],
+        );
+    }
+
+    #[test]
+    fn parse_code_block_with_def_inside() {
+        check(
+            "let x = { let y = 10    y}",
+            expect![[r#"
+Root@0..26
+  VariableDef@0..26
+    LetKw@0..3 "let"
+    Whitespace@3..4 " "
+    Ident@4..5 "x"
+    Whitespace@5..6 " "
+    Equals@6..7 "="
+    Whitespace@7..8 " "
+    CodeBlock@8..26
+      LBrace@8..9 "{"
+      Whitespace@9..10 " "
+      VariableDef@10..24
+        LetKw@10..13 "let"
+        Whitespace@13..14 " "
+        Ident@14..15 "y"
+        Whitespace@15..16 " "
+        Equals@16..17 "="
+        Whitespace@17..18 " "
+        Literal@18..24
+          Number@18..20 "10"
+          Whitespace@20..24 "    "
+      VariableRef@24..25
+        Ident@24..25 "y"
+      RBrace@25..26 "}""#]],
+        );
+    }
+
+    #[test]
+    fn parse_code_block_with_outside_reference() {
+        check(
+            "let z = 1  let x = { z + 5 }",
+            expect![[r#"
+Root@0..28
+  VariableDef@0..11
+    LetKw@0..3 "let"
+    Whitespace@3..4 " "
+    Ident@4..5 "z"
+    Whitespace@5..6 " "
+    Equals@6..7 "="
+    Whitespace@7..8 " "
+    Literal@8..11
+      Number@8..9 "1"
+      Whitespace@9..11 "  "
+  VariableDef@11..28
+    LetKw@11..14 "let"
+    Whitespace@14..15 " "
+    Ident@15..16 "x"
+    Whitespace@16..17 " "
+    Equals@17..18 "="
+    Whitespace@18..19 " "
+    CodeBlock@19..28
+      LBrace@19..20 "{"
+      Whitespace@20..21 " "
+      InfixExpr@21..27
+        VariableRef@21..23
+          Ident@21..22 "z"
+          Whitespace@22..23 " "
+        Plus@23..24 "+"
+        Whitespace@24..25 " "
+        Literal@25..27
+          Number@25..26 "5"
+          Whitespace@26..27 " "
+      RBrace@27..28 "}""#]],
+        );
+    }
+
+    #[test]
+    fn do_not_parse_block_if_missing_closing_brace() {
+        check(
+            "let z = { x + 1",
+            expect![[r#"
+Root@0..15
+  VariableDef@0..15
+    LetKw@0..3 "let"
+    Whitespace@3..4 " "
+    Ident@4..5 "z"
+    Whitespace@5..6 " "
+    Equals@6..7 "="
+    Whitespace@7..8 " "
+    CodeBlock@8..15
+      LBrace@8..9 "{"
+      Whitespace@9..10 " "
+      InfixExpr@10..15
+        VariableRef@10..12
+          Ident@10..11 "x"
+          Whitespace@11..12 " "
+        Plus@12..13 "+"
+        Whitespace@13..14 " "
+        Literal@14..15
+          Number@14..15 "1"
+error at 14..15: expected ‘+’, ‘-’, ‘*’, ‘/’, ‘+’, ‘-’, ‘*’, ‘/’, ‘}’ or ‘}’"#]],
         );
     }
 }

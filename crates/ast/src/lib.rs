@@ -114,12 +114,8 @@ impl Expr {
 pub struct CodeBlock(SyntaxNode);
 
 impl CodeBlock {
-    pub fn stmts(&self) -> Vec<Box<Stmt>> {
-        self.0
-            .children()
-            .filter_map(Stmt::cast)
-            .map(|x| Box::new(x))
-            .collect()
+    pub fn stmts(&self) -> Vec<Stmt> {
+        self.0.children().filter_map(Stmt::cast).collect()
     }
 }
 

@@ -23,9 +23,9 @@ pub fn eval(env: &mut Env, hir: Hir) -> Result<Val, EngineError> {
 
 fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineError> {
     match stmt {
-        Stmt::Expr(expr) => eval_expr(env, &db, expr.to_owned()),
+        Stmt::Expr(expr) => eval_expr(env, &db, expr),
         Stmt::VariableDef(VariableDef { name, value }) => {
-            eval_variable_def(env, &db, name.to_string(), value.to_owned())
+            eval_variable_def(env, &db, name.to_string(), value)
         }
     }
 }

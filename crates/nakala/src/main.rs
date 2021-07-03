@@ -84,10 +84,10 @@ pub struct NakalaResult {
 }
 
 pub fn parse_and_eval_buffer(
-    buffer: &String,
+    buffer: &str,
     env: &mut Env,
 ) -> std::result::Result<NakalaResult, EngineError> {
-    let parse = parser::parse(buffer.as_str());
+    let parse = parser::parse(buffer);
     let ast_tree = ast::Root::cast(parse.syntax()).unwrap();
     let hir = hir::lower(ast_tree);
 

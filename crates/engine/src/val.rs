@@ -10,28 +10,40 @@ pub enum Val {
 impl Val {
     pub(crate) fn add(&self, other: Val) -> Result<Self, EngineError> {
         match self {
-            Val::Number(n) => Ok(Val::Number(n + &other.into())),
+            Val::Number(x) => match other {
+                Val::Number(y) => Ok(Val::Number(*x + y)),
+                _ => Err(EngineError::InvalidAddOperation),
+            },
             _ => Err(EngineError::InvalidAddOperation),
         }
     }
 
     pub(crate) fn sub(&self, other: Val) -> Result<Self, EngineError> {
         match self {
-            Val::Number(n) => Ok(Val::Number(n - &other.into())),
+            Val::Number(x) => match other {
+                Val::Number(y) => Ok(Val::Number(*x - y)),
+                _ => Err(EngineError::InvalidSubOperation),
+            },
             _ => Err(EngineError::InvalidSubOperation),
         }
     }
 
     pub(crate) fn mul(&self, other: Val) -> Result<Self, EngineError> {
         match self {
-            Val::Number(n) => Ok(Val::Number(n * &other.into())),
+            Val::Number(x) => match other {
+                Val::Number(y) => Ok(Val::Number(*x * y)),
+                _ => Err(EngineError::InvalidMulOperation),
+            },
             _ => Err(EngineError::InvalidMulOperation),
         }
     }
 
     pub(crate) fn div(&self, other: Val) -> Result<Self, EngineError> {
         match self {
-            Val::Number(n) => Ok(Val::Number(n / &other.into())),
+            Val::Number(x) => match other {
+                Val::Number(y) => Ok(Val::Number(*x / y)),
+                _ => Err(EngineError::InvalidDivOperation),
+            },
             _ => Err(EngineError::InvalidDivOperation),
         }
     }
