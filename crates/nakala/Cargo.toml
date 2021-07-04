@@ -1,6 +1,6 @@
 [package]
 name = "nakala"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Reagan McFarland <reagan.mcfarland1059@gmail.com>"]
 edition = "2018"
 
@@ -13,3 +13,6 @@ hir = {path = "../hir"}
 engine = {path = "../engine"}
 crossterm = "0.19.0"
 clap = "2.33.3"
+
+[dev-dependencies]
+assert_cmd = "1.0.3"

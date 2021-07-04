@@ -1,0 +1,8 @@
+let x = {
+  let first_value = 10
+  let second_value = 20
+
+  first_value + second_value
+}
+
+x
