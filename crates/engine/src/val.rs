@@ -1,10 +1,11 @@
 use super::EngineError;
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Val {
     Missing, // filler name
     Unit,    // Unit tuple
     Number(i128),
+    String(String),
 }
 
 impl Val {
@@ -59,8 +60,9 @@ impl Val {
 impl std::fmt::Display for Val {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Val::Missing | Val::Unit => Ok(()),
             Val::Number(n) => f.write_str(format!("{}", n).as_str()),
-            _ => Ok(()),
+            Val::String(s) => f.write_str(s),
         }
     }
 }
