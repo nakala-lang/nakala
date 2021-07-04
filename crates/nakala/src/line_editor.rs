@@ -62,7 +62,6 @@ impl LineEditor {
                 self.execute_buffer()?;
                 self.reset_prompt()?;
             }
-
             _ => {}
         }
 
@@ -187,7 +186,6 @@ impl LineEditor {
         Ok(())
     }
 
-    #[allow(dead_code)]
     fn print_big_string(&mut self, big_string: String) -> Result<()> {
         for chunk in big_string.split('\n') {
             self.stdout.queue(Print(chunk))?;
