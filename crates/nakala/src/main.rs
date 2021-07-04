@@ -34,6 +34,15 @@ fn main() {
                 .takes_value(false)
                 .help("Show the HIR tree when using the REPL"),
         )
+        .arg(
+            Arg::with_name("input")
+                .value_name("INPUT")
+                .long("--input")
+                .short("-i")
+                .takes_value(true)
+                .help("Parse raw string as a nakala program")
+                .long_help("nakala -i \"let x = 5   x\""),
+        )
         .get_matches();
 
     // If a file is passed in
@@ -42,22 +51,9 @@ fn main() {
         if path.exists() {
             // parse the entire file into a buffer and execute it
             match read_to_string(path) {
-                Ok(buf) => match parse_and_eval_buffer(&buf, &mut Env::default()) {
-                    Ok(NakalaResult { parse, hir, val }) => {
-                        if matches.is_present("parse") {
-                            println!("{}", parse.debug_tree());
-                        }
-
-                        if matches.is_present("hir") {
-                            println!("{:#?}", hir.stmts);
-                        }
-
-                        println!("{}", val);
-                    }
-                    Err(err) => {
-                        eprintln!("{}", err);
-                    }
-                },
+                Ok(buf) => {
+                    run_without_repl(&buf, matches);
+                }
                 Err(_) => {
                     eprintln!("Failed to parse file.");
                 }
@@ -65,6 +61,8 @@ fn main() {
         } else {
             eprintln!("File does not exist.");
         }
+    } else if let Some(input) = matches.value_of("input") {
+        run_without_repl(input, matches.clone());
     } else {
         // Load line editor
         match cli_main(matches) {
@@ -73,6 +71,25 @@ fn main() {
                 eprintln!("An error occurred.");
                 crossterm::terminal::disable_raw_mode().unwrap();
             }
+        }
+    }
+}
+
+fn run_without_repl(buffer: &str, matches: ArgMatches) {
+    match parse_and_eval_buffer(&buffer, &mut Env::default()) {
+        Ok(NakalaResult { parse, hir, val }) => {
+            if matches.is_present("parse") {
+                println!("{}", parse.debug_tree());
+            }
+
+            if matches.is_present("hir") {
+                println!("{:#?}", hir.stmts);
+            }
+
+            println!("{}", val);
+        }
+        Err(err) => {
+            eprintln!("{}", err);
         }
     }
 }
