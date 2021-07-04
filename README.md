@@ -45,6 +45,11 @@ let x = {
 }
 ```
 
+#### Strings
+```
+let x = "Hello, World!"
+```
+
 #### `.nak` File Format
 
 You can store a nakala program in a `.nak` file and run it using the CLI tool. For example:
