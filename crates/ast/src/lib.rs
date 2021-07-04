@@ -42,11 +42,40 @@ impl BinaryExpr {
 }
 
 #[derive(Debug)]
-pub struct Literal(SyntaxNode);
+pub enum Literal {
+    Number(Number),
+    String(crate::String),
+}
 
 impl Literal {
+    pub fn cast(node: SyntaxNode) -> Self {
+        match node
+            .first_token()
+            .expect("Literal's must have a child")
+            .kind()
+        {
+            SyntaxKind::Number => Self::Number(Number(node)),
+            SyntaxKind::String => Self::String(String(node)),
+            _ => unreachable!("Literals must be Numbers or Strings"),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Number(SyntaxNode);
+
+impl Number {
     pub fn parse(&self) -> u64 {
         self.0.first_token().unwrap().text().parse().unwrap()
+    }
+}
+
+#[derive(Debug)]
+pub struct String(SyntaxNode);
+
+impl String {
+    pub fn parse(&self) -> std::string::String {
+        self.0.first_token().unwrap().text().to_string()
     }
 }
 
@@ -98,12 +127,14 @@ impl Expr {
     pub fn cast(node: SyntaxNode) -> Option<Self> {
         let result = match node.kind() {
             SyntaxKind::InfixExpr => Self::BinaryExpr(BinaryExpr(node)),
-            SyntaxKind::Literal => Self::Literal(Literal(node)),
+            SyntaxKind::Literal => Self::Literal(Literal::cast(node)),
             SyntaxKind::ParenExpr => Self::ParenExpr(ParenExpr(node)),
             SyntaxKind::PrefixExpr => Self::UnaryExpr(UnaryExpr(node)),
             SyntaxKind::VariableRef => Self::VariableRef(VariableRef(node)),
             SyntaxKind::CodeBlock => Self::CodeBlock(CodeBlock(node)),
-            _ => return None,
+            _ => {
+                return None;
+            }
         };
 
         Some(result)
