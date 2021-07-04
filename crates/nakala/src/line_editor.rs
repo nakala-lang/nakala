@@ -153,7 +153,7 @@ impl LineEditor {
     }
 
     fn print_version_message(&mut self) -> Result<()> {
-        let header_msg = "Nakala v0.1.0\n";
+        let header_msg = format!("Nakala v{}\n", env!("CARGO_PKG_VERSION"));
         let body_msg = "Type \"help\" for more information";
 
         let styled_header = style(header_msg)
