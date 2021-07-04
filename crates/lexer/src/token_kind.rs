@@ -18,6 +18,9 @@ pub enum TokenKind {
     #[regex("[0-9]+")]
     Number,
 
+    #[regex(r#""[^"]*""#)]
+    String,
+
     #[token("+")]
     Plus,
 
@@ -66,6 +69,7 @@ impl fmt::Display for TokenKind {
             Self::LetKw => "‘let’",
             Self::Ident => "identifier",
             Self::Number => "number",
+            Self::String => "string",
             Self::Plus => "‘+’",
             Self::Minus => "‘-’",
             Self::Star => "‘*’",

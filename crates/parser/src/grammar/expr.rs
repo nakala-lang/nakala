@@ -44,7 +44,7 @@ fn expr_binding_power(p: &mut Parser, minimum_binding_power: u8) -> Option<Compl
 }
 
 fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
-    let cm = if p.at(TokenKind::Number) {
+    let cm = if p.at(TokenKind::Number) || p.at(TokenKind::String) {
         literal(p)
     } else if p.at(TokenKind::Ident) {
         variable_ref(p)
@@ -63,7 +63,7 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
 }
 
 fn literal(p: &mut Parser) -> CompletedMarker {
-    assert!(p.at(TokenKind::Number));
+    assert!(p.at(TokenKind::Number) || p.at(TokenKind::String));
 
     let m = p.start();
     p.bump();
@@ -435,7 +435,7 @@ Root@0..7
                       Literal@1..2
                         Number@1..2 "1"
                       Plus@2..3 "+"
-                error at 2..3: expected number, identifier, ‘-’, ‘(’ or ‘{’
+                error at 2..3: expected number, string, identifier, ‘-’, ‘(’ or ‘{’
                 error at 2..3: expected ‘)’"#]],
         );
     }
@@ -579,6 +579,68 @@ Root@0..15
         Literal@14..15
           Number@14..15 "1"
 error at 14..15: expected ‘+’, ‘-’, ‘*’, ‘/’, ‘+’, ‘-’, ‘*’, ‘/’, ‘}’ or ‘}’"#]],
+        );
+    }
+
+    #[test]
+    fn parse_string_literal() {
+        check(
+            "\"Hello, world!\"",
+            expect![[r#"
+Root@0..15
+  Literal@0..15
+    String@0..15 "\"Hello, world!\"""#]],
+        );
+    }
+
+    #[test]
+    fn parse_var_def_string_literal() {
+        check(
+            "let x = \"Hello, world!\"",
+            expect![[r#"
+Root@0..23
+  VariableDef@0..23
+    LetKw@0..3 "let"
+    Whitespace@3..4 " "
+    Ident@4..5 "x"
+    Whitespace@5..6 " "
+    Equals@6..7 "="
+    Whitespace@7..8 " "
+    Literal@8..23
+      String@8..23 "\"Hello, world!\"""#]],
+        );
+    }
+
+    #[test]
+    fn parse_block_with_string_literal() {
+        check(
+            "let y = { let x = 10   \"100\" }",
+            expect![[r#"
+                Root@0..30
+                  VariableDef@0..30
+                    LetKw@0..3 "let"
+                    Whitespace@3..4 " "
+                    Ident@4..5 "y"
+                    Whitespace@5..6 " "
+                    Equals@6..7 "="
+                    Whitespace@7..8 " "
+                    CodeBlock@8..30
+                      LBrace@8..9 "{"
+                      Whitespace@9..10 " "
+                      VariableDef@10..23
+                        LetKw@10..13 "let"
+                        Whitespace@13..14 " "
+                        Ident@14..15 "x"
+                        Whitespace@15..16 " "
+                        Equals@16..17 "="
+                        Whitespace@17..18 " "
+                        Literal@18..23
+                          Number@18..20 "10"
+                          Whitespace@20..23 "   "
+                      Literal@23..29
+                        String@23..28 "\"100\""
+                        Whitespace@28..29 " "
+                      RBrace@29..30 "}""#]],
         );
     }
 }

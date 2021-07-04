@@ -14,7 +14,7 @@ pub fn compare_output(arg_list: Vec<&str>, input: Option<&str>, expected: &str) 
     }
 
     if let Some(input) = input {
-        cmd.arg(format!("-i \"{}\"", input));
+        cmd.arg(format!("-i {}", input));
     }
 
     cmd.stdout(Stdio::piped());
