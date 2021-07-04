@@ -45,6 +45,28 @@ let x = {
 }
 ```
 
+#### `.nak` File Format
+
+You can store a nakala program in a `.nak` file and run it using the CLI tool. For example:
+
+```
+# my_program.nak
+
+let x = 100
+
+let y = x + 5
+
+x + y
+```
+
+You can then run this program with the following command
+
+```
+$ nakala my_program.nak
+
+110
+```
+
 #### (Rudimentary) Error Handling
 
 
