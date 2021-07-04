@@ -45,7 +45,7 @@ fn eval_expr(env: &Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {
     match expr {
         Expr::Binary { op, lhs, rhs } => eval_binary_expr(&env, &db, op, lhs, rhs),
         Expr::Number { n } => Ok(Val::Number(n.into())),
-        Expr::String { s } => Ok(Val::String(s.into())),
+        Expr::String { s } => Ok(Val::String(s)),
         Expr::VariableRef { var } => env.get_binding(var.to_string()),
         Expr::Unary { op, expr } => eval_unary_expr(env, &db, op, db.exprs.index(expr).to_owned()),
         Expr::CodeBlock { stmts } => eval_code_block(env, &db, stmts),

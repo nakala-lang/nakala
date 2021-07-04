@@ -6,7 +6,7 @@ use crossterm::Result;
 use engine::env::Env;
 use engine::error::EngineError;
 use engine::val::Val;
-use hir::{Database, Hir};
+use hir::Hir;
 use line_editor::LineEditor;
 use parser::Parse;
 use std::fs::read_to_string;
