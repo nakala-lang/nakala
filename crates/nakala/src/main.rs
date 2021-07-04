@@ -14,7 +14,7 @@ use std::path::Path;
 
 fn main() {
     let matches = App::new("nakala")
-        .version("0.1.0")
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Reagan McFarland")
         .arg(
             Arg::with_name("file")
@@ -42,9 +42,22 @@ fn main() {
         if path.exists() {
             // parse the entire file into a buffer and execute it
             match read_to_string(path) {
-                Ok(buf) => {
-                    parse_and_eval_buffer(&buf, &mut Env::default());
-                }
+                Ok(buf) => match parse_and_eval_buffer(&buf, &mut Env::default()) {
+                    Ok(NakalaResult { parse, hir, val }) => {
+                        if matches.is_present("parse") {
+                            println!("{}", parse.debug_tree());
+                        }
+
+                        if matches.is_present("hir") {
+                            println!("{:#?}", hir.stmts);
+                        }
+
+                        println!("{}", val);
+                    }
+                    Err(err) => {
+                        eprintln!("{}", err);
+                    }
+                },
                 Err(_) => {
                     eprintln!("Failed to parse file.");
                 }
