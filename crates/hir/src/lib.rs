@@ -39,8 +39,11 @@ pub enum Expr {
         lhs: ExprIdx,
         rhs: ExprIdx,
     },
-    Literal {
+    Number {
         n: u64,
+    },
+    String {
+        s: String,
     },
     Unary {
         op: UnaryOp,

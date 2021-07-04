@@ -24,7 +24,7 @@ impl Database {
         if let Some(ast) = ast {
             match ast {
                 ast::Expr::BinaryExpr(ast) => self.lower_binary(ast),
-                ast::Expr::Literal(ast) => Expr::Literal { n: ast.parse() },
+                ast::Expr::Literal(ast) => self.lower_literal(ast),
                 ast::Expr::ParenExpr(ast) => self.lower_expr(ast.expr()),
                 ast::Expr::UnaryExpr(ast) => self.lower_unary(ast),
                 ast::Expr::VariableRef(ast) => self.lower_variable_ref(ast),
@@ -51,6 +51,22 @@ impl Database {
             op,
             lhs: self.exprs.alloc(lhs),
             rhs: self.exprs.alloc(rhs),
+        }
+    }
+
+    fn lower_literal(&mut self, ast: ast::Literal) -> Expr {
+        match ast {
+            ast::Literal::Number(n) => Expr::Number { n: n.parse() },
+            ast::Literal::String(s) => {
+                // have to trim the leading and trailing " characters
+                // they are on the node because the regex pattern captures them
+                Expr::String {
+                    s: s.parse()
+                        .trim_start_matches('"')
+                        .trim_end_matches('"')
+                        .to_string(),
+                }
+            }
         }
     }
 
@@ -150,14 +166,14 @@ mod tests {
 
     #[test]
     fn lower_expr_stmt() {
-        check_stmt("123", Stmt::Expr(Expr::Literal { n: 123 }));
+        check_stmt("123", Stmt::Expr(Expr::Number { n: 123 }));
     }
 
     #[test]
     fn lower_binary_expr() {
         let mut exprs = Arena::new();
-        let lhs = exprs.alloc(Expr::Literal { n: 1 });
-        let rhs = exprs.alloc(Expr::Literal { n: 2 });
+        let lhs = exprs.alloc(Expr::Number { n: 1 });
+        let rhs = exprs.alloc(Expr::Number { n: 2 });
 
         check_expr(
             "1+2",
@@ -173,7 +189,7 @@ mod tests {
     #[test]
     fn lower_binary_expr_without_rhs() {
         let mut exprs = Arena::new();
-        let lhs = exprs.alloc(Expr::Literal { n: 10 });
+        let lhs = exprs.alloc(Expr::Number { n: 10 });
         let rhs = exprs.alloc(Expr::Missing);
 
         check_expr(
@@ -189,7 +205,7 @@ mod tests {
 
     #[test]
     fn lower_literal() {
-        check_expr("999", Expr::Literal { n: 999 }, Database::default());
+        check_expr("999", Expr::Number { n: 999 }, Database::default());
     }
 
     #[test]
@@ -204,7 +220,7 @@ mod tests {
     #[test]
     fn lower_unary_expr() {
         let mut exprs = Arena::new();
-        let ten = exprs.alloc(Expr::Literal { n: 10 });
+        let ten = exprs.alloc(Expr::Number { n: 10 });
 
         check_expr(
             "-10",
