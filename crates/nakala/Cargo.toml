@@ -1,6 +1,6 @@
 [package]
 name = "nakala"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Reagan McFarland <reagan.mcfarland1059@gmail.com>"]
 edition = "2018"
 
