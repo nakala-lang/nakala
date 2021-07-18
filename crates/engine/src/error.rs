@@ -12,6 +12,7 @@ pub enum EngineError {
     VariableUndefined { variable_name: String },
     FunctionAlreadyExists { function_name: String },
     FunctionUndefined { function_name: String },
+    MismatchedParameterCount { actual: usize, expected: usize },
     NotYetImplemented,
     Unknown,
 }
@@ -56,6 +57,13 @@ impl std::fmt::Display for EngineError {
             ),
             EngineError::FunctionUndefined { function_name } => f.write_str(
                 format!("The function `{}` is undefined in the scope", function_name).as_str(),
+            ),
+            EngineError::MismatchedParameterCount { actual, expected } => f.write_str(
+                format!(
+                    "The function expected {} parameters, but received {}",
+                    expected, actual
+                )
+                .as_str(),
             ),
             EngineError::NotYetImplemented => f.write_str("This feature is not yet implemented"),
             EngineError::Unknown => f.write_str("An unknown error occurred"),

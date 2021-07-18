@@ -14,27 +14,33 @@ pub struct Env {
 }
 
 impl Env {
-    pub fn get_variable(&self, variable_name: String) -> Result<Val, EngineError> {
-        match self.variables.get(&variable_name) {
+    pub fn get_variable(&self, variable_name: &String) -> Result<Val, EngineError> {
+        match self.variables.get(variable_name) {
             Some(val) => Ok(val.to_owned()),
-            None => Err(EngineError::VariableUndefined { variable_name }),
+            None => Err(EngineError::VariableUndefined {
+                variable_name: variable_name.clone(),
+            }),
         }
     }
 
-    pub fn set_variable(&mut self, variable_name: String, val: Val) -> Result<Val, EngineError> {
-        if self.variables.contains_key(&variable_name) {
-            return Err(EngineError::VariableAlreadyExists { variable_name });
+    pub fn set_variable(&mut self, variable_name: &String, val: Val) -> Result<Val, EngineError> {
+        if self.variables.contains_key(variable_name) {
+            return Err(EngineError::VariableAlreadyExists {
+                variable_name: variable_name.clone(),
+            });
         }
 
-        self.variables.insert(variable_name, val);
+        self.variables.insert(variable_name.clone(), val);
 
         Ok(Val::Unit)
     }
 
-    pub fn get_function(&self, function_name: String) -> Result<Function, EngineError> {
-        match self.functions.get(&function_name) {
+    pub fn get_function(&self, function_name: &String) -> Result<Function, EngineError> {
+        match self.functions.get(function_name) {
             Some(func) => Ok(func.to_owned()),
-            None => Err(EngineError::FunctionUndefined { function_name }),
+            None => Err(EngineError::FunctionUndefined {
+                function_name: function_name.clone(),
+            }),
         }
     }
 
