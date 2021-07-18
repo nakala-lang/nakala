@@ -5,6 +5,7 @@ use std::ops::Index;
 
 pub mod env;
 pub mod error;
+pub mod func;
 pub mod val;
 
 use env::Env;
@@ -29,11 +30,7 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         Stmt::VariableDef(VariableDef { name, value }) => {
             eval_variable_def(env, &db, name.to_string(), value)
         }
-        Stmt::FunctionDef(FunctionDef {
-            name,
-            param_ident_list,
-            body,
-        }) => Ok(Val::Unit), //Err(EngineError::NotYetImplemeted),
+        Stmt::FunctionDef(func_def) => eval_function_def(env, func_def),
     }
 }
 
@@ -48,12 +45,16 @@ fn eval_code_block(env: &Env, db: &Database, stmts: Vec<Stmt>) -> Result<Val, En
     Ok(return_val)
 }
 
+fn eval_function_def(env: &mut Env, func_def: FunctionDef) -> Result<Val, EngineError> {
+    env.set_function(func_def)
+}
+
 fn eval_expr(env: &Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {
     match expr {
         Expr::Binary { op, lhs, rhs } => eval_binary_expr(&env, &db, op, lhs, rhs),
         Expr::Number { n } => Ok(Val::Number(n.into())),
         Expr::String { s } => Ok(Val::String(s)),
-        Expr::VariableRef { var } => env.get_binding(var.to_string()),
+        Expr::VariableRef { var } => env.get_variable(var.to_string()),
         Expr::Unary { op, expr } => eval_unary_expr(env, &db, op, db.exprs.index(expr).to_owned()),
         Expr::CodeBlock(CodeBlock { stmts }) => eval_code_block(env, &db, stmts),
         _ => Err(EngineError::InvalidExpression(expr)),
@@ -67,7 +68,7 @@ fn eval_variable_def(
     value: Expr,
 ) -> Result<Val, EngineError> {
     let val = eval_expr(env, db, value)?;
-    env.set_binding(name, val)
+    env.set_variable(name, val)
 }
 
 fn eval_unary_expr(env: &Env, db: &Database, op: UnaryOp, expr: Expr) -> Result<Val, EngineError> {

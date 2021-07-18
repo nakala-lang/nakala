@@ -34,7 +34,7 @@ pub struct VariableDef {
 pub struct FunctionDef {
     pub name: SmolStr,
     pub param_ident_list: Vec<SmolStr>,
-    pub body: Expr,
+    pub body: CodeBlock,
 }
 
 pub type ExprIdx = Idx<Expr>;

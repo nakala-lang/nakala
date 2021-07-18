@@ -116,7 +116,12 @@ impl LineEditor {
 
     fn print_env(&mut self) -> Result<()> {
         let mut env_str = String::new();
-        for (k, v) in self.env.get_all_bindings() {
+        let (vars, funcs) = self.env.get_all_bindings();
+        for (k, v) in vars {
+            env_str.push_str(format!("`{:?}`: `{:?}`\n", k, v).as_str());
+        }
+
+        for (k, v) in funcs {
             env_str.push_str(format!("`{:?}`: `{:?}`\n", k, v).as_str());
         }
 

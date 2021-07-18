@@ -37,7 +37,7 @@ impl Database {
                 ast::Expr::ParenExpr(ast) => self.lower_expr(ast.expr()),
                 ast::Expr::UnaryExpr(ast) => self.lower_unary(ast),
                 ast::Expr::VariableRef(ast) => self.lower_variable_ref(ast),
-                ast::Expr::CodeBlock(ast) => self.lower_code_block(ast),
+                ast::Expr::CodeBlock(ast) => Expr::CodeBlock(self.lower_code_block(ast)),
             }
         } else {
             Expr::Missing
@@ -99,14 +99,14 @@ impl Database {
         }
     }
 
-    fn lower_code_block(&mut self, ast: ast::CodeBlock) -> Expr {
+    fn lower_code_block(&mut self, ast: ast::CodeBlock) -> CodeBlock {
         let mut stmts = vec![];
         for stmt in ast.stmts() {
             if let Some(hir_stmt) = self.lower_stmt(stmt) {
                 stmts.push(hir_stmt);
             }
         }
-        Expr::CodeBlock(CodeBlock { stmts })
+        CodeBlock { stmts }
     }
 }
 
