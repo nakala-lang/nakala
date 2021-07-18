@@ -3,7 +3,12 @@
 A programming language that I built based on [azrg's Eldiro blog posts](https://arzg.github.io/lang/). The core design and architecture are all practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_). If you haven't read through his blog posts, I highly recommend you do because it is an unmatched learning resource.
 
 ### Why make nakala?
-I was so inspired by his blog posts that I have decided to continue the implementation that I made while reading his posts. The most notable of which being creating a runtime engine that computes the parsed `HIR` representation, more language features, and a CLI Runtime/REPL. 
+I was so inspired by his blog posts that I have decided to continue the implementation that I made while reading his posts. 
+
+The most notable of which being:
+- Creating a runtime engine that computes the parsed `HIR` representation
+- Adding many more language features (such as variable references, code blocks, and string literals)
+- CLI Runtime/REPL. 
 
 ## Features
 As nakala is in its very early stages, the language does not have many features. However, it does have:
