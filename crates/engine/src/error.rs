@@ -10,6 +10,7 @@ pub enum EngineError {
     InvalidNegOperation,
     BindingAlreadyExists { binding_name: String },
     BindingUndefined { binding_name: String },
+    NotYetImplemented,
     Unknown,
 }
 
@@ -40,6 +41,7 @@ impl std::fmt::Display for EngineError {
             EngineError::BindingUndefined { binding_name } => f.write_str(
                 format!("The binding `{}` is undefined in the scope", binding_name).as_str(),
             ),
+            EngineError::NotYetImplemented => f.write_str("This feature is not yet implemented"),
             EngineError::Unknown => f.write_str("An unknown error occurred"),
         }
     }

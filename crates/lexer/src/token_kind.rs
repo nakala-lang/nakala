@@ -48,6 +48,9 @@ pub enum TokenKind {
     #[token(")")]
     RParen,
 
+    #[token(",")]
+    Comma,
+
     #[regex("#.*")]
     Comment,
 
@@ -79,6 +82,7 @@ impl fmt::Display for TokenKind {
             Self::RParen => "‘)’",
             Self::LBrace => "‘{’",
             Self::RBrace => "‘}’",
+            Self::Comma => "‘,’",
             Self::Comment => "comment",
             Self::Error => "an unrecognized token",
         })
@@ -186,6 +190,11 @@ mod tests {
     #[test]
     fn lex_right_parenthesis() {
         check(")", TokenKind::RParen);
+    }
+
+    #[test]
+    fn lex_comma() {
+        check(",", TokenKind::Comma);
     }
 
     #[test]

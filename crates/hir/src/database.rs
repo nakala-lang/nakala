@@ -1,4 +1,4 @@
-use crate::{BinaryOp, Expr, Stmt, UnaryOp, VariableDef};
+use crate::{BinaryOp, CodeBlock, Expr, FunctionDef, Stmt, UnaryOp, VariableDef};
 use la_arena::Arena;
 use syntax::SyntaxKind;
 
@@ -15,6 +15,15 @@ impl Database {
                 value: self.lower_expr(ast.value()),
             }),
             ast::Stmt::Expr(ast) => Stmt::Expr(self.lower_expr(Some(ast))),
+            ast::Stmt::FunctionDef(ast) => Stmt::FunctionDef(FunctionDef {
+                name: ast.name()?.text().into(),
+                param_ident_list: ast
+                    .param_ident_list()
+                    .into_iter()
+                    .map(|n| n.text().into())
+                    .collect(),
+                body: self.lower_code_block(ast.body()?),
+            }),
         };
 
         Some(result)
@@ -97,7 +106,7 @@ impl Database {
                 stmts.push(hir_stmt);
             }
         }
-        Expr::CodeBlock { stmts }
+        Expr::CodeBlock(CodeBlock { stmts })
     }
 }
 

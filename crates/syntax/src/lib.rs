@@ -6,6 +6,7 @@ use num_traits::{FromPrimitive, ToPrimitive};
 pub enum SyntaxKind {
     Whitespace,
     FnKw,
+    FnRef,
     LetKw,
     Ident,
     Number,
@@ -19,6 +20,7 @@ pub enum SyntaxKind {
     RParen,
     LBrace,
     RBrace,
+    Comma,
     Comment,
     Error,
     Root,
@@ -29,7 +31,8 @@ pub enum SyntaxKind {
     VariableDef,
     VariableRef,
     CodeBlock,
-    Func,
+    FunctionDef,
+    ParamIdentList,
 }
 
 impl From<TokenKind> for SyntaxKind {
@@ -50,6 +53,7 @@ impl From<TokenKind> for SyntaxKind {
             TokenKind::RParen => Self::RParen,
             TokenKind::LBrace => Self::LBrace,
             TokenKind::RBrace => Self::RBrace,
+            TokenKind::Comma => Self::Comma,
             TokenKind::Comment => Self::Comment,
             TokenKind::Error => Self::Error,
         }

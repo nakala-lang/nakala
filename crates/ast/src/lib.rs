@@ -17,6 +17,38 @@ impl VariableDef {
 }
 
 #[derive(Debug)]
+pub struct FunctionDef(SyntaxNode);
+
+impl FunctionDef {
+    pub fn name(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(SyntaxElement::into_token)
+            .find(|token| token.kind() == SyntaxKind::Ident)
+    }
+
+    pub fn param_ident_list(&self) -> Vec<SyntaxToken> {
+        self.0
+            .children()
+            .filter(|node| node.kind() == SyntaxKind::ParamIdentList)
+            .nth(0)
+            .map_or(vec![], |n| {
+                n.children_with_tokens()
+                    .filter_map(SyntaxElement::into_token)
+                    .filter(|token| token.kind() == SyntaxKind::Ident)
+                    .collect()
+            })
+    }
+
+    pub fn body(&self) -> Option<CodeBlock> {
+        self.0
+            .children()
+            .find(|t| t.kind() == SyntaxKind::CodeBlock)
+            .map_or(None, |v| Some(CodeBlock(v)))
+    }
+}
+
+#[derive(Debug)]
 pub struct BinaryExpr(SyntaxNode);
 
 impl BinaryExpr {
@@ -154,12 +186,14 @@ impl CodeBlock {
 pub enum Stmt {
     VariableDef(VariableDef),
     Expr(Expr),
+    FunctionDef(FunctionDef),
 }
 
 impl Stmt {
     pub fn cast(node: SyntaxNode) -> Option<Self> {
         let result = match node.kind() {
             SyntaxKind::VariableDef => Self::VariableDef(VariableDef(node)),
+            SyntaxKind::FunctionDef => Self::FunctionDef(FunctionDef(node)),
             _ => Self::Expr(Expr::cast(node)?),
         };
 

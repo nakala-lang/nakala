@@ -1,4 +1,6 @@
-use hir::{BinaryOp, Database, Expr, ExprIdx, Hir, Stmt, UnaryOp, VariableDef};
+use hir::{
+    BinaryOp, CodeBlock, Database, Expr, ExprIdx, FunctionDef, Hir, Stmt, UnaryOp, VariableDef,
+};
 use std::ops::Index;
 
 pub mod env;
@@ -27,6 +29,11 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         Stmt::VariableDef(VariableDef { name, value }) => {
             eval_variable_def(env, &db, name.to_string(), value)
         }
+        Stmt::FunctionDef(FunctionDef {
+            name,
+            param_ident_list,
+            body,
+        }) => Ok(Val::Unit), //Err(EngineError::NotYetImplemeted),
     }
 }
 
@@ -48,7 +55,7 @@ fn eval_expr(env: &Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {
         Expr::String { s } => Ok(Val::String(s)),
         Expr::VariableRef { var } => env.get_binding(var.to_string()),
         Expr::Unary { op, expr } => eval_unary_expr(env, &db, op, db.exprs.index(expr).to_owned()),
-        Expr::CodeBlock { stmts } => eval_code_block(env, &db, stmts),
+        Expr::CodeBlock(CodeBlock { stmts }) => eval_code_block(env, &db, stmts),
         _ => Err(EngineError::InvalidExpression(expr)),
     }
 }

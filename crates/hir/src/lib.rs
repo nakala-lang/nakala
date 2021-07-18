@@ -21,12 +21,20 @@ pub fn lower(ast: ast::Root) -> Hir {
 pub enum Stmt {
     VariableDef(VariableDef),
     Expr(Expr),
+    FunctionDef(FunctionDef),
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariableDef {
     pub name: SmolStr,
     pub value: Expr,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct FunctionDef {
+    pub name: SmolStr,
+    pub param_ident_list: Vec<SmolStr>,
+    pub body: Expr,
 }
 
 pub type ExprIdx = Idx<Expr>;
@@ -52,9 +60,12 @@ pub enum Expr {
     VariableRef {
         var: SmolStr,
     },
-    CodeBlock {
-        stmts: Vec<Stmt>,
-    },
+    CodeBlock(CodeBlock),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct CodeBlock {
+    pub stmts: Vec<Stmt>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
