@@ -6,7 +6,7 @@ use num_traits::{FromPrimitive, ToPrimitive};
 pub enum SyntaxKind {
     Whitespace,
     FnKw,
-    FnRef,
+    CallKw,
     LetKw,
     Ident,
     Number,
@@ -32,7 +32,9 @@ pub enum SyntaxKind {
     VariableRef,
     CodeBlock,
     FunctionDef,
+    FunctionCall,
     ParamIdentList,
+    ParamValueList,
 }
 
 impl From<TokenKind> for SyntaxKind {
@@ -40,6 +42,7 @@ impl From<TokenKind> for SyntaxKind {
         match token_kind {
             TokenKind::Whitespace => Self::Whitespace,
             TokenKind::FnKw => Self::FnKw,
+            TokenKind::CallKw => Self::CallKw,
             TokenKind::LetKw => Self::LetKw,
             TokenKind::Ident => Self::Ident,
             TokenKind::Number => Self::Number,

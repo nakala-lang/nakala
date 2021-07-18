@@ -49,6 +49,26 @@ impl FunctionDef {
 }
 
 #[derive(Debug)]
+pub struct FunctionCall(SyntaxNode);
+
+impl FunctionCall {
+    pub fn name(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(SyntaxElement::into_token)
+            .find(|token| token.kind() == SyntaxKind::Ident)
+    }
+
+    pub fn param_value_list(&self) -> Vec<Expr> {
+        self.0
+            .children()
+            .filter(|node| node.kind() == SyntaxKind::ParamValueList)
+            .nth(0)
+            .map_or(vec![], |n| n.children().filter_map(Expr::cast).collect())
+    }
+}
+
+#[derive(Debug)]
 pub struct BinaryExpr(SyntaxNode);
 
 impl BinaryExpr {
@@ -153,6 +173,7 @@ pub enum Expr {
     UnaryExpr(UnaryExpr),
     VariableRef(VariableRef),
     CodeBlock(CodeBlock),
+    FunctionCall(FunctionCall),
 }
 
 impl Expr {
@@ -164,6 +185,7 @@ impl Expr {
             SyntaxKind::PrefixExpr => Self::UnaryExpr(UnaryExpr(node)),
             SyntaxKind::VariableRef => Self::VariableRef(VariableRef(node)),
             SyntaxKind::CodeBlock => Self::CodeBlock(CodeBlock(node)),
+            SyntaxKind::FunctionCall => Self::FunctionCall(FunctionCall(node)),
             _ => {
                 return None;
             }

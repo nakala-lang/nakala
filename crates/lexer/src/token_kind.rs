@@ -9,6 +9,9 @@ pub enum TokenKind {
     #[token("fn")]
     FnKw,
 
+    #[token("call")]
+    CallKw,
+
     #[token("let")]
     LetKw,
 
@@ -69,6 +72,7 @@ impl fmt::Display for TokenKind {
         f.write_str(match self {
             Self::Whitespace => "whitespace",
             Self::FnKw => "‘fn’",
+            Self::CallKw => "‘call’",
             Self::LetKw => "‘let’",
             Self::Ident => "identifier",
             Self::Number => "number",
@@ -115,6 +119,11 @@ mod tests {
     #[test]
     fn lex_fn_keyword() {
         check("fn", TokenKind::FnKw);
+    }
+
+    #[test]
+    fn lex_call_keyword() {
+        check("call", TokenKind::CallKw);
     }
 
     #[test]

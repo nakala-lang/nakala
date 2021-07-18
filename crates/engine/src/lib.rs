@@ -57,8 +57,20 @@ fn eval_expr(env: &Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {
         Expr::VariableRef { var } => env.get_variable(var.to_string()),
         Expr::Unary { op, expr } => eval_unary_expr(env, &db, op, db.exprs.index(expr).to_owned()),
         Expr::CodeBlock(CodeBlock { stmts }) => eval_code_block(env, &db, stmts),
-        _ => Err(EngineError::InvalidExpression(expr)),
+        Expr::FunctionCall {
+            name,
+            param_value_list,
+        } => eval_function_call(env, name, param_value_list),
+        Expr::Missing => Err(EngineError::InvalidExpression(expr)),
     }
+}
+
+fn eval_function_call(
+    env: &Env,
+    func_name: String,
+    param_value_list: Vec<Expr>,
+) -> Result<Val, EngineError> {
+    Ok(Val::Unit)
 }
 
 fn eval_variable_def(

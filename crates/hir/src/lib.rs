@@ -61,6 +61,10 @@ pub enum Expr {
         var: SmolStr,
     },
     CodeBlock(CodeBlock),
+    FunctionCall {
+        name: String,
+        param_value_list: Vec<Expr>,
+    },
 }
 
 #[derive(Debug, PartialEq, Clone)]

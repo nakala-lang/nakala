@@ -38,6 +38,7 @@ impl Database {
                 ast::Expr::UnaryExpr(ast) => self.lower_unary(ast),
                 ast::Expr::VariableRef(ast) => self.lower_variable_ref(ast),
                 ast::Expr::CodeBlock(ast) => Expr::CodeBlock(self.lower_code_block(ast)),
+                ast::Expr::FunctionCall(ast) => self.lower_function_call(ast),
             }
         } else {
             Expr::Missing
@@ -107,6 +108,21 @@ impl Database {
             }
         }
         CodeBlock { stmts }
+    }
+
+    fn lower_function_call(&mut self, ast: ast::FunctionCall) -> Expr {
+        Expr::FunctionCall {
+            name: ast
+                .name()
+                .expect("Failed to parse name of FunctionCall node")
+                .text()
+                .into(),
+            param_value_list: ast
+                .param_value_list()
+                .into_iter()
+                .map(|expr| self.lower_expr(Some(expr)))
+                .collect(),
+        }
     }
 }
 

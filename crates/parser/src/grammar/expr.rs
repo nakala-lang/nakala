@@ -1,3 +1,5 @@
+use crate::grammar::func::param_value_list;
+
 use super::*;
 
 pub(super) fn expr(p: &mut Parser) -> Option<CompletedMarker> {
@@ -52,6 +54,8 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
         prefix_expr(p)
     } else if p.at(TokenKind::LParen) {
         paren_expr(p)
+    } else if p.at(TokenKind::CallKw) {
+        function_call(p)
     } else if p.at(TokenKind::LBrace) {
         if let Some(cblock) = code_block(p) {
             cblock
@@ -65,6 +69,21 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
     };
 
     Some(cm)
+}
+
+fn function_call(p: &mut Parser) -> CompletedMarker {
+    assert!(p.at(TokenKind::CallKw));
+
+    let m = p.start();
+    p.bump();
+
+    // get function ident
+    p.expect(TokenKind::Ident);
+
+    // parse param list
+    param_value_list(p);
+
+    m.complete(p, SyntaxKind::FunctionCall)
 }
 
 fn literal(p: &mut Parser) -> CompletedMarker {
