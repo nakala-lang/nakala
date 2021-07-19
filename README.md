@@ -63,9 +63,26 @@ fn test(x,y) { x + y }
 
 call test(10, 5) # output is 15
 
-let z = call test(1000, 1000)
+# since code blocks are expressions, you can have crazy things like this totally work fine :)
+fn get_const() { 10 }
+fn add(num1, num2) { num1 + num2 }
 
-z # Number(2000)
+let sum = call add (
+  {
+    let someOtherVariable = 10
+    let factor1 = 12341
+
+    someOtherVariable * factor1
+
+  },
+  {
+    let delta = -10
+    
+    delta * (-5)
+  } * call get_const()
+)
+
+sum # output is 12391
 ```
 
 #### `.nak` File Format

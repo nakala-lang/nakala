@@ -1,0 +1,18 @@
+fn get_const() { 10 }
+fn add(num1, num2) { num1 + num2 }
+
+let sum = call add (
+  {
+    let someOtherVariable = 10
+    let factor1 = 12341
+
+    someOtherVariable * factor1
+  },
+  {
+    let delta = -10
+
+    delta * (-5)
+  } * call get_const()
+)
+
+sum
