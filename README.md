@@ -59,11 +59,9 @@ let x = "Hello, World!"
 
 #### Functions
 ```
-fn test(x,y) { x + y }
+fn get_my_name() { "Reagan" }
 
-call test(10, 5) # output is 15
-
-# since code blocks are expressions, you can have crazy things like this totally work fine :)
+# since code blocks are expressions, crazy things like this totally work :^)
 fn get_const() { 10 }
 fn add(num1, num2) { num1 + num2 }
 
