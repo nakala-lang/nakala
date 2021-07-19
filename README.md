@@ -92,8 +92,8 @@ $ nakala my_program.nak
 
 ## Project Layout
 There are a fair amount of moving parts, and just like azrg, I have also split up all the components into separate crates. Below is a dependency graph to visualize how it all links together:
-<p align="center" style="width: 90%; margin: auto; margin-top: 20px">
-  <img src="./assets/graph.svg"/>
+<p align="center" style="width: 100%; margin: auto; margin-top: 20px">
+  <img src="./assets/graph2.svg"/>
 </p>
 
 
