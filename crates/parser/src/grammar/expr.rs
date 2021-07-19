@@ -667,4 +667,246 @@ Root@0..23
                       RBrace@29..30 "}""#]],
         );
     }
+
+    #[test]
+    fn parse_simple_function_def() {
+        check(
+            "fn test() {}",
+            expect![[r#"
+            Root@0..12
+              FunctionDef@0..12
+                FnKw@0..2 "fn"
+                Whitespace@2..3 " "
+                Ident@3..7 "test"
+                ParamIdentList@7..10
+                  LParen@7..8 "("
+                  RParen@8..9 ")"
+                  Whitespace@9..10 " "
+                CodeBlock@10..12
+                  LBrace@10..11 "{"
+                  RBrace@11..12 "}""#]],
+        )
+    }
+
+    #[test]
+    fn parse_single_param_function_def() {
+        check(
+            "fn test(x,y) {}",
+            expect![[r#"
+            Root@0..15
+              FunctionDef@0..15
+                FnKw@0..2 "fn"
+                Whitespace@2..3 " "
+                Ident@3..7 "test"
+                ParamIdentList@7..13
+                  LParen@7..8 "("
+                  Ident@8..9 "x"
+                  Comma@9..10 ","
+                  Ident@10..11 "y"
+                  RParen@11..12 ")"
+                  Whitespace@12..13 " "
+                CodeBlock@13..15
+                  LBrace@13..14 "{"
+                  RBrace@14..15 "}""#]],
+        )
+    }
+
+    #[test]
+    fn parse_many_param_function_def() {
+        check("fn superLongFunction(someVariable1,              some_otherVariable2,                somethingElse, x) { let z = 10    z }", expect![[r#"
+            Root@0..122
+              FunctionDef@0..122
+                FnKw@0..2 "fn"
+                Whitespace@2..3 " "
+                Ident@3..20 "superLongFunction"
+                ParamIdentList@20..103
+                  LParen@20..21 "("
+                  Ident@21..34 "someVariable1"
+                  Comma@34..35 ","
+                  Whitespace@35..49 "              "
+                  Ident@49..68 "some_otherVariable2"
+                  Comma@68..69 ","
+                  Whitespace@69..85 "                "
+                  Ident@85..98 "somethingElse"
+                  Comma@98..99 ","
+                  Whitespace@99..100 " "
+                  Ident@100..101 "x"
+                  RParen@101..102 ")"
+                  Whitespace@102..103 " "
+                CodeBlock@103..122
+                  LBrace@103..104 "{"
+                  Whitespace@104..105 " "
+                  VariableDef@105..119
+                    LetKw@105..108 "let"
+                    Whitespace@108..109 " "
+                    Ident@109..110 "z"
+                    Whitespace@110..111 " "
+                    Equals@111..112 "="
+                    Whitespace@112..113 " "
+                    Literal@113..119
+                      Number@113..115 "10"
+                      Whitespace@115..119 "    "
+                  VariableRef@119..121
+                    Ident@119..120 "z"
+                    Whitespace@120..121 " "
+                  RBrace@121..122 "}""#]])
+    }
+
+    #[test]
+    fn parse_simple_function_call() {
+        check(
+            "call unknown()",
+            expect![[r#"
+            Root@0..14
+              FunctionCall@0..14
+                CallKw@0..4 "call"
+                Whitespace@4..5 " "
+                Ident@5..12 "unknown"
+                ParamValueList@12..14
+                  LParen@12..13 "("
+                  RParen@13..14 ")""#]],
+        )
+    }
+
+    #[test]
+    fn parse_single_param_function_call() {
+        check(
+            r#"call someOtherFunction("hello world")"#,
+            expect![[r#"
+            Root@0..37
+              FunctionCall@0..37
+                CallKw@0..4 "call"
+                Whitespace@4..5 " "
+                Ident@5..22 "someOtherFunction"
+                ParamValueList@22..37
+                  LParen@22..23 "("
+                  Literal@23..36
+                    String@23..36 "\"hello world\""
+                  RParen@36..37 ")""#]],
+        )
+    }
+
+    #[test]
+    fn parse_expr_function_call() {
+        check(
+            "call add({let x = 1   let y = 2    x + y }, 52)",
+            expect![[r#"
+                Root@0..47
+                  FunctionCall@0..47
+                    CallKw@0..4 "call"
+                    Whitespace@4..5 " "
+                    Ident@5..8 "add"
+                    ParamValueList@8..47
+                      LParen@8..9 "("
+                      CodeBlock@9..42
+                        LBrace@9..10 "{"
+                        VariableDef@10..22
+                          LetKw@10..13 "let"
+                          Whitespace@13..14 " "
+                          Ident@14..15 "x"
+                          Whitespace@15..16 " "
+                          Equals@16..17 "="
+                          Whitespace@17..18 " "
+                          Literal@18..22
+                            Number@18..19 "1"
+                            Whitespace@19..22 "   "
+                        VariableDef@22..35
+                          LetKw@22..25 "let"
+                          Whitespace@25..26 " "
+                          Ident@26..27 "y"
+                          Whitespace@27..28 " "
+                          Equals@28..29 "="
+                          Whitespace@29..30 " "
+                          Literal@30..35
+                            Number@30..31 "2"
+                            Whitespace@31..35 "    "
+                        InfixExpr@35..41
+                          VariableRef@35..37
+                            Ident@35..36 "x"
+                            Whitespace@36..37 " "
+                          Plus@37..38 "+"
+                          Whitespace@38..39 " "
+                          VariableRef@39..41
+                            Ident@39..40 "y"
+                            Whitespace@40..41 " "
+                        RBrace@41..42 "}"
+                      Comma@42..43 ","
+                      Whitespace@43..44 " "
+                      Literal@44..46
+                        Number@44..46 "52"
+                      RParen@46..47 ")""#]],
+        )
+    }
+
+    #[test]
+    fn parse_variable_def_to_function_call() {
+        check(
+            "let x = call someFunction(5,5)",
+            expect![[r#"
+            Root@0..30
+              VariableDef@0..30
+                LetKw@0..3 "let"
+                Whitespace@3..4 " "
+                Ident@4..5 "x"
+                Whitespace@5..6 " "
+                Equals@6..7 "="
+                Whitespace@7..8 " "
+                FunctionCall@8..30
+                  CallKw@8..12 "call"
+                  Whitespace@12..13 " "
+                  Ident@13..25 "someFunction"
+                  ParamValueList@25..30
+                    LParen@25..26 "("
+                    Literal@26..27
+                      Number@26..27 "5"
+                    Comma@27..28 ","
+                    Literal@28..29
+                      Number@28..29 "5"
+                    RParen@29..30 ")""#]],
+        )
+    }
+
+    #[test]
+    fn parse_function_calls_in_paren_expresion() {
+        check(
+            "let z = 1 + ( call function(1,1) + 15)",
+            expect![[r#"
+            Root@0..38
+              VariableDef@0..38
+                LetKw@0..3 "let"
+                Whitespace@3..4 " "
+                Ident@4..5 "z"
+                Whitespace@5..6 " "
+                Equals@6..7 "="
+                Whitespace@7..8 " "
+                InfixExpr@8..38
+                  Literal@8..10
+                    Number@8..9 "1"
+                    Whitespace@9..10 " "
+                  Plus@10..11 "+"
+                  Whitespace@11..12 " "
+                  ParenExpr@12..38
+                    LParen@12..13 "("
+                    Whitespace@13..14 " "
+                    InfixExpr@14..37
+                      FunctionCall@14..33
+                        CallKw@14..18 "call"
+                        Whitespace@18..19 " "
+                        Ident@19..27 "function"
+                        ParamValueList@27..33
+                          LParen@27..28 "("
+                          Literal@28..29
+                            Number@28..29 "1"
+                          Comma@29..30 ","
+                          Literal@30..31
+                            Number@30..31 "1"
+                          RParen@31..32 ")"
+                          Whitespace@32..33 " "
+                      Plus@33..34 "+"
+                      Whitespace@34..35 " "
+                      Literal@35..37
+                        Number@35..37 "15"
+                    RParen@37..38 ")""#]],
+        )
+    }
 }

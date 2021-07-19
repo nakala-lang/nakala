@@ -280,4 +280,48 @@ mod tests {
             Database::default(),
         )
     }
+
+    #[test]
+    fn lower_code_block() {
+        check_expr(
+            "{ 2 }",
+            Expr::CodeBlock(CodeBlock {
+                stmts: vec![Stmt::Expr(Expr::Number { n: 2 })],
+            }),
+            Database::default(),
+        )
+    }
+
+    #[test]
+    fn lower_function_def() {
+        let mut exprs = Arena::new();
+        let lhs = exprs.alloc(Expr::VariableRef { var: "x".into() });
+        let rhs = exprs.alloc(Expr::VariableRef { var: "y".into() });
+        check_stmt(
+            "fn add(x,y) { x + y }",
+            Stmt::FunctionDef(FunctionDef {
+                name: "add".into(),
+                param_ident_list: vec!["x".into(), "y".into()],
+                body: CodeBlock {
+                    stmts: vec![Stmt::Expr(Expr::Binary {
+                        lhs,
+                        rhs,
+                        op: BinaryOp::Add,
+                    })],
+                },
+            }),
+        )
+    }
+
+    #[test]
+    fn lower_function_call() {
+        check_expr(
+            "call add(10, 5)",
+            Expr::FunctionCall {
+                name: "add".into(),
+                param_value_list: vec![Expr::Number { n: 10 }, Expr::Number { n: 5 }],
+            },
+            Database::default(),
+        );
+    }
 }
