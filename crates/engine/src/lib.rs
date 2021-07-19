@@ -30,7 +30,7 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         Stmt::VariableDef(VariableDef { name, value }) => {
             eval_variable_def(env, &db, name.to_string(), value)
         }
-        Stmt::FunctionDef(func_def) => eval_function_def(env, func_def),
+        Stmt::FunctionDef(func_def) => eval_function_def(env, &db, func_def),
     }
 }
 
@@ -45,8 +45,12 @@ fn eval_code_block(env: &Env, db: &Database, stmts: Vec<Stmt>) -> Result<Val, En
     Ok(return_val)
 }
 
-fn eval_function_def(env: &mut Env, func_def: FunctionDef) -> Result<Val, EngineError> {
-    env.set_function(func_def)
+fn eval_function_def(
+    env: &mut Env,
+    db: &Database,
+    func_def: FunctionDef,
+) -> Result<Val, EngineError> {
+    env.set_function(func_def, db.clone())
 }
 
 fn eval_expr(env: &Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {

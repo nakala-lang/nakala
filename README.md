@@ -1,13 +1,15 @@
 # nakala
 
-A programming language that I built based on [azrg's Eldiro blog posts](https://arzg.github.io/lang/). The core design and architecture are all practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_). If you haven't read through his blog posts, I highly recommend you do because it is an unmatched learning resource.
+A programming language that I built based on [azrg's Eldiro blog posts](https://arzg.github.io/lang/). 
+The core design and architecture are all practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_). 
+If you haven't read through his blog posts, I highly recommend you do because it is an unmatched learning resource.
 
 ### Why make nakala?
 I was so inspired by his blog posts that I have decided to continue the implementation that I made while reading his posts. 
 
 The most notable of which being:
 - Creating a runtime engine that computes the parsed `HIR` representation
-- Adding many more language features (such as variable references, code blocks, and string literals)
+- Adding many more language features (such as variable references, code blocks, string literals, functions)
 - CLI Runtime/REPL. 
 
 ## Features
@@ -55,6 +57,17 @@ let x = {
 let x = "Hello, World!"
 ```
 
+#### Functions
+```
+fn test(x,y) { x + y }
+
+call test(10, 5) # output is 15
+
+let z = call test(1000, 1000)
+
+z # Number(2000)
+```
+
 #### `.nak` File Format
 
 You can store a nakala program in a `.nak` file and run it using the CLI tool. For example:
@@ -76,9 +89,6 @@ $ nakala my_program.nak
 
 110
 ```
-
-#### (Rudimentary) Error Handling
-
 
 ## Project Layout
 There are a fair amount of moving parts, and just like azrg, I have also split up all the components into separate crates. Below is a dependency graph to visualize how it all links together:

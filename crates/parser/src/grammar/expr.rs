@@ -60,7 +60,6 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
         if let Some(cblock) = code_block(p) {
             cblock
         } else {
-            p.error();
             return None;
         }
     } else {
@@ -136,20 +135,19 @@ pub(crate) fn code_block(p: &mut Parser) -> Option<CompletedMarker> {
     let m = p.start();
     p.bump();
 
-    loop {
+    let mut should_still_parse = true;
+    while should_still_parse {
         if p.at(TokenKind::RBrace) {
-            break;
-        }
-
-        if p.at_end() {
+            p.bump();
+            should_still_parse = false;
+        } else if p.at_end() {
             // shouldn't have gotten here
-            return None;
+            p.error();
+            should_still_parse = false;
+        } else {
+            stmt::stmt(p);
         }
-
-        stmt::stmt(p);
     }
-
-    p.expect(TokenKind::RBrace);
 
     Some(m.complete(p, SyntaxKind::CodeBlock))
 }
@@ -461,7 +459,7 @@ Root@0..7
                       Literal@1..2
                         Number@1..2 "1"
                       Plus@2..3 "+"
-                error at 2..3: expected number, string, identifier, ‘-’, ‘(’ or ‘{’
+                error at 2..3: expected number, string, identifier, ‘-’, ‘(’, ‘call’ or ‘{’
                 error at 2..3: expected ‘)’"#]],
         );
     }
@@ -604,7 +602,7 @@ Root@0..15
         Whitespace@13..14 " "
         Literal@14..15
           Number@14..15 "1"
-error at 14..15: expected ‘+’, ‘-’, ‘*’, ‘/’, ‘+’, ‘-’, ‘*’, ‘/’, ‘}’ or ‘}’"#]],
+error at 14..15: expected ‘+’, ‘-’, ‘*’, ‘/’, ‘+’, ‘-’, ‘*’, ‘/’ or ‘}’"#]],
         );
     }
 

@@ -1,4 +1,4 @@
-use hir::FunctionDef;
+use hir::{Database, FunctionDef};
 
 use super::EngineError;
 use crate::{func::Function, val::Val};
@@ -35,6 +35,20 @@ impl Env {
         Ok(Val::Unit)
     }
 
+    pub fn rename_variable(&mut self, old: &String, new: String) -> Result<(), EngineError> {
+        if let Some(old_entry) = self.variables.remove_entry(old) {
+            // re-insert with new name
+            match self.variables.insert(new.clone(), old_entry.1) {
+                Some(_) => Ok(()),
+                None => Err(EngineError::VariableAlreadyExists { variable_name: new }),
+            }
+        } else {
+            Err(EngineError::VariableUndefined {
+                variable_name: old.clone(),
+            })
+        }
+    }
+
     pub fn get_function(&self, function_name: &String) -> Result<Function, EngineError> {
         match self.functions.get(function_name) {
             Some(func) => Ok(func.to_owned()),
@@ -44,7 +58,11 @@ impl Env {
         }
     }
 
-    pub fn set_function(&mut self, func: FunctionDef) -> Result<Val, EngineError> {
+    pub fn set_function(
+        &mut self,
+        func: FunctionDef,
+        funcs_db: Database,
+    ) -> Result<Val, EngineError> {
         if self.functions.contains_key(&func.name.to_string()) {
             return Err(EngineError::FunctionAlreadyExists {
                 function_name: func.name.to_string(),
@@ -52,7 +70,7 @@ impl Env {
         }
 
         self.functions
-            .insert(func.name.to_string(), Function::new(func));
+            .insert(func.name.to_string(), Function::new(func, funcs_db));
 
         Ok(Val::Unit)
     }

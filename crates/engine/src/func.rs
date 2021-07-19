@@ -7,10 +7,12 @@ pub struct Function {
     name: String,
     param_list: Vec<String>,
     body: CodeBlock,
+    // we need to keep the db of the original block around as well
+    body_db: Database,
 }
 
 impl Function {
-    pub fn new(func_def: FunctionDef) -> Self {
+    pub fn new(func_def: FunctionDef, db: Database) -> Self {
         Function {
             name: func_def.name.to_string(),
             param_list: func_def
@@ -19,6 +21,7 @@ impl Function {
                 .map(|p| p.to_string())
                 .collect(),
             body: func_def.body,
+            body_db: db,
         }
     }
 
@@ -40,17 +43,18 @@ impl Function {
 
         for (index, param) in params.into_iter().enumerate() {
             // param names could overlap with scope names, so we need to rename any overlaps
-            let mut param_name = self.param_list.get(index).unwrap().to_string();
+            let param_name = self.param_list.get(index).unwrap().to_string();
 
-            // Append a `_` every time
-            while cloned_env.get_variable(&param_name).is_ok() {
-                param_name = format!("{}_", param_name.clone());
+            // Append a `_` every time to the overlapping outside of the function
+            while let Ok(overlapping_outside_variable) = cloned_env.get_variable(&param_name) {
+                let new_name = format!("{}_", overlapping_outside_variable);
+                cloned_env.rename_variable(&param_name, new_name)?;
             }
 
             cloned_env.set_variable(&param_name, super::eval_expr(&cloned_env, db, param)?)?;
         }
 
         // with the cloned env to evaluate the function params, evaluate the body and return it
-        super::eval_code_block(&cloned_env, db, self.body.stmts.clone())
+        super::eval_code_block(&cloned_env, &self.body_db, self.body.stmts.clone())
     }
 }
