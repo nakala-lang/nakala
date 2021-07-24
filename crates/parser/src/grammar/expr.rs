@@ -459,7 +459,7 @@ Root@0..7
                       Literal@1..2
                         Number@1..2 "1"
                       Plus@2..3 "+"
-                error at 2..3: expected number, string, identifier, ‘-’, ‘(’, ‘call’ or ‘{’
+                error at 2..3: expected number, string, boolean, identifier, ‘-’, ‘(’, ‘call’ or ‘{’
                 error at 2..3: expected ‘)’"#]],
         );
     }
