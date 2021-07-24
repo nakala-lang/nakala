@@ -8,6 +8,13 @@ pub enum EngineError {
     InvalidMulOperation,
     InvalidDivOperation,
     InvalidNegOperation,
+    InvalidGreaterThanOperation,
+    InvalidGreaterThanOrEqOperation,
+    InvalidLessThanOperation,
+    InvalidLessThanOrEqOperation,
+    InvalidNotOperation,
+    InvalidAndOperation,
+    InvalidOrOperation,
     VariableAlreadyExists { variable_name: String },
     VariableUndefined { variable_name: String },
     FunctionAlreadyExists { function_name: String },
@@ -24,19 +31,40 @@ impl std::fmt::Display for EngineError {
                 f.write_str("Unable to parse expression because it's invalid")
             }
             EngineError::InvalidAddOperation => {
-                f.write_str("Could not find add handler for the provided types")
+                f.write_str("Could not find ADD handler for the provided types")
             }
             EngineError::InvalidSubOperation => {
-                f.write_str("Could not find sub handler for the provided types")
+                f.write_str("Could not find SUB handler for the provided types")
             }
             EngineError::InvalidMulOperation => {
-                f.write_str("Could not find mul handler for the provided types")
+                f.write_str("Could not find MUL handler for the provided types")
             }
             EngineError::InvalidDivOperation => {
-                f.write_str("Could not find div handler for the provided types")
+                f.write_str("Could not find DIV handler for the provided types")
             }
             EngineError::InvalidNegOperation => {
-                f.write_str("Could not find neg handler for the provided type")
+                f.write_str("Could not find NEG handler for the provided type")
+            }
+            EngineError::InvalidGreaterThanOperation => {
+                f.write_str("Could not find GREATER_THAN handler for the provided type")
+            }
+            EngineError::InvalidGreaterThanOrEqOperation => {
+                f.write_str("Could not find GREATER_THAN_OR_EQ handler for the provided type")
+            }
+            EngineError::InvalidLessThanOperation => {
+                f.write_str("Could not find LESS_THAN handler for the provided type")
+            }
+            EngineError::InvalidLessThanOrEqOperation => {
+                f.write_str("Could not find LESS_THAN_OR_EQ handler for the provided type")
+            }
+            EngineError::InvalidNotOperation => {
+                f.write_str("Could not find NOT handler for the provided type")
+            }
+            EngineError::InvalidAndOperation => {
+                f.write_str("Could not find AND handler for the provided type")
+            }
+            EngineError::InvalidOrOperation => {
+                f.write_str("Could not find OR handler for the provided type")
             }
             EngineError::VariableAlreadyExists { variable_name } => f.write_str(
                 format!(

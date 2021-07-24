@@ -51,6 +51,12 @@ impl Database {
             SyntaxKind::Minus => BinaryOp::Sub,
             SyntaxKind::Star => BinaryOp::Mul,
             SyntaxKind::Slash => BinaryOp::Div,
+            SyntaxKind::GreaterThan => BinaryOp::GreaterThan,
+            SyntaxKind::GreaterThanOrEqual => BinaryOp::GreaterThanOrEqual,
+            SyntaxKind::LessThan => BinaryOp::LessThan,
+            SyntaxKind::LessThanOrEqual => BinaryOp::LessThanOrEqual,
+            SyntaxKind::AndKw => BinaryOp::And,
+            SyntaxKind::OrKw => BinaryOp::Or,
             _ => unreachable!(),
         };
 
@@ -84,6 +90,7 @@ impl Database {
     fn lower_unary(&mut self, ast: ast::UnaryExpr) -> Expr {
         let op = match ast.op().unwrap().kind() {
             SyntaxKind::Minus => UnaryOp::Neg,
+            SyntaxKind::NotKw => UnaryOp::Not,
             _ => unreachable!(),
         };
 

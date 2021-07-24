@@ -94,6 +94,7 @@ fn eval_unary_expr(env: &Env, db: &Database, op: UnaryOp, expr: Expr) -> Result<
     let val = eval_expr(env, db, expr)?;
     match op {
         UnaryOp::Neg => val.neg(),
+        UnaryOp::Not => val.not(),
     }
 }
 
@@ -111,6 +112,12 @@ fn eval_binary_expr(
         BinaryOp::Sub => lhs_val.sub(rhs_val),
         BinaryOp::Mul => lhs_val.mul(rhs_val),
         BinaryOp::Div => lhs_val.div(rhs_val),
+        BinaryOp::GreaterThan => lhs_val.greater_than(rhs_val),
+        BinaryOp::GreaterThanOrEqual => lhs_val.greater_than_or_eq(rhs_val),
+        BinaryOp::LessThan => lhs_val.less_than(rhs_val),
+        BinaryOp::LessThanOrEqual => lhs_val.less_than_or_eq(rhs_val),
+        BinaryOp::Or => lhs_val.or(rhs_val),
+        BinaryOp::And => lhs_val.and(rhs_val),
     }
 }
 

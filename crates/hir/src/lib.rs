@@ -81,9 +81,16 @@ pub enum BinaryOp {
     Sub,
     Mul,
     Div,
+    GreaterThan,
+    GreaterThanOrEqual,
+    LessThan,
+    LessThanOrEqual,
+    And,
+    Or,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum UnaryOp {
     Neg,
+    Not,
 }

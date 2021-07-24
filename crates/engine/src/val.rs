@@ -56,6 +56,73 @@ impl Val {
             _ => Err(EngineError::InvalidNegOperation),
         }
     }
+
+    pub(crate) fn greater_than(&self, other: Val) -> Result<Self, EngineError> {
+        match self {
+            Val::Number(x) => match other {
+                Val::Number(y) => Ok(Val::Boolean(*x > y)),
+                _ => Err(EngineError::InvalidGreaterThanOperation),
+            },
+            _ => Err(EngineError::InvalidGreaterThanOperation),
+        }
+    }
+
+    pub(crate) fn greater_than_or_eq(&self, other: Val) -> Result<Self, EngineError> {
+        match self {
+            Val::Number(x) => match other {
+                Val::Number(y) => Ok(Val::Boolean(*x >= y)),
+                _ => Err(EngineError::InvalidGreaterThanOrEqOperation),
+            },
+            _ => Err(EngineError::InvalidGreaterThanOrEqOperation),
+        }
+    }
+
+    pub(crate) fn less_than(&self, other: Val) -> Result<Self, EngineError> {
+        match self {
+            Val::Number(x) => match other {
+                Val::Number(y) => Ok(Val::Boolean(*x < y)),
+                _ => Err(EngineError::InvalidLessThanOperation),
+            },
+            _ => Err(EngineError::InvalidLessThanOperation),
+        }
+    }
+
+    pub(crate) fn less_than_or_eq(&self, other: Val) -> Result<Self, EngineError> {
+        match self {
+            Val::Number(x) => match other {
+                Val::Number(y) => Ok(Val::Boolean(*x <= y)),
+                _ => Err(EngineError::InvalidLessThanOrEqOperation),
+            },
+            _ => Err(EngineError::InvalidLessThanOrEqOperation),
+        }
+    }
+
+    pub(crate) fn not(&self) -> Result<Self, EngineError> {
+        match self {
+            Val::Boolean(b) => Ok(Val::Boolean(!b)),
+            _ => Err(EngineError::InvalidNotOperation),
+        }
+    }
+
+    pub(crate) fn or(&self, other: Val) -> Result<Self, EngineError> {
+        match self {
+            Val::Boolean(x) => match other {
+                Val::Boolean(y) => Ok(Val::Boolean(*x || y)),
+                _ => Err(EngineError::InvalidOrOperation),
+            },
+            _ => Err(EngineError::InvalidOrOperation),
+        }
+    }
+
+    pub(crate) fn and(&self, other: Val) -> Result<Self, EngineError> {
+        match self {
+            Val::Boolean(x) => match other {
+                Val::Boolean(y) => Ok(Val::Boolean(*x && y)),
+                _ => Err(EngineError::InvalidAndOperation),
+            },
+            _ => Err(EngineError::InvalidAndOperation),
+        }
+    }
 }
 
 impl std::fmt::Display for Val {

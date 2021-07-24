@@ -87,7 +87,16 @@ impl BinaryExpr {
             .find(|token| {
                 matches!(
                     token.kind(),
-                    SyntaxKind::Plus | SyntaxKind::Minus | SyntaxKind::Star | SyntaxKind::Slash
+                    SyntaxKind::Plus
+                        | SyntaxKind::Minus
+                        | SyntaxKind::Star
+                        | SyntaxKind::Slash
+                        | SyntaxKind::GreaterThan
+                        | SyntaxKind::GreaterThanOrEqual
+                        | SyntaxKind::LessThan
+                        | SyntaxKind::LessThanOrEqual
+                        | SyntaxKind::AndKw
+                        | SyntaxKind::OrKw
                 )
             })
     }
@@ -163,7 +172,7 @@ impl UnaryExpr {
         self.0
             .children_with_tokens()
             .filter_map(SyntaxElement::into_token)
-            .find(|token| token.kind() == SyntaxKind::Minus)
+            .find(|token| matches!(token.kind(), SyntaxKind::Minus | SyntaxKind::NotKw))
     }
 }
 
