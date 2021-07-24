@@ -6,6 +6,7 @@ pub enum Val {
     Unit,    // Unit tuple
     Number(i128),
     String(String),
+    Boolean(bool),
 }
 
 impl Val {
@@ -63,6 +64,7 @@ impl std::fmt::Display for Val {
             Val::Missing | Val::Unit => Ok(()),
             Val::Number(n) => f.write_str(format!("{}", n).as_str()),
             Val::String(s) => f.write_str(s),
+            Val::Boolean(b) => f.write_str(format!("{}", b).as_str()),
         }
     }
 }

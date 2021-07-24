@@ -77,6 +77,7 @@ impl Database {
                         .to_string(),
                 }
             }
+            ast::Literal::Boolean(b) => Expr::Boolean { b: b.parse() },
         }
     }
 

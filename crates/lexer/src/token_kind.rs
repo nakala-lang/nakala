@@ -24,6 +24,9 @@ pub enum TokenKind {
     #[regex(r#""[^"]*""#)]
     String,
 
+    #[regex("true|false")]
+    Boolean,
+
     #[token("+")]
     Plus,
 
@@ -77,6 +80,7 @@ impl fmt::Display for TokenKind {
             Self::Ident => "identifier",
             Self::Number => "number",
             Self::String => "string",
+            Self::Boolean => "boolean",
             Self::Plus => "‘+’",
             Self::Minus => "‘-’",
             Self::Star => "‘*’",
@@ -154,6 +158,16 @@ mod tests {
     #[test]
     fn lex_number() {
         check("123456", TokenKind::Number);
+    }
+
+    #[test]
+    fn lex_false_boolean() {
+        check("false", TokenKind::Boolean);
+    }
+
+    #[test]
+    fn lex_true_boolean() {
+        check("true", TokenKind::Boolean);
     }
 
     #[test]

@@ -53,6 +53,9 @@ pub enum Expr {
     String {
         s: String,
     },
+    Boolean {
+        b: bool,
+    },
     Unary {
         op: UnaryOp,
         expr: ExprIdx,

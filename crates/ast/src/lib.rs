@@ -97,6 +97,7 @@ impl BinaryExpr {
 pub enum Literal {
     Number(Number),
     String(crate::String),
+    Boolean(Boolean),
 }
 
 impl Literal {
@@ -108,6 +109,7 @@ impl Literal {
         {
             SyntaxKind::Number => Self::Number(Number(node)),
             SyntaxKind::String => Self::String(String(node)),
+            SyntaxKind::Boolean => Self::Boolean(Boolean(node)),
             _ => unreachable!("Literals must be Numbers or Strings"),
         }
     }
@@ -128,6 +130,15 @@ pub struct String(SyntaxNode);
 impl String {
     pub fn parse(&self) -> std::string::String {
         self.0.first_token().unwrap().text().to_string()
+    }
+}
+
+#[derive(Debug)]
+pub struct Boolean(SyntaxNode);
+
+impl Boolean {
+    pub fn parse(&self) -> bool {
+        self.0.first_token().unwrap().text().parse().unwrap()
     }
 }
 
