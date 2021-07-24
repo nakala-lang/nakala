@@ -54,6 +54,27 @@ pub enum TokenKind {
     #[token(")")]
     RParen,
 
+    #[token(">")]
+    GreaterThan,
+
+    #[token(">=")]
+    GreaterThanOrEqual,
+
+    #[token("<")]
+    LessThan,
+
+    #[token("<=")]
+    LessThanOrEqual,
+
+    #[token("and")]
+    AndKw,
+
+    #[token("or")]
+    OrKw,
+
+    #[token("not")]
+    NotKw,
+
     #[token(",")]
     Comma,
 
@@ -90,6 +111,13 @@ impl fmt::Display for TokenKind {
             Self::RParen => "‘)’",
             Self::LBrace => "‘{’",
             Self::RBrace => "‘}’",
+            Self::GreaterThan => "‘>’",
+            Self::GreaterThanOrEqual => "‘>=’",
+            Self::LessThan => "‘<’",
+            Self::LessThanOrEqual => "‘<=’",
+            Self::AndKw => "‘and’",
+            Self::OrKw => "‘or’",
+            Self::NotKw => "‘not’",
             Self::Comma => "‘,’",
             Self::Comment => "comment",
             Self::Error => "an unrecognized token",

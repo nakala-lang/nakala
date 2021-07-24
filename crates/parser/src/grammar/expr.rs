@@ -18,6 +18,18 @@ fn expr_binding_power(p: &mut Parser, minimum_binding_power: u8) -> Option<Compl
             BinaryOp::Mul
         } else if p.at(TokenKind::Slash) {
             BinaryOp::Div
+        } else if p.at(TokenKind::GreaterThan) {
+            BinaryOp::GreaterThan
+        } else if p.at(TokenKind::GreaterThanOrEqual) {
+            BinaryOp::GreaterThanOrEqual
+        } else if p.at(TokenKind::LessThan) {
+            BinaryOp::LessThan
+        } else if p.at(TokenKind::LessThanOrEqual) {
+            BinaryOp::LessThanOrEqual
+        } else if p.at(TokenKind::OrKw) {
+            BinaryOp::Or
+        } else if p.at(TokenKind::AndKw) {
+            BinaryOp::And
         } else {
             // We're not at an operator; we don't know what to do next, so we just return from
             // the function and let the caller decide
@@ -50,7 +62,7 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
         literal(p)
     } else if p.at(TokenKind::Ident) {
         variable_ref(p)
-    } else if p.at(TokenKind::Minus) {
+    } else if p.at(TokenKind::Minus) || p.at(TokenKind::NotKw) {
         prefix_expr(p)
     } else if p.at(TokenKind::LParen) {
         paren_expr(p)
@@ -102,11 +114,16 @@ fn variable_ref(p: &mut Parser) -> CompletedMarker {
 }
 
 fn prefix_expr(p: &mut Parser) -> CompletedMarker {
-    assert!(p.at(TokenKind::Minus));
+    assert!(p.at(TokenKind::Minus) || p.at(TokenKind::NotKw));
 
     let m = p.start();
 
-    let op = UnaryOp::Neg;
+    let op = if p.at(TokenKind::Minus) {
+        UnaryOp::Neg
+    } else {
+        UnaryOp::Not
+    };
+
     let ((), right_binding_power) = op.binding_power();
 
     p.bump();
@@ -157,25 +174,38 @@ enum BinaryOp {
     Sub,
     Mul,
     Div,
+    GreaterThan,
+    GreaterThanOrEqual,
+    LessThan,
+    LessThanOrEqual,
+    And,
+    Or,
 }
 
 impl BinaryOp {
     fn binding_power(&self) -> (u8, u8) {
         match self {
-            Self::Add | Self::Sub => (1, 2),
-            Self::Mul | Self::Div => (3, 4),
+            Self::Or => (1, 2),
+            Self::And => (3, 4),
+            Self::GreaterThan
+            | Self::GreaterThanOrEqual
+            | Self::LessThan
+            | Self::LessThanOrEqual => (5, 6),
+            Self::Add | Self::Sub => (7, 8),
+            Self::Mul | Self::Div => (9, 10),
         }
     }
 }
 
 enum UnaryOp {
     Neg,
+    Not,
 }
 
 impl UnaryOp {
     fn binding_power(&self) -> ((), u8) {
         match self {
-            Self::Neg => ((), 5),
+            Self::Neg | Self::Not => ((), 11),
         }
     }
 }

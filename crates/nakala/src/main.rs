@@ -118,8 +118,17 @@ pub fn parse_and_eval_buffer(
     env: &mut Env,
 ) -> std::result::Result<NakalaResult, EngineError> {
     let parse = parser::parse(buffer);
-    let ast_tree = ast::Root::cast(parse.syntax()).unwrap();
-    let hir = hir::lower(ast_tree);
+    //let ast_tree = ast::Root::cast(parse.syntax()).unwrap();
+    //let hir = hir::lower(ast_tree);
 
-    engine::eval(env, hir.clone()).map(|val| NakalaResult { parse, hir, val })
+    let ast = ast::Root::cast(parser::parse("").syntax()).unwrap();
+    let hir = hir::lower(ast);
+
+    //engine::eval(env, hir.clone()).map(|val| NakalaResult { parse, hir, val })
+
+    Ok(NakalaResult {
+        parse,
+        hir,
+        val: Val::Unit,
+    })
 }
