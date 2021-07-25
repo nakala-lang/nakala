@@ -1,14 +1,10 @@
-mod line_editor;
-
 use clap::{App, Arg, ArgMatches};
-use crossterm::event::{read, Event};
-use crossterm::Result;
 use engine::env::Env;
 use engine::error::EngineError;
 use engine::val::Val;
 use hir::Hir;
-use line_editor::LineEditor;
 use parser::Parse;
+use reedline::{DefaultPrompt, FileBackedHistory, Reedline, Signal};
 use std::fs::read_to_string;
 use std::path::Path;
 
@@ -64,14 +60,7 @@ fn main() {
     } else if let Some(input) = matches.value_of("input") {
         run_without_repl(input, matches.clone());
     } else {
-        // Load line editor
-        match cli_main(matches) {
-            Ok(_) => {}
-            Err(_) => {
-                eprintln!("An error occurred.");
-                crossterm::terminal::disable_raw_mode().unwrap();
-            }
-        }
+        cli_main(matches)
     }
 }
 
@@ -94,15 +83,43 @@ fn run_without_repl(buffer: &str, matches: ArgMatches) {
     }
 }
 
-fn cli_main(cli_args: ArgMatches) -> Result<()> {
-    let mut le = LineEditor::new("> ", cli_args)?;
-    crossterm::terminal::enable_raw_mode()?;
+fn cli_main(cli_args: ArgMatches) {
+    let history = Box::new(
+        FileBackedHistory::with_file(10, "~/.config/nakala/history.txt".into())
+            .expect("Error configuring history with file"),
+    );
+
+    let mut line_editor = Reedline::new()
+        .with_history(history)
+        .expect("Error configuring reedline with history");
+    let prompt = DefaultPrompt::default();
+
+    let mut env = Env::default();
 
     loop {
-        match read()? {
-            Event::Key(key_event) => le.dispatch_key_event(key_event)?,
-            Event::Mouse(mouse_event) => le.dispatch_mouse_event(mouse_event)?,
-            Event::Resize(new_cols, new_rows) => le.dispatch_resize_event(new_cols, new_rows)?,
+        let sig = line_editor.read_line(&prompt).unwrap();
+        match sig {
+            Signal::Success(buffer) => match parse_and_eval_buffer(buffer.as_str(), &mut env) {
+                Ok(NakalaResult { parse, hir, val }) => {
+                    if cli_args.is_present("parse") {
+                        println!("{}", parse.debug_tree());
+                    }
+
+                    if cli_args.is_present("hir") {
+                        println!("{:#?}", hir.stmts);
+                    }
+
+                    println!("{:?}", val);
+                }
+                Err(e) => eprintln!("{:?}", e),
+            },
+            Signal::CtrlD | Signal::CtrlC => {
+                line_editor.print_crlf().unwrap();
+                break;
+            }
+            Signal::CtrlL => {
+                line_editor.clear_screen().unwrap();
+            }
         }
     }
 }

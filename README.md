@@ -5,12 +5,9 @@ The core design and architecture is practically identical to Eldiro, hence the n
 If you haven't read through his blog posts, I highly recommend you do because it is an unmatched learning resource.
 j
 ### Why make nakala?
-I was so inspired by his blog posts that I have decided to continue the implementation that I made while reading his posts. 
+I was so inspired by his blog posts that I have decided to continue the implementation that I made while reading his posts.
 
-The most notable of which being:
-- Creating a runtime engine that computes the parsed `HIR` representation
-- Adding many more language features (such as variable references, code blocks, string literals, functions, boolean expressions)
-- CLI Runtime/REPL. 
+The most notable and interesting things I have implemented since continuing my implementation is a runtime engine that computes the parsed `HIR` representation and the countless additional language features.
 
 ## Features
 As nakala is in its very early stages, the language does not have many features. However, it does have:
