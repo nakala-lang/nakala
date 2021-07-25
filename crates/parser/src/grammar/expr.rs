@@ -478,7 +478,7 @@ Root@0..7
                     LParen@0..1 "("
                     VariableRef@1..4
                       Ident@1..4 "foo"
-                error at 1..4: expected ‘+’, ‘-’, ‘*’, ‘/’ or ‘)’"#]],
+                error at 1..4: expected ‘+’, ‘-’, ‘*’, ‘/’, ‘>’, ‘>=’, ‘<’, ‘<=’, ‘or’, ‘and’, ‘==’ or ‘)’"#]],
         );
     }
 
@@ -494,7 +494,7 @@ Root@0..7
                       Literal@1..2
                         Number@1..2 "1"
                       Plus@2..3 "+"
-                error at 2..3: expected number, string, boolean, identifier, ‘-’, ‘(’, ‘call’ or ‘{’
+                error at 2..3: expected number, string, boolean, identifier, ‘-’, ‘not’, ‘(’, ‘call’ or ‘{’
                 error at 2..3: expected ‘)’"#]],
         );
     }
@@ -618,26 +618,26 @@ Root@0..28
         check(
             "let z = { x + 1",
             expect![[r#"
-Root@0..15
-  VariableDef@0..15
-    LetKw@0..3 "let"
-    Whitespace@3..4 " "
-    Ident@4..5 "z"
-    Whitespace@5..6 " "
-    Equals@6..7 "="
-    Whitespace@7..8 " "
-    CodeBlock@8..15
-      LBrace@8..9 "{"
-      Whitespace@9..10 " "
-      InfixExpr@10..15
-        VariableRef@10..12
-          Ident@10..11 "x"
-          Whitespace@11..12 " "
-        Plus@12..13 "+"
-        Whitespace@13..14 " "
-        Literal@14..15
-          Number@14..15 "1"
-error at 14..15: expected ‘+’, ‘-’, ‘*’, ‘/’, ‘+’, ‘-’, ‘*’, ‘/’ or ‘}’"#]],
+                Root@0..15
+                  VariableDef@0..15
+                    LetKw@0..3 "let"
+                    Whitespace@3..4 " "
+                    Ident@4..5 "z"
+                    Whitespace@5..6 " "
+                    Equals@6..7 "="
+                    Whitespace@7..8 " "
+                    CodeBlock@8..15
+                      LBrace@8..9 "{"
+                      Whitespace@9..10 " "
+                      InfixExpr@10..15
+                        VariableRef@10..12
+                          Ident@10..11 "x"
+                          Whitespace@11..12 " "
+                        Plus@12..13 "+"
+                        Whitespace@13..14 " "
+                        Literal@14..15
+                          Number@14..15 "1"
+                error at 14..15: expected ‘+’, ‘-’, ‘*’, ‘/’, ‘>’, ‘>=’, ‘<’, ‘<=’, ‘or’, ‘and’, ‘==’, ‘+’, ‘-’, ‘*’, ‘/’, ‘>’, ‘>=’, ‘<’, ‘<=’, ‘or’, ‘and’, ‘==’ or ‘}’"#]],
         );
     }
 

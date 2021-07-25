@@ -68,7 +68,7 @@ Root@0..13
                     Whitespace@15..16 " "
                     VariableRef@16..17
                       Ident@16..17 "a"
-                error at 8..11: expected number, string, boolean, identifier, ‘-’, ‘(’, ‘call’ or ‘{’, but found ‘let’"#]],
+                error at 8..11: expected number, string, boolean, identifier, ‘-’, ‘not’, ‘(’, ‘call’ or ‘{’, but found ‘let’"#]],
         );
     }
 }
