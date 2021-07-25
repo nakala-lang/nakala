@@ -97,6 +97,7 @@ impl BinaryExpr {
                         | SyntaxKind::LessThanOrEqual
                         | SyntaxKind::AndKw
                         | SyntaxKind::OrKw
+                        | SyntaxKind::ComparisonEquals
                 )
             })
     }

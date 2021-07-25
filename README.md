@@ -1,15 +1,15 @@
 # nakala
 
 A programming language that I built based on [azrg's Eldiro blog posts](https://arzg.github.io/lang/). 
-The core design and architecture are all practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_). 
+The core design and architecture is practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_). 
 If you haven't read through his blog posts, I highly recommend you do because it is an unmatched learning resource.
-
+j
 ### Why make nakala?
 I was so inspired by his blog posts that I have decided to continue the implementation that I made while reading his posts. 
 
 The most notable of which being:
 - Creating a runtime engine that computes the parsed `HIR` representation
-- Adding many more language features (such as variable references, code blocks, string literals, functions)
+- Adding many more language features (such as variable references, code blocks, string literals, functions, boolean expressions)
 - CLI Runtime/REPL. 
 
 ## Features
@@ -21,6 +21,17 @@ Prefix, Infix, and Postfix binary expression support
 1 + 4 * 10 + -4
 
 200 + (5 * (100 + 4))
+```
+
+#### Boolean Expressions
+```
+100 >= 5 
+
+false == false 
+
+not false or true 
+
+"string1" == "string1" and 5 >= 1 
 ```
 
 #### Comments

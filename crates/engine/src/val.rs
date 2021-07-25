@@ -57,6 +57,28 @@ impl Val {
         }
     }
 
+    pub(crate) fn equals(&self, other: Val) -> Result<Self, EngineError> {
+        match self {
+            Val::Number(x) => match other {
+                Val::Number(y) => Ok(Val::Boolean(x.eq(&y))),
+                _ => Ok(Val::Boolean(false)),
+            },
+            Val::Boolean(x) => match other {
+                Val::Boolean(y) => Ok(Val::Boolean(x.eq(&y))),
+                _ => Ok(Val::Boolean(false)),
+            },
+            Val::String(x) => match other {
+                Val::String(y) => Ok(Val::Boolean(x.eq(&y))),
+                _ => Ok(Val::Boolean(false)),
+            },
+            Val::Unit => match other {
+                Val::Unit => Ok(Val::Boolean(true)),
+                _ => Ok(Val::Boolean(false)),
+            },
+            _ => unreachable!(),
+        }
+    }
+
     pub(crate) fn greater_than(&self, other: Val) -> Result<Self, EngineError> {
         match self {
             Val::Number(x) => match other {

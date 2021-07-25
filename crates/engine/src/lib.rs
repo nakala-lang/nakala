@@ -112,6 +112,7 @@ fn eval_binary_expr(
         BinaryOp::Sub => lhs_val.sub(rhs_val),
         BinaryOp::Mul => lhs_val.mul(rhs_val),
         BinaryOp::Div => lhs_val.div(rhs_val),
+        BinaryOp::ComparisonEquals => lhs_val.equals(rhs_val),
         BinaryOp::GreaterThan => lhs_val.greater_than(rhs_val),
         BinaryOp::GreaterThanOrEqual => lhs_val.greater_than_or_eq(rhs_val),
         BinaryOp::LessThan => lhs_val.less_than(rhs_val),

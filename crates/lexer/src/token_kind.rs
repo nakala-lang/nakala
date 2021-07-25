@@ -75,6 +75,9 @@ pub enum TokenKind {
     #[token("not")]
     NotKw,
 
+    #[token("==")]
+    ComparisonEquals,
+
     #[token(",")]
     Comma,
 
@@ -118,6 +121,7 @@ impl fmt::Display for TokenKind {
             Self::AndKw => "‘and’",
             Self::OrKw => "‘or’",
             Self::NotKw => "‘not’",
+            Self::ComparisonEquals => "‘==’",
             Self::Comma => "‘,’",
             Self::Comment => "comment",
             Self::Error => "an unrecognized token",
@@ -241,6 +245,46 @@ mod tests {
     #[test]
     fn lex_right_parenthesis() {
         check(")", TokenKind::RParen);
+    }
+
+    #[test]
+    fn lex_greater_than() {
+        check(">", TokenKind::GreaterThan);
+    }
+
+    #[test]
+    fn lex_greater_than_or_equals() {
+        check(">=", TokenKind::GreaterThanOrEqual);
+    }
+
+    #[test]
+    fn lex_less_than() {
+        check("<", TokenKind::LessThan);
+    }
+
+    #[test]
+    fn lex_less_than_or_equals() {
+        check("<=", TokenKind::LessThanOrEqual);
+    }
+
+    #[test]
+    fn lex_and_keyword() {
+        check("and", TokenKind::AndKw);
+    }
+
+    #[test]
+    fn lex_or_keyword() {
+        check("or", TokenKind::OrKw);
+    }
+
+    #[test]
+    fn lex_not_keyword() {
+        check("not", TokenKind::NotKw);
+    }
+
+    #[test]
+    fn lex_comparison_equals() {
+        check("==", TokenKind::ComparisonEquals);
     }
 
     #[test]

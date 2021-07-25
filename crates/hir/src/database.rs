@@ -57,6 +57,7 @@ impl Database {
             SyntaxKind::LessThanOrEqual => BinaryOp::LessThanOrEqual,
             SyntaxKind::AndKw => BinaryOp::And,
             SyntaxKind::OrKw => BinaryOp::Or,
+            SyntaxKind::ComparisonEquals => BinaryOp::ComparisonEquals,
             _ => unreachable!(),
         };
 

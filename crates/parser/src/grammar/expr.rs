@@ -30,6 +30,8 @@ fn expr_binding_power(p: &mut Parser, minimum_binding_power: u8) -> Option<Compl
             BinaryOp::Or
         } else if p.at(TokenKind::AndKw) {
             BinaryOp::And
+        } else if p.at(TokenKind::ComparisonEquals) {
+            BinaryOp::ComparisonEquals
         } else {
             // We're not at an operator; we don't know what to do next, so we just return from
             // the function and let the caller decide
@@ -174,6 +176,7 @@ enum BinaryOp {
     Sub,
     Mul,
     Div,
+    ComparisonEquals,
     GreaterThan,
     GreaterThanOrEqual,
     LessThan,
@@ -187,7 +190,8 @@ impl BinaryOp {
         match self {
             Self::Or => (1, 2),
             Self::And => (3, 4),
-            Self::GreaterThan
+            Self::ComparisonEquals
+            | Self::GreaterThan
             | Self::GreaterThanOrEqual
             | Self::LessThan
             | Self::LessThanOrEqual => (5, 6),
@@ -205,7 +209,8 @@ enum UnaryOp {
 impl UnaryOp {
     fn binding_power(&self) -> ((), u8) {
         match self {
-            Self::Neg | Self::Not => ((), 11),
+            Self::Not => ((), 4),
+            Self::Neg => ((), 11),
         }
     }
 }

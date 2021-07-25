@@ -81,6 +81,7 @@ pub enum BinaryOp {
     Sub,
     Mul,
     Div,
+    ComparisonEquals,
     GreaterThan,
     GreaterThanOrEqual,
     LessThan,
