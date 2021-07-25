@@ -111,7 +111,7 @@ fn cli_main(cli_args: ArgMatches) {
 
                     println!("{:?}", val);
                 }
-                Err(e) => eprintln!("{:?}", e),
+                Err(e) => eprintln!("{}", e),
             },
             Signal::CtrlD | Signal::CtrlC => {
                 line_editor.print_crlf().unwrap();
