@@ -1,4 +1,4 @@
-use crate::parser::ParseError;
+use crate::parser::parse_error::ParseError;
 use syntax::SyntaxKind;
 
 #[derive(Debug, PartialEq)]

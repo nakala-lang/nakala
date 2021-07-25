@@ -66,7 +66,9 @@ fn eval_expr(env: &Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {
             name,
             param_value_list,
         } => eval_function_call(&env, &db, name, param_value_list),
-        Expr::Missing => Err(EngineError::InvalidExpression(expr)),
+        Expr::Missing => {
+            unreachable!("Missing tokens will get caught before they reach the engine")
+        }
     }
 }
 

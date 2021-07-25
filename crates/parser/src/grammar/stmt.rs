@@ -68,7 +68,7 @@ Root@0..13
                     Whitespace@15..16 " "
                     VariableRef@16..17
                       Ident@16..17 "a"
-                error at 8..11: expected number, string, boolean, identifier, ‘-’, ‘not’, ‘(’, ‘call’ or ‘{’, but found ‘let’"#]],
+                [31mParse Error[0m: at 8..11, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m, but found [31mlet[0m"#]],
         );
     }
 }

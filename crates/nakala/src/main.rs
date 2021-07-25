@@ -3,7 +3,7 @@ use engine::env::Env;
 use engine::error::EngineError;
 use engine::val::Val;
 use hir::Hir;
-use parser::Parse;
+use parser::{Parse, ParseError};
 use reedline::{DefaultPrompt, FileBackedHistory, Reedline, Signal};
 use std::fs::read_to_string;
 use std::path::Path;
@@ -99,20 +99,40 @@ fn cli_main(cli_args: ArgMatches) {
     loop {
         let sig = line_editor.read_line(&prompt).unwrap();
         match sig {
-            Signal::Success(buffer) => match parse_and_eval_buffer(buffer.as_str(), &mut env) {
-                Ok(NakalaResult { parse, hir, val }) => {
-                    if cli_args.is_present("parse") {
-                        println!("{}", parse.debug_tree());
-                    }
+            Signal::Success(buffer) => {
+                match from_string_to_parse(buffer.as_str()) {
+                    Ok(parse) => {
+                        if cli_args.is_present("parse") {
+                            println!("{}", parse.debug_tree());
+                        }
 
-                    if cli_args.is_present("hir") {
-                        println!("{:#?}", hir.stmts);
-                    }
+                        match from_parse_to_ast(parse) {
+                            Some(ast) => {
+                                let hir = from_ast_to_hir(ast);
 
-                    println!("{:?}", val);
+                                if cli_args.is_present("hir") {
+                                    println!("{:#?}", hir.stmts);
+                                }
+
+                                match evaluate_hir(hir, &mut env) {
+                                    Ok(val) => println!("{:?}", val),
+                                    Err(e) => eprintln!("{}", e),
+                                }
+                            }
+                            None => {
+                                // show ast errors
+                                eprintln!("Parse error: unable to parse into AST");
+                            }
+                        }
+                    }
+                    Err(parse_errors) => {
+                        // show parse errors
+                        for error in parse_errors {
+                            eprintln!("{}", error)
+                        }
+                    }
                 }
-                Err(e) => eprintln!("{}", e),
-            },
+            }
             Signal::CtrlD | Signal::CtrlC => {
                 line_editor.print_crlf().unwrap();
                 break;
@@ -128,6 +148,28 @@ pub struct NakalaResult {
     parse: Parse,
     hir: Hir,
     val: Val,
+}
+
+pub fn from_string_to_parse(buffer: &str) -> Result<Parse, Vec<ParseError>> {
+    let mut parse = parser::parse(buffer);
+
+    if parse.has_errors() {
+        Err(parse.get_errors())
+    } else {
+        Ok(parse)
+    }
+}
+
+pub fn from_parse_to_ast(parse: Parse) -> Option<ast::Root> {
+    ast::Root::cast(parse.syntax())
+}
+
+pub fn from_ast_to_hir(root: ast::Root) -> Hir {
+    hir::lower(root)
+}
+
+pub fn evaluate_hir(hir: Hir, env: &mut Env) -> Result<Val, EngineError> {
+    engine::eval(env, hir.clone())
 }
 
 pub fn parse_and_eval_buffer(

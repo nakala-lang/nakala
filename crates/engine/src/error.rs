@@ -1,20 +1,20 @@
-use hir::Expr;
+use crate::val::Val;
+use nu_ansi_term::Color::{Green, Red, Yellow};
 
 #[derive(Debug)]
 pub enum EngineError {
-    InvalidExpression(Expr),
-    InvalidAddOperation,
-    InvalidSubOperation,
-    InvalidMulOperation,
-    InvalidDivOperation,
-    InvalidNegOperation,
-    InvalidGreaterThanOperation,
-    InvalidGreaterThanOrEqOperation,
-    InvalidLessThanOperation,
-    InvalidLessThanOrEqOperation,
-    InvalidNotOperation,
-    InvalidAndOperation,
-    InvalidOrOperation,
+    InvalidAddOperation { x: Val, y: Val },
+    InvalidSubOperation { x: Val, y: Val },
+    InvalidMulOperation { x: Val, y: Val },
+    InvalidDivOperation { x: Val, y: Val },
+    InvalidNegOperation { x: Val },
+    InvalidGreaterThanOperation { x: Val, y: Val },
+    InvalidGreaterThanOrEqOperation { x: Val, y: Val },
+    InvalidLessThanOperation { x: Val, y: Val },
+    InvalidLessThanOrEqOperation { x: Val, y: Val },
+    InvalidNotOperation { x: Val },
+    InvalidAndOperation { x: Val, y: Val },
+    InvalidOrOperation { x: Val, y: Val },
     VariableAlreadyExists { variable_name: String },
     VariableUndefined { variable_name: String },
     FunctionAlreadyExists { function_name: String },
@@ -24,78 +24,77 @@ pub enum EngineError {
     Unknown,
 }
 
+fn missing_handler_msg(handler: &str, x: &Val, y: &Val) -> String {
+    format!(
+        "Could not find {} handler for the provided types {} and {}",
+        handler,
+        Yellow.paint(x.get_type()),
+        Yellow.paint(y.get_type())
+    )
+}
+
+fn missing_handler_msg_single(handler: &str, x: &Val) -> String {
+    format!(
+        "Could not find {} handler for the provided type {}",
+        handler,
+        Yellow.paint(x.get_type())
+    )
+}
+
 impl std::fmt::Display for EngineError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            EngineError::InvalidExpression(_) => {
-                f.write_str("Unable to parse expression because it's invalid")
+        let msg: String = match self {
+            EngineError::InvalidAddOperation { x, y } => missing_handler_msg("ADD", x, y),
+            EngineError::InvalidSubOperation { x, y } => missing_handler_msg("SUB", x, y),
+            EngineError::InvalidMulOperation { x, y } => missing_handler_msg("MUL", x, y),
+            EngineError::InvalidDivOperation { x, y } => missing_handler_msg("DIV", x, y),
+            EngineError::InvalidNegOperation { x } => missing_handler_msg_single("NEG", x),
+            EngineError::InvalidGreaterThanOperation { x, y } => {
+                missing_handler_msg("GREATER_THAN", x, y)
             }
-            EngineError::InvalidAddOperation => {
-                f.write_str("Could not find ADD handler for the provided types")
+            EngineError::InvalidGreaterThanOrEqOperation { x, y } => {
+                missing_handler_msg("GREATER_THAN_OR_EQ", x, y)
             }
-            EngineError::InvalidSubOperation => {
-                f.write_str("Could not find SUB handler for the provided types")
+            EngineError::InvalidLessThanOperation { x, y } => {
+                missing_handler_msg("LESS_THAN", x, y)
             }
-            EngineError::InvalidMulOperation => {
-                f.write_str("Could not find MUL handler for the provided types")
+            EngineError::InvalidLessThanOrEqOperation { x, y } => {
+                missing_handler_msg("LESS_THAN_OR_EQ", x, y)
             }
-            EngineError::InvalidDivOperation => {
-                f.write_str("Could not find DIV handler for the provided types")
-            }
-            EngineError::InvalidNegOperation => {
-                f.write_str("Could not find NEG handler for the provided type")
-            }
-            EngineError::InvalidGreaterThanOperation => {
-                f.write_str("Could not find GREATER_THAN handler for the provided type")
-            }
-            EngineError::InvalidGreaterThanOrEqOperation => {
-                f.write_str("Could not find GREATER_THAN_OR_EQ handler for the provided type")
-            }
-            EngineError::InvalidLessThanOperation => {
-                f.write_str("Could not find LESS_THAN handler for the provided type")
-            }
-            EngineError::InvalidLessThanOrEqOperation => {
-                f.write_str("Could not find LESS_THAN_OR_EQ handler for the provided type")
-            }
-            EngineError::InvalidNotOperation => {
-                f.write_str("Could not find NOT handler for the provided type")
-            }
-            EngineError::InvalidAndOperation => {
-                f.write_str("Could not find AND handler for the provided type")
-            }
-            EngineError::InvalidOrOperation => {
-                f.write_str("Could not find OR handler for the provided type")
-            }
-            EngineError::VariableAlreadyExists { variable_name } => f.write_str(
+            EngineError::InvalidNotOperation { x } => missing_handler_msg_single("NOT", x),
+            EngineError::InvalidAndOperation { x, y } => missing_handler_msg("AND", x, y),
+            EngineError::InvalidOrOperation { x, y } => missing_handler_msg("OR", x, y),
+            EngineError::VariableAlreadyExists { variable_name } => format!(
+                "The variable {} already exists in the scope",
+                Yellow.paint(variable_name)
+            ),
+            EngineError::VariableUndefined { variable_name } => {
                 format!(
-                    "The variable `{}` already exists in the scope",
-                    variable_name
+                    "The variable {} is undefined in the scope",
+                    Yellow.paint(variable_name)
                 )
-                .as_str(),
+            }
+            EngineError::FunctionAlreadyExists { function_name } => format!(
+                "The function {} already exists in the scope",
+                Yellow.paint(function_name)
             ),
-            EngineError::VariableUndefined { variable_name } => f.write_str(
-                format!("The variable `{}` is undefined in the scope", variable_name).as_str(),
-            ),
-            EngineError::FunctionAlreadyExists { function_name } => f.write_str(
+
+            EngineError::FunctionUndefined { function_name } => {
                 format!(
-                    "The function `{}` already exists in the scope",
-                    function_name
+                    "The function {} is undefined in the scope",
+                    Yellow.paint(function_name)
                 )
-                .as_str(),
+            }
+            EngineError::MismatchedParameterCount { actual, expected } => format!(
+                "The function expected {} parameters, but received {}",
+                Green.paint(format!("{}", expected)),
+                Yellow.paint(format!("{}", actual))
             ),
-            EngineError::FunctionUndefined { function_name } => f.write_str(
-                format!("The function `{}` is undefined in the scope", function_name).as_str(),
-            ),
-            EngineError::MismatchedParameterCount { actual, expected } => f.write_str(
-                format!(
-                    "The function expected {} parameters, but received {}",
-                    expected, actual
-                )
-                .as_str(),
-            ),
-            EngineError::NotYetImplemented => f.write_str("This feature is not yet implemented"),
-            EngineError::Unknown => f.write_str("An unknown error occurred"),
-        }
+            EngineError::NotYetImplemented => "This feature is not yet implemented".into(),
+            EngineError::Unknown => "An unknown error occurred".into(),
+        };
+
+        f.write_str(format!("{}: {}", Red.paint("Engine Error"), msg).as_str())
     }
 }
 

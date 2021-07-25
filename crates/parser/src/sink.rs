@@ -1,6 +1,6 @@
 use super::event::Event;
-use crate::parser::ParseError;
 use crate::Parse;
+use crate::ParseError;
 use lexer::Token;
 use rowan::{GreenNodeBuilder, Language};
 use std::mem;

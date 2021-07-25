@@ -1,19 +1,21 @@
 use lexer::TokenKind;
+use nu_ansi_term::Color::{Red, Yellow};
 use std::fmt;
 use text_size::TextRange;
 
-#[derive(Debug, PartialEq)]
-pub(crate) struct ParseError {
-    pub(super) expected: Vec<TokenKind>,
-    pub(super) found: Option<TokenKind>,
-    pub(super) range: TextRange,
+#[derive(Debug, PartialEq, Clone)]
+pub struct ParseError {
+    pub expected: Vec<TokenKind>,
+    pub found: Option<TokenKind>,
+    pub range: TextRange,
 }
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "error at {}..{}: expected ",
+            "{}: at {}..{}, expected ",
+            Red.paint("Parse Error"),
             u32::from(self.range.start()),
             u32::from(self.range.end()),
         )?;
@@ -24,16 +26,16 @@ impl fmt::Display for ParseError {
 
         for (idx, expected_kind) in self.expected.iter().enumerate() {
             if is_first(idx) {
-                write!(f, "{}", expected_kind)?;
+                write!(f, "{}", Yellow.paint(expected_kind.to_string()))?;
             } else if is_last(idx) {
-                write!(f, " or {}", expected_kind)?;
+                write!(f, " or {}", Yellow.paint(expected_kind.to_string()))?;
             } else {
-                write!(f, ", {}", expected_kind)?;
+                write!(f, ", {}", Yellow.paint(expected_kind.to_string()))?;
             }
         }
 
         if let Some(found) = self.found {
-            write!(f, ", but found {}", found)?;
+            write!(f, ", but found {}", Red.paint(found.to_string()))?;
         }
 
         Ok(())
@@ -70,7 +72,7 @@ mod tests {
             vec![TokenKind::Equals],
             Some(TokenKind::Ident),
             10..20,
-            "error at 10..20: expected ‘=’, but found identifier",
+            "\u{1b}[31mParse Error\u{1b}[0m: at 10..20, expected \u{1b}[33m=\u{1b}[0m, but found \u{1b}[31midentifier\u{1b}[0m"
         )
     }
 
@@ -80,7 +82,7 @@ mod tests {
             vec![TokenKind::RParen],
             None,
             5..6,
-            "error at 5..6: expected ‘)’",
+            "\u{1b}[31mParse Error\u{1b}[0m: at 5..6, expected \u{1b}[33m)\u{1b}[0m",
         );
     }
 
@@ -90,7 +92,7 @@ mod tests {
             vec![TokenKind::Plus, TokenKind::Minus],
             Some(TokenKind::Equals),
             0..1,
-            "error at 0..1: expected ‘+’ or ‘-’, but found ‘=’",
+            "\u{1b}[31mParse Error\u{1b}[0m: at 0..1, expected \u{1b}[33m+\u{1b}[0m or \u{1b}[33m-\u{1b}[0m, but found \u{1b}[31m=\u{1b}[0m"
         );
     }
 
@@ -105,7 +107,7 @@ mod tests {
             ],
             Some(TokenKind::LetKw),
             100..105,
-            "error at 100..105: expected number, identifier, ‘-’ or ‘(’, but found ‘let’",
+            "\u{1b}[31mParse Error\u{1b}[0m: at 100..105, expected \u{1b}[33mnumber\u{1b}[0m, \u{1b}[33midentifier\u{1b}[0m, \u{1b}[33m-\u{1b}[0m or \u{1b}[33m(\u{1b}[0m, but found \u{1b}[31mlet\u{1b}[0m",
         );
     }
 }

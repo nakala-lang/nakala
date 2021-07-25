@@ -39,6 +39,11 @@ You can have comments placed within expressions
 + 5512312 # add a large number
 ```
 
+#### Error Handling
+Nakala supports Runtime and Parse errors, with colored output
+
+<img src="assets/errors.png" width="800px"/>
+
 #### Variable Declaration and References
 ```
 let a = 200 + (5 * (100 + 4))

@@ -10,13 +10,29 @@ pub enum Val {
 }
 
 impl Val {
+    pub(crate) fn get_type(&self) -> &str {
+        match self {
+            Val::Missing => "missing",
+            Val::Unit => "unit",
+            Val::Number(_) => "number",
+            Val::String(_) => "string",
+            Val::Boolean(_) => "boolean",
+        }
+    }
+
     pub(crate) fn add(&self, other: Val) -> Result<Self, EngineError> {
         match self {
             Val::Number(x) => match other {
                 Val::Number(y) => Ok(Val::Number(*x + y)),
-                _ => Err(EngineError::InvalidAddOperation),
+                _ => Err(EngineError::InvalidAddOperation {
+                    x: self.clone(),
+                    y: other,
+                }),
             },
-            _ => Err(EngineError::InvalidAddOperation),
+            _ => Err(EngineError::InvalidAddOperation {
+                x: self.clone(),
+                y: other,
+            }),
         }
     }
 
@@ -24,9 +40,15 @@ impl Val {
         match self {
             Val::Number(x) => match other {
                 Val::Number(y) => Ok(Val::Number(*x - y)),
-                _ => Err(EngineError::InvalidSubOperation),
+                _ => Err(EngineError::InvalidSubOperation {
+                    x: self.clone(),
+                    y: other,
+                }),
             },
-            _ => Err(EngineError::InvalidSubOperation),
+            _ => Err(EngineError::InvalidSubOperation {
+                x: self.clone(),
+                y: other,
+            }),
         }
     }
 
@@ -34,9 +56,15 @@ impl Val {
         match self {
             Val::Number(x) => match other {
                 Val::Number(y) => Ok(Val::Number(*x * y)),
-                _ => Err(EngineError::InvalidMulOperation),
+                _ => Err(EngineError::InvalidMulOperation {
+                    x: self.clone(),
+                    y: other,
+                }),
             },
-            _ => Err(EngineError::InvalidMulOperation),
+            _ => Err(EngineError::InvalidMulOperation {
+                x: self.clone(),
+                y: other,
+            }),
         }
     }
 
@@ -44,16 +72,22 @@ impl Val {
         match self {
             Val::Number(x) => match other {
                 Val::Number(y) => Ok(Val::Number(*x / y)),
-                _ => Err(EngineError::InvalidDivOperation),
+                _ => Err(EngineError::InvalidDivOperation {
+                    x: self.clone(),
+                    y: other,
+                }),
             },
-            _ => Err(EngineError::InvalidDivOperation),
+            _ => Err(EngineError::InvalidDivOperation {
+                x: self.clone(),
+                y: other,
+            }),
         }
     }
 
     pub(crate) fn neg(&self) -> Result<Self, EngineError> {
         match self {
             Val::Number(n) => Ok(Val::Number(-n)),
-            _ => Err(EngineError::InvalidNegOperation),
+            _ => Err(EngineError::InvalidNegOperation { x: self.clone() }),
         }
     }
 
@@ -75,7 +109,7 @@ impl Val {
                 Val::Unit => Ok(Val::Boolean(true)),
                 _ => Ok(Val::Boolean(false)),
             },
-            _ => unreachable!(),
+            _ => unreachable!("Cannot equals Missing type"),
         }
     }
 
@@ -83,9 +117,15 @@ impl Val {
         match self {
             Val::Number(x) => match other {
                 Val::Number(y) => Ok(Val::Boolean(*x > y)),
-                _ => Err(EngineError::InvalidGreaterThanOperation),
+                _ => Err(EngineError::InvalidGreaterThanOperation {
+                    x: self.clone(),
+                    y: other,
+                }),
             },
-            _ => Err(EngineError::InvalidGreaterThanOperation),
+            _ => Err(EngineError::InvalidGreaterThanOperation {
+                x: self.clone(),
+                y: other,
+            }),
         }
     }
 
@@ -93,9 +133,15 @@ impl Val {
         match self {
             Val::Number(x) => match other {
                 Val::Number(y) => Ok(Val::Boolean(*x >= y)),
-                _ => Err(EngineError::InvalidGreaterThanOrEqOperation),
+                _ => Err(EngineError::InvalidGreaterThanOrEqOperation {
+                    x: self.clone(),
+                    y: other,
+                }),
             },
-            _ => Err(EngineError::InvalidGreaterThanOrEqOperation),
+            _ => Err(EngineError::InvalidGreaterThanOrEqOperation {
+                x: self.clone(),
+                y: other,
+            }),
         }
     }
 
@@ -103,9 +149,15 @@ impl Val {
         match self {
             Val::Number(x) => match other {
                 Val::Number(y) => Ok(Val::Boolean(*x < y)),
-                _ => Err(EngineError::InvalidLessThanOperation),
+                _ => Err(EngineError::InvalidLessThanOperation {
+                    x: self.clone(),
+                    y: other,
+                }),
             },
-            _ => Err(EngineError::InvalidLessThanOperation),
+            _ => Err(EngineError::InvalidLessThanOperation {
+                x: self.clone(),
+                y: other,
+            }),
         }
     }
 
@@ -113,16 +165,22 @@ impl Val {
         match self {
             Val::Number(x) => match other {
                 Val::Number(y) => Ok(Val::Boolean(*x <= y)),
-                _ => Err(EngineError::InvalidLessThanOrEqOperation),
+                _ => Err(EngineError::InvalidLessThanOrEqOperation {
+                    x: self.clone(),
+                    y: other,
+                }),
             },
-            _ => Err(EngineError::InvalidLessThanOrEqOperation),
+            _ => Err(EngineError::InvalidLessThanOrEqOperation {
+                x: self.clone(),
+                y: other,
+            }),
         }
     }
 
     pub(crate) fn not(&self) -> Result<Self, EngineError> {
         match self {
             Val::Boolean(b) => Ok(Val::Boolean(!b)),
-            _ => Err(EngineError::InvalidNotOperation),
+            _ => Err(EngineError::InvalidNotOperation { x: self.clone() }),
         }
     }
 
@@ -130,9 +188,15 @@ impl Val {
         match self {
             Val::Boolean(x) => match other {
                 Val::Boolean(y) => Ok(Val::Boolean(*x || y)),
-                _ => Err(EngineError::InvalidOrOperation),
+                _ => Err(EngineError::InvalidOrOperation {
+                    x: self.clone(),
+                    y: other,
+                }),
             },
-            _ => Err(EngineError::InvalidOrOperation),
+            _ => Err(EngineError::InvalidOrOperation {
+                x: self.clone(),
+                y: other,
+            }),
         }
     }
 
@@ -140,9 +204,15 @@ impl Val {
         match self {
             Val::Boolean(x) => match other {
                 Val::Boolean(y) => Ok(Val::Boolean(*x && y)),
-                _ => Err(EngineError::InvalidAndOperation),
+                _ => Err(EngineError::InvalidAndOperation {
+                    x: self.clone(),
+                    y: other,
+                }),
             },
-            _ => Err(EngineError::InvalidAndOperation),
+            _ => Err(EngineError::InvalidAndOperation {
+                x: self.clone(),
+                y: other,
+            }),
         }
     }
 }

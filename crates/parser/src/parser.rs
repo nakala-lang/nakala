@@ -1,7 +1,5 @@
 pub(crate) mod marker;
-
-mod parse_error;
-pub(crate) use parse_error::ParseError;
+pub mod parse_error;
 
 use crate::event::Event;
 use crate::grammar;
@@ -10,6 +8,8 @@ use lexer::{Token, TokenKind};
 use marker::Marker;
 use std::mem;
 use syntax::SyntaxKind;
+
+use parse_error::ParseError;
 
 const RECOVERY_SET: [TokenKind; 1] = [TokenKind::LetKw];
 

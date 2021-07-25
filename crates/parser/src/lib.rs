@@ -4,7 +4,9 @@ mod parser;
 mod sink;
 mod source;
 
-use crate::parser::{ParseError, Parser};
+pub use crate::parser::parse_error::ParseError;
+
+use crate::parser::Parser;
 use lexer::Lexer;
 use rowan::GreenNode;
 use sink::Sink;
@@ -44,6 +46,14 @@ impl Parse {
 
     pub fn syntax(&self) -> SyntaxNode {
         SyntaxNode::new_root(self.green_node.clone())
+    }
+
+    pub fn has_errors(&self) -> bool {
+        self.errors.len() != 0
+    }
+
+    pub fn get_errors(&mut self) -> Vec<ParseError> {
+        self.errors.to_owned()
     }
 }
 

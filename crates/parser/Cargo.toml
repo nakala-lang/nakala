@@ -12,6 +12,7 @@ lexer = {path = "../lexer"}
 rowan = "0.12.1"
 syntax = {path = "../syntax"}
 text-size = "1.0.0"
+nu-ansi-term = "0.34"
 
 [dev-dependencies]
 expect-test = "1.0.1"

@@ -478,7 +478,7 @@ Root@0..7
                     LParen@0..1 "("
                     VariableRef@1..4
                       Ident@1..4 "foo"
-                error at 1..4: expected ‘+’, ‘-’, ‘*’, ‘/’, ‘>’, ‘>=’, ‘<’, ‘<=’, ‘or’, ‘and’, ‘==’ or ‘)’"#]],
+                [31mParse Error[0m: at 1..4, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m)[0m"#]],
         );
     }
 
@@ -494,8 +494,8 @@ Root@0..7
                       Literal@1..2
                         Number@1..2 "1"
                       Plus@2..3 "+"
-                error at 2..3: expected number, string, boolean, identifier, ‘-’, ‘not’, ‘(’, ‘call’ or ‘{’
-                error at 2..3: expected ‘)’"#]],
+                [31mParse Error[0m: at 2..3, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m
+                [31mParse Error[0m: at 2..3, expected [33m)[0m"#]],
         );
     }
 
@@ -637,7 +637,7 @@ Root@0..28
                         Whitespace@13..14 " "
                         Literal@14..15
                           Number@14..15 "1"
-                error at 14..15: expected ‘+’, ‘-’, ‘*’, ‘/’, ‘>’, ‘>=’, ‘<’, ‘<=’, ‘or’, ‘and’, ‘==’, ‘+’, ‘-’, ‘*’, ‘/’, ‘>’, ‘>=’, ‘<’, ‘<=’, ‘or’, ‘and’, ‘==’ or ‘}’"#]],
+                [31mParse Error[0m: at 14..15, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m}[0m"#]],
         );
     }
 
@@ -942,6 +942,122 @@ Root@0..23
                       Literal@35..37
                         Number@35..37 "15"
                     RParen@37..38 ")""#]],
+        )
+    }
+
+    #[test]
+    fn parse_simple_and_expression() {
+        check(
+            "false and true",
+            expect![[r#"
+            Root@0..14
+              InfixExpr@0..14
+                Literal@0..6
+                  Boolean@0..5 "false"
+                  Whitespace@5..6 " "
+                AndKw@6..9 "and"
+                Whitespace@9..10 " "
+                Literal@10..14
+                  Boolean@10..14 "true""#]],
+        )
+    }
+
+    #[test]
+    fn parse_simple_not_expression() {
+        check(
+            "not false",
+            expect![[r#"
+            Root@0..9
+              PrefixExpr@0..9
+                NotKw@0..3 "not"
+                Whitespace@3..4 " "
+                Literal@4..9
+                  Boolean@4..9 "false""#]],
+        )
+    }
+
+    #[test]
+    fn parse_simple_or_expression() {
+        check(
+            "false or true",
+            expect![[r#"
+            Root@0..13
+              InfixExpr@0..13
+                Literal@0..6
+                  Boolean@0..5 "false"
+                  Whitespace@5..6 " "
+                OrKw@6..8 "or"
+                Whitespace@8..9 " "
+                Literal@9..13
+                  Boolean@9..13 "true""#]],
+        )
+    }
+
+    #[test]
+    fn parse_simple_greater_than_expression() {
+        check(
+            "1 > 1",
+            expect![[r#"
+            Root@0..5
+              InfixExpr@0..5
+                Literal@0..2
+                  Number@0..1 "1"
+                  Whitespace@1..2 " "
+                GreaterThan@2..3 ">"
+                Whitespace@3..4 " "
+                Literal@4..5
+                  Number@4..5 "1""#]],
+        )
+    }
+
+    #[test]
+    fn parse_simple_greater_than_or_equal_expression() {
+        check(
+            "1 >= 1",
+            expect![[r#"
+            Root@0..6
+              InfixExpr@0..6
+                Literal@0..2
+                  Number@0..1 "1"
+                  Whitespace@1..2 " "
+                GreaterThanOrEqual@2..4 ">="
+                Whitespace@4..5 " "
+                Literal@5..6
+                  Number@5..6 "1""#]],
+        )
+    }
+
+    #[test]
+    fn parse_simple_less_than_expression() {
+        check(
+            "1 < 1",
+            expect![[r#"
+            Root@0..5
+              InfixExpr@0..5
+                Literal@0..2
+                  Number@0..1 "1"
+                  Whitespace@1..2 " "
+                LessThan@2..3 "<"
+                Whitespace@3..4 " "
+                Literal@4..5
+                  Number@4..5 "1""#]],
+        )
+    }
+
+    #[test]
+    fn parse_simple_less_than_or_equal_expression() {
+        check(
+            "1 <= 1",
+            expect![[r#"
+            Root@0..6
+              InfixExpr@0..6
+                Literal@0..2
+                  Number@0..1 "1"
+                  Whitespace@1..2 " "
+                LessThanOrEqual@2..4 "<="
+                Whitespace@4..5 " "
+                Literal@5..6
+                  Number@5..6 "1""#]],
         )
     }
 }

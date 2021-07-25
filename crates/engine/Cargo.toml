@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 hir = {path = "../hir" }
+nu-ansi-term = "0.34"
