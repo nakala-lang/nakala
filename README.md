@@ -1,5 +1,7 @@
 # nakala
 
+[![CI](https://github.com/reaganmcf/nakala/actions/workflows/CI.yml/badge.svg)](https://github.com/reaganmcf/nakala/actions/workflows/CI.yml)
+
 A programming language that I built based on [azrg's Eldiro blog posts](https://arzg.github.io/lang/). 
 The core design and architecture is practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_). 
 If you haven't read through his blog posts, I highly recommend you do because it is an unmatched learning resource.
