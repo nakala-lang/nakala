@@ -19,7 +19,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  build:
+  build_and_test:
     runs-on: ubuntu-latest
     needs: [clippy_check]
     steps:
