@@ -4,6 +4,8 @@ use super::EngineError;
 use crate::{func::Function, val::Val};
 use std::collections::HashMap;
 
+type BindingList = (Vec<(String, Val)>, Vec<(String, Function)>);
+
 #[derive(Clone)]
 pub struct Env {
     // holds variable definitions
@@ -14,28 +16,28 @@ pub struct Env {
 }
 
 impl Env {
-    pub fn get_variable(&self, variable_name: &String) -> Result<Val, EngineError> {
+    pub fn get_variable(&self, variable_name: &str) -> Result<Val, EngineError> {
         match self.variables.get(variable_name) {
             Some(val) => Ok(val.to_owned()),
             None => Err(EngineError::VariableUndefined {
-                variable_name: variable_name.clone(),
+                variable_name: variable_name.to_string(),
             }),
         }
     }
 
-    pub fn set_variable(&mut self, variable_name: &String, val: Val) -> Result<Val, EngineError> {
+    pub fn set_variable(&mut self, variable_name: &str, val: Val) -> Result<Val, EngineError> {
         if self.variables.contains_key(variable_name) {
             return Err(EngineError::VariableAlreadyExists {
-                variable_name: variable_name.clone(),
+                variable_name: variable_name.to_string(),
             });
         }
 
-        self.variables.insert(variable_name.clone(), val);
+        self.variables.insert(variable_name.to_string(), val);
 
         Ok(Val::Unit)
     }
 
-    pub fn rename_variable(&mut self, old: &String, new: String) -> Result<(), EngineError> {
+    pub fn rename_variable(&mut self, old: &str, new: String) -> Result<(), EngineError> {
         if let Some(old_entry) = self.variables.remove_entry(old) {
             // re-insert with new name
             match self.variables.insert(new.clone(), old_entry.1) {
@@ -44,16 +46,16 @@ impl Env {
             }
         } else {
             Err(EngineError::VariableUndefined {
-                variable_name: old.clone(),
+                variable_name: old.to_string(),
             })
         }
     }
 
-    pub fn get_function(&self, function_name: &String) -> Result<Function, EngineError> {
+    pub fn get_function(&self, function_name: &str) -> Result<Function, EngineError> {
         match self.functions.get(function_name) {
             Some(func) => Ok(func.to_owned()),
             None => Err(EngineError::FunctionUndefined {
-                function_name: function_name.clone(),
+                function_name: function_name.to_string(),
             }),
         }
     }
@@ -75,7 +77,7 @@ impl Env {
         Ok(Val::Unit)
     }
 
-    pub fn get_all_bindings(&self) -> (Vec<(String, Val)>, Vec<(String, Function)>) {
+    pub fn get_all_bindings(&self) -> BindingList {
         (
             self.variables.clone().into_iter().collect(),
             self.functions.clone().into_iter().collect(),

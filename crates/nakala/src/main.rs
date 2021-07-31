@@ -169,7 +169,7 @@ pub fn from_ast_to_hir(root: ast::Root) -> Hir {
 }
 
 pub fn evaluate_hir(hir: Hir, env: &mut Env) -> Result<Val, EngineError> {
-    engine::eval(env, hir.clone())
+    engine::eval(env, hir)
 }
 
 pub fn parse_and_eval_buffer(

@@ -30,8 +30,7 @@ impl FunctionDef {
     pub fn param_ident_list(&self) -> Vec<SyntaxToken> {
         self.0
             .children()
-            .filter(|node| node.kind() == SyntaxKind::ParamIdentList)
-            .nth(0)
+            .find(|node| node.kind() == SyntaxKind::ParamIdentList)
             .map_or(vec![], |n| {
                 n.children_with_tokens()
                     .filter_map(SyntaxElement::into_token)
@@ -44,7 +43,7 @@ impl FunctionDef {
         self.0
             .children()
             .find(|t| t.kind() == SyntaxKind::CodeBlock)
-            .map_or(None, |v| Some(CodeBlock(v)))
+            .map(CodeBlock)
     }
 }
 
@@ -62,8 +61,7 @@ impl FunctionCall {
     pub fn param_value_list(&self) -> Vec<Expr> {
         self.0
             .children()
-            .filter(|node| node.kind() == SyntaxKind::ParamValueList)
-            .nth(0)
+            .find(|node| node.kind() == SyntaxKind::ParamValueList)
             .map_or(vec![], |n| n.children().filter_map(Expr::cast).collect())
     }
 }

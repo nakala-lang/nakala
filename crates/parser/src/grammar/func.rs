@@ -11,8 +11,7 @@ pub(super) fn func(p: &mut Parser) -> Option<CompletedMarker> {
     param_ident_list(p);
 
     // function bodies are code blocks
-    if let None = expr::code_block(p) {
-        dbg!("failed to parse code block!");
+    if expr::code_block(p).is_none() {
         p.error();
     }
 

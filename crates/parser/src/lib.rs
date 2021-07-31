@@ -49,7 +49,7 @@ impl Parse {
     }
 
     pub fn has_errors(&self) -> bool {
-        self.errors.len() != 0
+        !self.errors.is_empty()
     }
 
     pub fn get_errors(&mut self) -> Vec<ParseError> {

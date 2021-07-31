@@ -71,11 +71,7 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
     } else if p.at(TokenKind::CallKw) {
         function_call(p)
     } else if p.at(TokenKind::LBrace) {
-        if let Some(cblock) = code_block(p) {
-            cblock
-        } else {
-            return None;
-        }
+        code_block(p)?
     } else {
         p.error();
         return None;
@@ -801,6 +797,28 @@ Root@0..23
                   LParen@12..13 "("
                   RParen@13..14 ")""#]],
         )
+    }
+
+    #[test]
+    fn do_no_parse_function_call_if_missing_parens() {
+        check(
+            "call someFunction(5, 10",
+            expect![[r#"
+            Root@0..23
+              FunctionCall@0..23
+                CallKw@0..4 "call"
+                Whitespace@4..5 " "
+                Ident@5..17 "someFunction"
+                ParamValueList@17..23
+                  LParen@17..18 "("
+                  Literal@18..19
+                    Number@18..19 "5"
+                  Comma@19..20 ","
+                  Whitespace@20..21 " "
+                  Literal@21..23
+                    Number@21..23 "10"
+            [31mParse Error[0m: at 21..23, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m, [33m,[0m, [33m)[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m"#]],
+        );
     }
 
     #[test]
