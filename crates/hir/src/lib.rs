@@ -20,12 +20,19 @@ pub fn lower(ast: ast::Root) -> Hir {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     VariableDef(VariableDef),
+    VariableAssign(VariableAssign),
     Expr(Expr),
     FunctionDef(FunctionDef),
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariableDef {
+    pub name: SmolStr,
+    pub value: Expr,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct VariableAssign {
     pub name: SmolStr,
     pub value: Expr,
 }

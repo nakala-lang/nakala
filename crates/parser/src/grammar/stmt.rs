@@ -6,7 +6,15 @@ pub(super) fn stmt(p: &mut Parser) -> Option<CompletedMarker> {
     } else if p.at(TokenKind::FnKw) {
         func::func(p)
     } else {
-        expr::expr(p)
+        // variable assignments can look like expressions,
+        // since you could have x + 1 for example. Therefore,
+        // we have to peek for the following signature to be sure
+        //   <ident> <equals>
+        if p.peek_multiple(vec![TokenKind::Ident, TokenKind::Equals]) {
+            variable_assign(p)
+        } else {
+            expr::expr(p)
+        }
     }
 }
 
@@ -21,6 +29,18 @@ fn variable_def(p: &mut Parser) -> Option<CompletedMarker> {
     expr::expr(p);
 
     Some(m.complete(p, SyntaxKind::VariableDef))
+}
+
+fn variable_assign(p: &mut Parser) -> Option<CompletedMarker> {
+    assert!(p.at(TokenKind::Ident));
+    let m = p.start();
+
+    p.bump();
+    p.expect(TokenKind::Equals);
+
+    expr::expr(p);
+
+    Some(m.complete(p, SyntaxKind::VariableAssign))
 }
 
 #[cfg(test)]
@@ -44,6 +64,22 @@ Root@0..13
     VariableRef@10..13
       Ident@10..13 "bar""#]],
         );
+    }
+
+    #[test]
+    fn parse_variable_assign() {
+        check(
+            "x = 5",
+            expect![[r#"
+            Root@0..5
+              VariableAssign@0..5
+                Ident@0..1 "x"
+                Whitespace@1..2 " "
+                Equals@2..3 "="
+                Whitespace@3..4 " "
+                Literal@4..5
+                  Number@4..5 "5""#]],
+        )
     }
 
     #[test]

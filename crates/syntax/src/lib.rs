@@ -39,6 +39,7 @@ pub enum SyntaxKind {
     PrefixExpr,
     VariableDef,
     VariableRef,
+    VariableAssign,
     CodeBlock,
     FunctionDef,
     FunctionCall,

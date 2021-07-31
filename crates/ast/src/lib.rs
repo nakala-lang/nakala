@@ -185,6 +185,19 @@ impl VariableRef {
 }
 
 #[derive(Debug)]
+pub struct VariableAssign(SyntaxNode);
+
+impl VariableAssign {
+    pub fn name(&self) -> Option<SyntaxToken> {
+        self.0.first_token()
+    }
+
+    pub fn value(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast)
+    }
+}
+
+#[derive(Debug)]
 pub enum Expr {
     BinaryExpr(BinaryExpr),
     Literal(Literal),
@@ -228,6 +241,7 @@ pub enum Stmt {
     VariableDef(VariableDef),
     Expr(Expr),
     FunctionDef(FunctionDef),
+    VariableAssign(VariableAssign),
 }
 
 impl Stmt {
@@ -235,6 +249,7 @@ impl Stmt {
         let result = match node.kind() {
             SyntaxKind::VariableDef => Self::VariableDef(VariableDef(node)),
             SyntaxKind::FunctionDef => Self::FunctionDef(FunctionDef(node)),
+            SyntaxKind::VariableAssign => Self::VariableAssign(VariableAssign(node)),
             _ => Self::Expr(Expr::cast(node)?),
         };
 

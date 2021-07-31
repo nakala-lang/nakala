@@ -1,5 +1,6 @@
 use hir::{
-    BinaryOp, CodeBlock, Database, Expr, ExprIdx, FunctionDef, Hir, Stmt, UnaryOp, VariableDef,
+    BinaryOp, CodeBlock, Database, Expr, ExprIdx, FunctionDef, Hir, Stmt, UnaryOp, VariableAssign,
+    VariableDef,
 };
 use std::ops::Index;
 
@@ -29,6 +30,9 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         Stmt::Expr(expr) => eval_expr(env, &db, expr),
         Stmt::VariableDef(VariableDef { name, value }) => {
             eval_variable_def(env, &db, name.to_string(), value)
+        }
+        Stmt::VariableAssign(VariableAssign { name, value }) => {
+            eval_variable_assign(env, &db, name.to_string(), value)
         }
         Stmt::FunctionDef(func_def) => eval_function_def(env, &db, func_def),
     }

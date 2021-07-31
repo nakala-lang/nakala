@@ -1,4 +1,4 @@
-use crate::{BinaryOp, CodeBlock, Expr, FunctionDef, Stmt, UnaryOp, VariableDef};
+use crate::{BinaryOp, CodeBlock, Expr, FunctionDef, Stmt, UnaryOp, VariableAssign, VariableDef};
 use la_arena::Arena;
 use syntax::SyntaxKind;
 
@@ -11,6 +11,10 @@ impl Database {
     pub(crate) fn lower_stmt(&mut self, ast: ast::Stmt) -> Option<Stmt> {
         let result = match ast {
             ast::Stmt::VariableDef(ast) => Stmt::VariableDef(VariableDef {
+                name: ast.name()?.text().into(),
+                value: self.lower_expr(ast.value()),
+            }),
+            ast::Stmt::VariableAssign(ast) => Stmt::VariableAssign(VariableAssign {
                 name: ast.name()?.text().into(),
                 value: self.lower_expr(ast.value()),
             }),
