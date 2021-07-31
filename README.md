@@ -1,8 +1,12 @@
 # nakala
 
+<p align="center">
+  <img src="./assets/logo.png" width="150"/>
+</p>
+
 [![CI](https://github.com/reaganmcf/nakala/actions/workflows/CI.yml/badge.svg)](https://github.com/reaganmcf/nakala/actions/workflows/CI.yml)
 
-A programming language that I built based on [azrg's Eldiro blog posts](https://arzg.github.io/lang/). 
+A programming language that I built based on [arzg's Eldiro blog posts](https://arzg.github.io/lang/). 
 The core design and architecture is practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_). 
 If you haven't read through his blog posts, I highly recommend you do because it is an unmatched learning resource.
 
@@ -121,9 +125,9 @@ $ nakala my_program.nak
 ```
 
 ## Project Layout
-There are a fair amount of moving parts, and just like azrg, I have also split up all the components into separate crates. Below is a dependency graph to visualize how it all links together:
+There are a fair amount of moving parts, and just like arzg, I have also split up all the components into separate crates. Below is a dependency graph to visualize how it all links together:
 <p align="center" style="width: 100%; margin: auto; margin-top: 20px">
-  <img src="./assets/graph2.svg"/>
+  <img src="./assets/graph.svg"/>
 </p>
 
 ## Usage
@@ -133,4 +137,10 @@ Nakala comes with a REPL CLI tool located in `/crates/nakala`. You can clone the
 $ cargo run
 ```
 
+---
 
+### License
+`nakala` uses the MIT License
+
+#### Attributions
+<div>Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
