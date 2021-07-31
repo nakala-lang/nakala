@@ -108,7 +108,7 @@ impl<'t, 'input> Parser<'t, 'input> {
             cloned_parser.bump();
         }
 
-        return true;
+        true
     }
 
     fn peek(&mut self) -> Option<TokenKind> {
