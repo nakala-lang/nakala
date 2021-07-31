@@ -3,7 +3,7 @@
 A programming language that I built based on [azrg's Eldiro blog posts](https://arzg.github.io/lang/). 
 The core design and architecture is practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_). 
 If you haven't read through his blog posts, I highly recommend you do because it is an unmatched learning resource.
-j
+
 ### Why make nakala?
 I was so inspired by his blog posts that I have decided to continue the implementation that I made while reading his posts.
 
@@ -123,7 +123,6 @@ There are a fair amount of moving parts, and just like azrg, I have also split u
 <p align="center" style="width: 100%; margin: auto; margin-top: 20px">
   <img src="./assets/graph2.svg"/>
 </p>
-
 
 ## Usage
 Nakala comes with a REPL CLI tool located in `/crates/nakala`. You can clone the project and run the following to use it:

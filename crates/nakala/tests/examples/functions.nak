@@ -1,7 +1,7 @@
 fn get_const() { 10 }
 fn add(num1, num2) { num1 + num2 }
 
-let sum = call add (
+let sum = call add(
   {
     let someOtherVariable = 10
     let factor1 = 12341
