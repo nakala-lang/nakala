@@ -13,6 +13,7 @@ use parse_error::ParseError;
 
 const RECOVERY_SET: [TokenKind; 1] = [TokenKind::LetKw];
 
+#[derive(Clone)]
 pub(crate) struct Parser<'t, 'input> {
     source: Source<'t, 'input>,
     events: Vec<Event>,
@@ -88,6 +89,26 @@ impl<'t, 'input> Parser<'t, 'input> {
 
     pub(crate) fn at_end(&mut self) -> bool {
         self.peek().is_none()
+    }
+
+    // FIXME
+    //
+    // Sometimes particularly with variable assignments,
+    // we need to peek more than one token. This probably
+    // should be replaced with better parse functionality but
+    // for now, this should be good enough
+    pub(crate) fn peek_multiple(&mut self, kinds: Vec<TokenKind>) -> bool {
+        let mut cloned_parser = self.clone();
+
+        for kind in kinds.into_iter() {
+            if cloned_parser.at_end() || !cloned_parser.at(kind) {
+                return false;
+            }
+
+            cloned_parser.bump();
+        }
+
+        return true;
     }
 
     fn peek(&mut self) -> Option<TokenKind> {
