@@ -25,7 +25,7 @@ impl Env {
         }
     }
 
-    pub fn set_variable(&mut self, variable_name: &str, val: Val) -> Result<Val, EngineError> {
+    pub fn define_variable(&mut self, variable_name: &str, val: Val) -> Result<Val, EngineError> {
         if self.variables.contains_key(variable_name) {
             return Err(EngineError::VariableAlreadyExists {
                 variable_name: variable_name.to_string(),
@@ -33,6 +33,18 @@ impl Env {
         }
 
         self.variables.insert(variable_name.to_string(), val);
+
+        Ok(Val::Unit)
+    }
+
+    pub fn set_variable(&mut self, variable_name: &str, val: Val) -> Result<Val, EngineError> {
+        if !self.variables.contains_key(variable_name) {
+            return Err(EngineError::VariableUndefined {
+                variable_name: variable_name.to_string(),
+            });
+        }
+
+        *self.variables.get_mut(variable_name).unwrap() = val;
 
         Ok(Val::Unit)
     }

@@ -89,6 +89,16 @@ fn eval_variable_def(
     value: Expr,
 ) -> Result<Val, EngineError> {
     let val = eval_expr(env, db, value)?;
+    env.define_variable(&name, val)
+}
+
+fn eval_variable_assign(
+    env: &mut Env,
+    db: &Database,
+    name: String,
+    value: Expr,
+) -> Result<Val, EngineError> {
+    let val = eval_expr(env, db, value)?;
     env.set_variable(&name, val)
 }
 
