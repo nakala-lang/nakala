@@ -1,0 +1,10 @@
+100 >= 5
+
+false == false
+
+not false or true
+
+"string1" == "string2" and 5 >= 1
+
+
+

@@ -123,9 +123,3 @@ fn eval_binary_expr(
         BinaryOp::And => lhs_val.and(rhs_val),
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn eval_add() {}
-}

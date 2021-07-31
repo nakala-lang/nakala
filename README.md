@@ -19,110 +19,53 @@ The most notable and interesting things I have implemented since continuing my i
 As nakala is in its very early stages, the language does not have many features. However, it does have:
 
 #### Binary Expressions
-Prefix, Infix, and Postfix binary expression support
-```
-1 + 4 * 10 + -4
-
-200 + (5 * (100 + 4))
-```
+<p align="center">
+  <img src="./assets/exprs.png"/>
+</p>
 
 #### Boolean Expressions
-```
-100 >= 5 
-
-false == false 
-
-not false or true 
-
-"string1" == "string1" and 5 >= 1 
-```
+<p align="center">
+  <img src="./assets/booleans.png" />
+</p>
 
 #### Comments
-You can have comments placed within expressions
-```
-1 
-+ 123 # add a medium number
-+ 5512312 # add a large number
-```
+<p align="center">
+  <img src="./assets/comments.png" />
+</p>
 
 #### Error Handling
-Nakala supports Runtime and Parse errors, with colored output
 
-<img src="assets/errors.png" width="800px"/>
+<p align="center">
+  <img src="./assets/errors_cli.png" />
+</p>
 
 #### Variable Declaration and References
-```
-let a = 200 + (5 * (100 + 4))
-
-let b = a
-```
+<p align="center">
+  <img src="./assets/variables.png" />
+</p>
 
 #### Code Blocks
-```
-let x = {
-  # first let's declare a variable
-  let temp = 100
-
-  # now lets create another variable
-  let temp2 = 500
-
-  # add them together. The final statement in a block is the value returned
-  temp + temp2
-}
-```
+<p align="center">
+  <img src="./assets/blocks.png" />
+</p>
 
 #### Strings
-```
-let x = "Hello, World!"
-```
+<p align="center" />
+  <img src="./assets/strings.png" />
+</p>
 
 #### Functions
-```
-fn get_my_name() { "Reagan" }
-
-# since code blocks are expressions, crazy things like this totally work :^)
-fn get_const() { 10 }
-fn add(num1, num2) { num1 + num2 }
-
-let sum = call add (
-  {
-    let someOtherVariable = 10
-    let factor1 = 12341
-
-    someOtherVariable * factor1
-
-  },
-  {
-    let delta = -10
-    
-    delta * (-5)
-  } * call get_const()
-)
-
-sum # output is 12391
-```
+<p align="center" />
+  <img src="./assets/functions.png" />
+</p>
 
 #### `.nak` File Format
 
 You can store a nakala program in a `.nak` file and run it using the CLI tool. For example:
 
-```
-# my_program.nak
-
-let x = 100
-
-let y = x + 5
-
-x + y
-```
-
-You can then run this program with the following command
-
-```
-$ nakala my_program.nak
-
-110
-```
+<p align="center">
+  <img src="https://i.gyazo.com/1a44b53e530b2d2bb9396390e290ce5c.gif" />
+</p>
 
 ## Project Layout
 There are a fair amount of moving parts, and just like arzg, I have also split up all the components into separate crates. Below is a dependency graph to visualize how it all links together:

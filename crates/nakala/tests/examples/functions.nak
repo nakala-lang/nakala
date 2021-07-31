@@ -15,4 +15,6 @@ let sum = call add(
   } * call get_const()
 )
 
-sum
+
+
+

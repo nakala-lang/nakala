@@ -1,8 +1,12 @@
 let x = {
-  let first_value = 10
-  let second_value = 20
+  # first let's declare a variable
+  let temp = 100
 
-  first_value + second_value
+  # now lets create another variable
+  let temp2 = 500
+
+  # add them together. 
+  # The final statement in a block is the value returned
+  temp + temp2
 }
 
-x

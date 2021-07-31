@@ -333,4 +333,121 @@ mod tests {
             Database::default(),
         );
     }
+
+    #[test]
+    fn lower_less_than() {
+        let mut exprs = Arena::new();
+        let lhs = exprs.alloc(Expr::Number { n: 5 });
+        let rhs = exprs.alloc(Expr::Number { n: 2 });
+
+        check_expr(
+            "5 < 2",
+            Expr::Binary {
+                op: BinaryOp::LessThan,
+                lhs,
+                rhs,
+            },
+            Database { exprs },
+        )
+    }
+
+    #[test]
+    fn lower_less_than_or_equal() {
+        let mut exprs = Arena::new();
+        let lhs = exprs.alloc(Expr::Number { n: 5 });
+        let rhs = exprs.alloc(Expr::Number { n: 2 });
+
+        check_expr(
+            "5 <= 2",
+            Expr::Binary {
+                op: BinaryOp::LessThanOrEqual,
+                lhs,
+                rhs,
+            },
+            Database { exprs },
+        )
+    }
+
+    #[test]
+    fn lower_greater_than() {
+        let mut exprs = Arena::new();
+        let lhs = exprs.alloc(Expr::Number { n: 5 });
+        let rhs = exprs.alloc(Expr::Number { n: 2 });
+
+        check_expr(
+            "5 > 2",
+            Expr::Binary {
+                op: BinaryOp::GreaterThan,
+                lhs,
+                rhs,
+            },
+            Database { exprs },
+        )
+    }
+
+    #[test]
+    fn lower_greater_than_or_equal() {
+        let mut exprs = Arena::new();
+        let lhs = exprs.alloc(Expr::Number { n: 5 });
+        let rhs = exprs.alloc(Expr::Number { n: 2 });
+
+        check_expr(
+            "5 >= 2",
+            Expr::Binary {
+                op: BinaryOp::GreaterThanOrEqual,
+                lhs,
+                rhs,
+            },
+            Database { exprs },
+        )
+    }
+
+    #[test]
+    fn lower_and() {
+        let mut exprs = Arena::new();
+        let lhs = exprs.alloc(Expr::Boolean { b: true });
+        let rhs = exprs.alloc(Expr::Boolean { b: false });
+
+        check_expr(
+            "true and false",
+            Expr::Binary {
+                op: BinaryOp::And,
+                lhs,
+                rhs,
+            },
+            Database { exprs },
+        )
+    }
+
+    #[test]
+    fn lower_or() {
+        let mut exprs = Arena::new();
+        let lhs = exprs.alloc(Expr::Boolean { b: true });
+        let rhs = exprs.alloc(Expr::Boolean { b: false });
+
+        check_expr(
+            "true or false",
+            Expr::Binary {
+                op: BinaryOp::Or,
+                lhs,
+                rhs,
+            },
+            Database { exprs },
+        )
+    }
+
+    #[test]
+    fn lower_not() {
+        let mut exprs = Arena::new();
+        let rhs = exprs.alloc(Expr::Boolean { b: true });
+
+        check_expr(
+            "not true",
+            Expr::Unary {
+                expr: rhs,
+                op: UnaryOp::Not,
+            },
+            Database { exprs },
+        )
+    }
 }
