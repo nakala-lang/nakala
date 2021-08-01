@@ -5,6 +5,6 @@ if age >= 0 and age < 13 {
   message = "You are a child!"
 } else if age >= 13 and age < 18 {
   message = "You are a teenager!"
-} else if {
+} else {
   message = "You are an adult!"
 }
