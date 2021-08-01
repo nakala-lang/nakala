@@ -1,5 +1,6 @@
 use crate::{
-    BinaryOp, CodeBlock, Expr, FunctionDef, If, Stmt, UnaryOp, VariableAssign, VariableDef,
+    BinaryOp, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Stmt, UnaryOp,
+    VariableAssign, VariableDef,
 };
 use la_arena::Arena;
 use syntax::SyntaxKind;
@@ -30,8 +31,11 @@ impl Database {
                     .collect(),
                 body: self.lower_code_block(ast.body()?),
             }),
-            ast::Stmt::If(ast) => Stmt::If(If {
-                expr: self.lower_expr(ast.expr()),
+            ast::Stmt::If(ast) => Stmt::If(self.lower_if(ast)?),
+            ast::Stmt::ElseIf(ast) => Stmt::ElseIf(ElseIf {
+                if_stmt: self.lower_if(ast.if_stmt()?)?,
+            }),
+            ast::Stmt::Else(ast) => Stmt::Else(Else {
                 body: self.lower_code_block(ast.body()?),
             }),
         };
@@ -142,6 +146,30 @@ impl Database {
                 .map(|expr| self.lower_expr(Some(expr)))
                 .collect(),
         }
+    }
+
+    fn lower_if(&mut self, if_stmt: ast::If) -> Option<If> {
+        let expr = if_stmt.expr()?;
+        let body = if_stmt.body()?;
+        Some(If {
+            expr: self.lower_expr(Some(expr)),
+            body: self.lower_code_block(body),
+            else_branch: match if_stmt.else_branch() {
+                Some(branch) => self.lower_else_branch(branch).map(Box::new),
+                None => None,
+            },
+        })
+    }
+
+    fn lower_else_branch(&mut self, else_branch: ast::ElseBranch) -> Option<ElseBranch> {
+        Some(match else_branch {
+            ast::ElseBranch::Else(else_ast) => ElseBranch::Else(Else {
+                body: self.lower_code_block(else_ast.body()?),
+            }),
+            ast::ElseBranch::ElseIf(else_if_ast) => ElseBranch::ElseIf(ElseIf {
+                if_stmt: self.lower_if(else_if_ast.if_stmt()?)?,
+            }),
+        })
     }
 }
 
@@ -476,7 +504,8 @@ mod tests {
                         name: "x".into(),
                         value: Expr::Number { n: 5 }
                     })]
-                }
+                },
+                else_branch: None
             })
         )
     }

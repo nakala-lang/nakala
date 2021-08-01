@@ -24,6 +24,8 @@ pub enum Stmt {
     Expr(Expr),
     FunctionDef(FunctionDef),
     If(If),
+    ElseIf(ElseIf),
+    Else(Else),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -42,6 +44,23 @@ pub struct VariableAssign {
 pub struct If {
     pub expr: Expr,
     pub body: CodeBlock,
+    pub else_branch: Option<Box<ElseBranch>>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ElseIf {
+    pub if_stmt: If,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Else {
+    pub body: CodeBlock,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ElseBranch {
+    Else(Else),
+    ElseIf(ElseIf),
 }
 
 #[derive(Debug, PartialEq, Clone)]
