@@ -460,4 +460,24 @@ mod tests {
             Database { exprs },
         )
     }
+
+    #[test]
+    fn lower_if() {
+        let root = parse("if true { x = 5 }");
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::If(If {
+                expr: Expr::Boolean { b: true },
+                body: CodeBlock {
+                    stmts: vec![Stmt::VariableAssign(VariableAssign {
+                        name: "x".into(),
+                        value: Expr::Number { n: 5 }
+                    })]
+                }
+            })
+        )
+    }
 }
