@@ -237,11 +237,28 @@ impl CodeBlock {
 }
 
 #[derive(Debug)]
+pub struct If(SyntaxNode);
+
+impl If {
+    pub fn expr(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast)
+    }
+
+    pub fn body(&self) -> Option<CodeBlock> {
+        self.0
+            .children()
+            .find(|t| t.kind() == SyntaxKind::CodeBlock)
+            .map(CodeBlock)
+    }
+}
+
+#[derive(Debug)]
 pub enum Stmt {
     VariableDef(VariableDef),
     Expr(Expr),
     FunctionDef(FunctionDef),
     VariableAssign(VariableAssign),
+    If(If),
 }
 
 impl Stmt {
@@ -250,6 +267,7 @@ impl Stmt {
             SyntaxKind::VariableDef => Self::VariableDef(VariableDef(node)),
             SyntaxKind::FunctionDef => Self::FunctionDef(FunctionDef(node)),
             SyntaxKind::VariableAssign => Self::VariableAssign(VariableAssign(node)),
+            SyntaxKind::If => Self::If(If(node)),
             _ => Self::Expr(Expr::cast(node)?),
         };
 
