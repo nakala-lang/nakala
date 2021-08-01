@@ -9,13 +9,20 @@
 [![GitHub license](https://img.shields.io/github/license/reaganmcf/nakala.svg)](https://github.com/reaganmcf/nakala/blob/master/LICENSE)
 
 A programming language that I built based on [arzg's Eldiro blog posts](https://arzg.github.io/lang/). 
-The core design and architecture is practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_). 
+The core architecture (especially the Parser) is practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_).
 If you haven't read through his blog posts, I highly recommend you do because it is an unmatched learning resource.
 
 ### Why make nakala?
-I was so inspired by his blog posts that I have decided to continue the implementation that I made while reading his posts.
+I was so inspired by his blog posts that I have decided to continue the implementation that I made while reading his posts. Since then, nakala has turned into its own unique project. 
 
 The most notable and interesting things I have implemented since continuing my implementation is a runtime engine that computes the parsed `HIR` representation and the countless additional language features.
+
+### Design Philosophy
+
+Nakala only has two core values:
+
+1. The syntax should feel familiar, while remaining unique
+2. Using (and working on) nakala should always be fun
 
 ## Features
 As nakala is in its very early stages, the language does not have many features. However, it does have:
@@ -88,7 +95,15 @@ Nakala comes with a REPL CLI tool located in `/crates/nakala`. You can clone the
 $ cargo run
 ```
 
+There are various flags for improving the developing experience. You can view all of the flags by running
+```bash
+$ cargo run -- help
+```
+
 ---
+
+### Contributing
+I am always welcoming PRs and would love to work on the project with other people if they are interested. There are no rules, and I will accept any PR as long as it aligns with the projects core values as described above.
 
 ### License
 `nakala` uses the MIT License
