@@ -266,10 +266,8 @@ impl If {
 
         if let Some(else_stmt) = else_node {
             Some(ElseBranch::Else(else_stmt))
-        } else if let Some(else_if_stmt) = else_if_node {
-            Some(ElseBranch::ElseIf(else_if_stmt))
         } else {
-            None
+            else_if_node.map(ElseBranch::ElseIf)
         }
     }
 }

@@ -93,8 +93,8 @@ impl std::fmt::Display for EngineError {
             ),
             EngineError::MismatchedTypes { actual, expected } => format!(
                 "Expected type {}, but got {} instead",
-                Green.paint(format!("{}", expected.get_type())),
-                Yellow.paint(format!("{}", actual.get_type())),
+                Green.paint(expected.get_type().to_string()),
+                Yellow.paint(actual.get_type().to_string()),
             ),
             EngineError::NotYetImplemented => "This feature is not yet implemented".into(),
             EngineError::Unknown => "An unknown error occurred".into(),
