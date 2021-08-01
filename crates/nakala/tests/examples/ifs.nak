@@ -1,5 +1,10 @@
-let my_value = 100
+let message = ""
 
-if my_value >= 5 {
-  my_value = 1
+let age = 10
+if age >= 0 and age < 13 {
+  message = "You are a child!"
+} else if age >= 13 and age < 18 {
+  message = "You are a teenager!"
+} else if {
+  message = "You are an adult!"
 }

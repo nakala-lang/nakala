@@ -52,13 +52,19 @@ As nakala is in its very early stages, the language does not have many features.
 </p>
 
 #### Strings
-<p align="center" />
+<p align="center">
   <img src="./assets/strings.png" />
 </p>
 
 #### Functions
-<p align="center" />
+<p align="center">
   <img src="./assets/functions.png" />
+</p>
+
+
+#### If/Else Statements
+<p align="center">
+  <img src="./assets/ifs.png" />
 </p>
 
 #### `.nak` File Format
