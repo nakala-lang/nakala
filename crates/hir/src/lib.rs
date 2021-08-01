@@ -23,6 +23,7 @@ pub enum Stmt {
     VariableAssign(VariableAssign),
     Expr(Expr),
     FunctionDef(FunctionDef),
+    If(If),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -35,6 +36,12 @@ pub struct VariableDef {
 pub struct VariableAssign {
     pub name: SmolStr,
     pub value: Expr,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct If {
+    pub expr: Expr,
+    pub body: CodeBlock,
 }
 
 #[derive(Debug, PartialEq, Clone)]

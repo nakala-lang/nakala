@@ -1,4 +1,6 @@
-use crate::{BinaryOp, CodeBlock, Expr, FunctionDef, Stmt, UnaryOp, VariableAssign, VariableDef};
+use crate::{
+    BinaryOp, CodeBlock, Expr, FunctionDef, If, Stmt, UnaryOp, VariableAssign, VariableDef,
+};
 use la_arena::Arena;
 use syntax::SyntaxKind;
 
@@ -26,6 +28,10 @@ impl Database {
                     .into_iter()
                     .map(|n| n.text().into())
                     .collect(),
+                body: self.lower_code_block(ast.body()?),
+            }),
+            ast::Stmt::If(ast) => Stmt::If(If {
+                expr: self.lower_expr(ast.expr()),
                 body: self.lower_code_block(ast.body()?),
             }),
         };
