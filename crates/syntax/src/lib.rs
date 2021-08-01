@@ -49,6 +49,7 @@ pub enum SyntaxKind {
     ParamValueList,
     If,
     Else,
+    ElseIf,
 }
 
 impl From<TokenKind> for SyntaxKind {

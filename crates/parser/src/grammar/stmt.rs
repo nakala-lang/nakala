@@ -45,7 +45,9 @@ fn if_stmt(p: &mut Parser) -> Option<CompletedMarker> {
         Some(m.complete(p, SyntaxKind::Error))
     } else {
         // at the end of the if's code block, there be else branches
-        if p.at(TokenKind::ElseKw) {
+        if p.peek_multiple(vec![TokenKind::ElseKw, TokenKind::IfKw]) {
+            else_if(p);
+        } else if p.at(TokenKind::ElseKw) {
             else_stmt(p);
         }
 
@@ -53,19 +55,23 @@ fn if_stmt(p: &mut Parser) -> Option<CompletedMarker> {
     }
 }
 
+fn else_if(p: &mut Parser) -> Option<CompletedMarker> {
+    let m = p.start();
+    p.bump();
+
+    if_stmt(p);
+
+    Some(m.complete(p, SyntaxKind::ElseIf))
+}
+
 fn else_stmt(p: &mut Parser) -> Option<CompletedMarker> {
     assert!(p.at(TokenKind::ElseKw));
     let m = p.start();
     p.bump();
 
-    // There can be either `else if` or `else`
-    if p.at(TokenKind::IfKw) {
-        if_stmt(p);
-    } else {
-        if expr::code_block(p).is_none() {
-            p.error();
-            return Some(m.complete(p, SyntaxKind::Error));
-        }
+    if expr::code_block(p).is_none() {
+        p.error();
+        return Some(m.complete(p, SyntaxKind::Error));
     }
 
     Some(m.complete(p, SyntaxKind::Else))
