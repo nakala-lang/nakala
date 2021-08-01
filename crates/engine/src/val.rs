@@ -215,6 +215,16 @@ impl Val {
             }),
         }
     }
+
+    pub(crate) fn is_true(&self) -> Result<bool, EngineError> {
+        match self {
+            Val::Boolean(x) => Ok(*x),
+            _ => Err(EngineError::MismatchedTypes {
+                actual: self.clone(),
+                expected: Val::Boolean(true),
+            }),
+        }
+    }
 }
 
 impl std::fmt::Display for Val {
