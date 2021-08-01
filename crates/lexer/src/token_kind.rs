@@ -18,6 +18,9 @@ pub enum TokenKind {
     #[token("if")]
     IfKw,
 
+    #[token("else")]
+    ElseKw,
+
     #[regex("[A-Za-z][A-Za-z0-9_]*")]
     Ident,
 
@@ -105,6 +108,7 @@ impl fmt::Display for TokenKind {
             Self::CallKw => "call",
             Self::LetKw => "let",
             Self::IfKw => "if",
+            Self::ElseKw => "else",
             Self::Ident => "identifier",
             Self::Number => "number",
             Self::String => "string",
@@ -174,6 +178,11 @@ mod tests {
     #[test]
     fn lex_if_keyword() {
         check("if", TokenKind::IfKw);
+    }
+
+    #[test]
+    fn lex_else_keyword() {
+        check("else", TokenKind::ElseKw);
     }
 
     #[test]
