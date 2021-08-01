@@ -1,6 +1,6 @@
 use hir::{
-    BinaryOp, CodeBlock, Database, Expr, ExprIdx, FunctionDef, Hir, Stmt, UnaryOp, VariableAssign,
-    VariableDef,
+    BinaryOp, CodeBlock, Database, Expr, ExprIdx, FunctionDef, Hir, If, Stmt, UnaryOp,
+    VariableAssign, VariableDef,
 };
 use std::ops::Index;
 
