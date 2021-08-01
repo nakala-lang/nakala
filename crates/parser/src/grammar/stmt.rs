@@ -44,8 +44,31 @@ fn if_stmt(p: &mut Parser) -> Option<CompletedMarker> {
         p.error();
         Some(m.complete(p, SyntaxKind::Error))
     } else {
+        // at the end of the if's code block, there be else branches
+        if p.at(TokenKind::ElseKw) {
+            else_stmt(p);
+        }
+
         Some(m.complete(p, SyntaxKind::If))
     }
+}
+
+fn else_stmt(p: &mut Parser) -> Option<CompletedMarker> {
+    assert!(p.at(TokenKind::ElseKw));
+    let m = p.start();
+    p.bump();
+
+    // There can be either `else if` or `else`
+    if p.at(TokenKind::IfKw) {
+        if_stmt(p);
+    } else {
+        if expr::code_block(p).is_none() {
+            p.error();
+            return Some(m.complete(p, SyntaxKind::Error));
+        }
+    }
+
+    Some(m.complete(p, SyntaxKind::Else))
 }
 
 fn variable_assign(p: &mut Parser) -> Option<CompletedMarker> {
