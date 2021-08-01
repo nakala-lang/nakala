@@ -8,6 +8,7 @@ pub enum SyntaxKind {
     FnKw,
     CallKw,
     LetKw,
+    IfKw,
     Ident,
     Number,
     String,
@@ -45,6 +46,7 @@ pub enum SyntaxKind {
     FunctionCall,
     ParamIdentList,
     ParamValueList,
+    If,
 }
 
 impl From<TokenKind> for SyntaxKind {
@@ -54,6 +56,7 @@ impl From<TokenKind> for SyntaxKind {
             TokenKind::FnKw => Self::FnKw,
             TokenKind::CallKw => Self::CallKw,
             TokenKind::LetKw => Self::LetKw,
+            TokenKind::IfKw => Self::IfKw,
             TokenKind::Ident => Self::Ident,
             TokenKind::Number => Self::Number,
             TokenKind::String => Self::String,

@@ -5,6 +5,8 @@ pub(super) fn stmt(p: &mut Parser) -> Option<CompletedMarker> {
         variable_def(p)
     } else if p.at(TokenKind::FnKw) {
         func::func(p)
+    } else if p.at(TokenKind::IfKw) {
+        if_stmt(p)
     } else {
         // variable assignments can look like expressions,
         // since you could have x + 1 for example. Therefore,
@@ -29,6 +31,21 @@ fn variable_def(p: &mut Parser) -> Option<CompletedMarker> {
     expr::expr(p);
 
     Some(m.complete(p, SyntaxKind::VariableDef))
+}
+
+fn if_stmt(p: &mut Parser) -> Option<CompletedMarker> {
+    assert!(p.at(TokenKind::IfKw));
+    let m = p.start();
+    p.bump();
+
+    expr::expr(p);
+
+    if expr::code_block(p).is_none() {
+        p.error();
+        Some(m.complete(p, SyntaxKind::Error))
+    } else {
+        Some(m.complete(p, SyntaxKind::If))
+    }
 }
 
 fn variable_assign(p: &mut Parser) -> Option<CompletedMarker> {
@@ -79,6 +96,28 @@ Root@0..13
                 Whitespace@3..4 " "
                 Literal@4..5
                   Number@4..5 "5""#]],
+        )
+    }
+
+    #[test]
+    fn parse_if_statement() {
+        check(
+            "if true { 5 }",
+            expect![[r#"
+            Root@0..13
+              If@0..13
+                IfKw@0..2 "if"
+                Whitespace@2..3 " "
+                Literal@3..8
+                  Boolean@3..7 "true"
+                  Whitespace@7..8 " "
+                CodeBlock@8..13
+                  LBrace@8..9 "{"
+                  Whitespace@9..10 " "
+                  Literal@10..12
+                    Number@10..11 "5"
+                    Whitespace@11..12 " "
+                  RBrace@12..13 "}""#]],
         )
     }
 

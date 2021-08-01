@@ -15,6 +15,9 @@ pub enum TokenKind {
     #[token("let")]
     LetKw,
 
+    #[token("if")]
+    IfKw,
+
     #[regex("[A-Za-z][A-Za-z0-9_]*")]
     Ident,
 
@@ -101,6 +104,7 @@ impl fmt::Display for TokenKind {
             Self::FnKw => "fn",
             Self::CallKw => "call",
             Self::LetKw => "let",
+            Self::IfKw => "if",
             Self::Ident => "identifier",
             Self::Number => "number",
             Self::String => "string",
@@ -165,6 +169,11 @@ mod tests {
     #[test]
     fn lex_let_keyword() {
         check("let", TokenKind::LetKw);
+    }
+
+    #[test]
+    fn lex_if_keyword() {
+        check("if", TokenKind::IfKw);
     }
 
     #[test]
