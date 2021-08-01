@@ -509,4 +509,82 @@ mod tests {
             })
         )
     }
+
+    #[test]
+    fn lower_else_if() {
+        let root = parse("if true {1} else if false {2}");
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::If(If {
+                expr: Expr::Boolean { b: true },
+                body: CodeBlock {
+                    stmts: vec![Stmt::Expr(Expr::Number { n: 1 })]
+                },
+                else_branch: Some(Box::new(ElseBranch::ElseIf(ElseIf {
+                    if_stmt: If {
+                        expr: Expr::Boolean { b: false },
+                        body: CodeBlock {
+                            stmts: vec![Stmt::Expr(Expr::Number { n: 2 })]
+                        },
+                        else_branch: None
+                    }
+                })))
+            })
+        )
+    }
+
+    #[test]
+    fn lower_else_with_else_if() {
+        let root = parse("if true {1} else if false {2} else {3}");
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::If(If {
+                expr: Expr::Boolean { b: true },
+                body: CodeBlock {
+                    stmts: vec![Stmt::Expr(Expr::Number { n: 1 })]
+                },
+                else_branch: Some(Box::new(ElseBranch::ElseIf(ElseIf {
+                    if_stmt: If {
+                        expr: Expr::Boolean { b: false },
+                        body: CodeBlock {
+                            stmts: vec![Stmt::Expr(Expr::Number { n: 2 })]
+                        },
+                        else_branch: Some(Box::new(ElseBranch::Else(Else {
+                            body: CodeBlock {
+                                stmts: vec![Stmt::Expr(Expr::Number { n: 3 })]
+                            }
+                        })))
+                    }
+                })))
+            })
+        )
+    }
+
+    #[test]
+    fn lower_else() {
+        let root = parse("if true {1} else {3}");
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::If(If {
+                expr: Expr::Boolean { b: true },
+                body: CodeBlock {
+                    stmts: vec![Stmt::Expr(Expr::Number { n: 1 })]
+                },
+                else_branch: Some(Box::new(ElseBranch::Else(Else {
+                    body: CodeBlock {
+                        stmts: vec![Stmt::Expr(Expr::Number { n: 3 })]
+                    }
+                })))
+            })
+        )
+    }
 }
