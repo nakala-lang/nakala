@@ -51,7 +51,7 @@ impl Function {
                 cloned_env.rename_variable(&param_name, new_name)?;
             }
 
-            cloned_env.set_variable(&param_name, super::eval_expr(&cloned_env, db, param)?)?;
+            cloned_env.define_variable(&param_name, super::eval_expr(&cloned_env, db, param)?)?;
         }
 
         // with the cloned env to evaluate the function params, evaluate the body and return it

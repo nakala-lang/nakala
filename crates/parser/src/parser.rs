@@ -93,7 +93,7 @@ impl<'t, 'input> Parser<'t, 'input> {
 
     // FIXME
     //
-    // Sometimes particularly with variable assignments,
+    // Sometimes (particularly with variable assignments),
     // we need to peek more than one token. This probably
     // should be replaced with better parse functionality but
     // for now, this should be good enough
