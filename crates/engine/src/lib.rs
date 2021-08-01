@@ -1,5 +1,5 @@
 use hir::{
-    BinaryOp, CodeBlock, Database, Expr, ExprIdx, FunctionDef, Hir, If, Stmt, UnaryOp,
+    BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, FunctionDef, Hir, If, Stmt, UnaryOp,
     VariableAssign, VariableDef,
 };
 use std::ops::Index;
@@ -36,6 +36,8 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         }
         Stmt::FunctionDef(func_def) => eval_function_def(env, &db, func_def),
         Stmt::If(if_stmt) => eval_if_stmt(env, &db, if_stmt),
+        Stmt::ElseIf(else_if) => eval_if_stmt(env, &db, else_if.if_stmt),
+        Stmt::Else(else_stmt) => eval_code_block(env, &db, else_stmt.body.stmts),
     }
 }
 
@@ -115,7 +117,13 @@ fn eval_if_stmt(env: &mut Env, db: &Database, if_stmt: If) -> Result<Val, Engine
     let evaled_cond = eval_expr(env, db, if_stmt.expr)?;
     match evaled_cond.is_true()? {
         true => eval_code_block(env, db, if_stmt.body.stmts),
-        false => Ok(Val::Unit),
+        false => match if_stmt.else_branch {
+            Some(else_branch) => match *else_branch {
+                ElseBranch::ElseIf(else_if_stmt) => eval_stmt(env, db, Stmt::ElseIf(else_if_stmt)),
+                ElseBranch::Else(else_stmt) => eval_stmt(env, db, Stmt::Else(else_stmt)),
+            },
+            None => Ok(Val::Unit),
+        },
     }
 }
 
