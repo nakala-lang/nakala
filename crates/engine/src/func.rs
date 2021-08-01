@@ -27,7 +27,7 @@ impl Function {
 
     pub fn evaluate_with_params(
         &self,
-        env: &Env,
+        env: &mut Env,
         db: &Database,
         params: Vec<Expr>,
     ) -> Result<Val, EngineError> {
@@ -51,10 +51,13 @@ impl Function {
                 cloned_env.rename_variable(&param_name, new_name)?;
             }
 
-            cloned_env.define_variable(&param_name, super::eval_expr(&cloned_env, db, param)?)?;
+            cloned_env.define_variable(
+                &param_name,
+                super::eval_expr(&mut cloned_env.clone(), db, param)?,
+            )?;
         }
 
         // with the cloned env to evaluate the function params, evaluate the body and return it
-        super::eval_code_block(&cloned_env, &self.body_db, self.body.stmts.clone())
+        super::eval_code_block(&mut cloned_env, &self.body_db, self.body.stmts.clone())
     }
 }

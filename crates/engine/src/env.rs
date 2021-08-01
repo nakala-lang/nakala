@@ -95,6 +95,21 @@ impl Env {
             self.functions.clone().into_iter().collect(),
         )
     }
+
+    pub fn propagate_to(&self, other_env: &mut Env) {
+        let overlapping_variables: Vec<(String, Val)> = self
+            .variables
+            .clone()
+            .into_iter()
+            .filter(|(name, _)| other_env.get_variable(name).is_ok())
+            .collect();
+
+        for (name, val) in overlapping_variables {
+            other_env
+                .set_variable(name.as_str(), val)
+                .expect("Tried to update a value that is not actually shared");
+        }
+    }
 }
 
 impl std::default::Default for Env {
