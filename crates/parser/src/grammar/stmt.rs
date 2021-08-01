@@ -199,6 +199,330 @@ Root@0..13
     }
 
     #[test]
+    fn parse_else_if_statement() {
+        check(
+            "if true { } else if false {}",
+            expect![[r#"
+            Root@0..28
+              If@0..28
+                IfKw@0..2 "if"
+                Whitespace@2..3 " "
+                Literal@3..8
+                  Boolean@3..7 "true"
+                  Whitespace@7..8 " "
+                CodeBlock@8..12
+                  LBrace@8..9 "{"
+                  Whitespace@9..10 " "
+                  RBrace@10..11 "}"
+                  Whitespace@11..12 " "
+                ElseIf@12..28
+                  ElseKw@12..16 "else"
+                  Whitespace@16..17 " "
+                  If@17..28
+                    IfKw@17..19 "if"
+                    Whitespace@19..20 " "
+                    Literal@20..26
+                      Boolean@20..25 "false"
+                      Whitespace@25..26 " "
+                    CodeBlock@26..28
+                      LBrace@26..27 "{"
+                      RBrace@27..28 "}""#]],
+        )
+    }
+
+    #[test]
+    fn parse_else_if_with_statements() {
+        check(
+            "if x >= 5 {} else if false { let x = 5 x = 10 x = x * 10 }",
+            expect![[r#"
+                Root@0..58
+                  If@0..58
+                    IfKw@0..2 "if"
+                    Whitespace@2..3 " "
+                    InfixExpr@3..10
+                      VariableRef@3..5
+                        Ident@3..4 "x"
+                        Whitespace@4..5 " "
+                      GreaterThanOrEqual@5..7 ">="
+                      Whitespace@7..8 " "
+                      Literal@8..10
+                        Number@8..9 "5"
+                        Whitespace@9..10 " "
+                    CodeBlock@10..13
+                      LBrace@10..11 "{"
+                      RBrace@11..12 "}"
+                      Whitespace@12..13 " "
+                    ElseIf@13..58
+                      ElseKw@13..17 "else"
+                      Whitespace@17..18 " "
+                      If@18..58
+                        IfKw@18..20 "if"
+                        Whitespace@20..21 " "
+                        Literal@21..27
+                          Boolean@21..26 "false"
+                          Whitespace@26..27 " "
+                        CodeBlock@27..58
+                          LBrace@27..28 "{"
+                          Whitespace@28..29 " "
+                          VariableDef@29..39
+                            LetKw@29..32 "let"
+                            Whitespace@32..33 " "
+                            Ident@33..34 "x"
+                            Whitespace@34..35 " "
+                            Equals@35..36 "="
+                            Whitespace@36..37 " "
+                            Literal@37..39
+                              Number@37..38 "5"
+                              Whitespace@38..39 " "
+                          VariableAssign@39..46
+                            Ident@39..40 "x"
+                            Whitespace@40..41 " "
+                            Equals@41..42 "="
+                            Whitespace@42..43 " "
+                            Literal@43..46
+                              Number@43..45 "10"
+                              Whitespace@45..46 " "
+                          VariableAssign@46..57
+                            Ident@46..47 "x"
+                            Whitespace@47..48 " "
+                            Equals@48..49 "="
+                            Whitespace@49..50 " "
+                            InfixExpr@50..57
+                              VariableRef@50..52
+                                Ident@50..51 "x"
+                                Whitespace@51..52 " "
+                              Star@52..53 "*"
+                              Whitespace@53..54 " "
+                              Literal@54..57
+                                Number@54..56 "10"
+                                Whitespace@56..57 " "
+                          RBrace@57..58 "}""#]],
+        )
+    }
+
+    #[test]
+    fn else_if_recover_on_missing_expr() {
+        check(
+            "if true {} else if {}",
+            expect![[r#"
+            Root@0..21
+              If@0..21
+                IfKw@0..2 "if"
+                Whitespace@2..3 " "
+                Literal@3..8
+                  Boolean@3..7 "true"
+                  Whitespace@7..8 " "
+                CodeBlock@8..11
+                  LBrace@8..9 "{"
+                  RBrace@9..10 "}"
+                  Whitespace@10..11 " "
+                ElseIf@11..21
+                  ElseKw@11..15 "else"
+                  Whitespace@15..16 " "
+                  Error@16..21
+                    IfKw@16..18 "if"
+                    Whitespace@18..19 " "
+                    CodeBlock@19..21
+                      LBrace@19..20 "{"
+                      RBrace@20..21 "}"
+            [31mParse Error[0m: at 20..21, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m{[0m"#]],
+        );
+    }
+
+    #[test]
+    fn else_if_recover_on_missing_block() {
+        check(
+            "if true {} else if false",
+            expect![[r#"
+                Root@0..24
+                  If@0..24
+                    IfKw@0..2 "if"
+                    Whitespace@2..3 " "
+                    Literal@3..8
+                      Boolean@3..7 "true"
+                      Whitespace@7..8 " "
+                    CodeBlock@8..11
+                      LBrace@8..9 "{"
+                      RBrace@9..10 "}"
+                      Whitespace@10..11 " "
+                    ElseIf@11..24
+                      ElseKw@11..15 "else"
+                      Whitespace@15..16 " "
+                      Error@16..24
+                        IfKw@16..18 "if"
+                        Whitespace@18..19 " "
+                        Literal@19..24
+                          Boolean@19..24 "false"
+                [31mParse Error[0m: at 19..24, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m{[0m"#]],
+        )
+    }
+
+    #[test]
+    fn else_if_recover_on_missing_block_closing_brace() {
+        check(
+            "if true {} else if false { let x = 5",
+            expect![[r#"
+            Root@0..36
+              If@0..36
+                IfKw@0..2 "if"
+                Whitespace@2..3 " "
+                Literal@3..8
+                  Boolean@3..7 "true"
+                  Whitespace@7..8 " "
+                CodeBlock@8..11
+                  LBrace@8..9 "{"
+                  RBrace@9..10 "}"
+                  Whitespace@10..11 " "
+                ElseIf@11..36
+                  ElseKw@11..15 "else"
+                  Whitespace@15..16 " "
+                  If@16..36
+                    IfKw@16..18 "if"
+                    Whitespace@18..19 " "
+                    Literal@19..25
+                      Boolean@19..24 "false"
+                      Whitespace@24..25 " "
+                    CodeBlock@25..36
+                      LBrace@25..26 "{"
+                      Whitespace@26..27 " "
+                      VariableDef@27..36
+                        LetKw@27..30 "let"
+                        Whitespace@30..31 " "
+                        Ident@31..32 "x"
+                        Whitespace@32..33 " "
+                        Equals@33..34 "="
+                        Whitespace@34..35 " "
+                        Literal@35..36
+                          Number@35..36 "5"
+            [31mParse Error[0m: at 35..36, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m}[0m"#]],
+        )
+    }
+
+    #[test]
+    fn parse_else_statement() {
+        check(
+            "if true {} else { 5 }",
+            expect![[r#"
+            Root@0..21
+              If@0..21
+                IfKw@0..2 "if"
+                Whitespace@2..3 " "
+                Literal@3..8
+                  Boolean@3..7 "true"
+                  Whitespace@7..8 " "
+                CodeBlock@8..11
+                  LBrace@8..9 "{"
+                  RBrace@9..10 "}"
+                  Whitespace@10..11 " "
+                Else@11..21
+                  ElseKw@11..15 "else"
+                  Whitespace@15..16 " "
+                  CodeBlock@16..21
+                    LBrace@16..17 "{"
+                    Whitespace@17..18 " "
+                    Literal@18..20
+                      Number@18..19 "5"
+                      Whitespace@19..20 " "
+                    RBrace@20..21 "}""#]],
+        )
+    }
+
+    #[test]
+    fn parse_else_with_else_if() {
+        check(
+            "if true {} else if false {} else {}",
+            expect![[r#"
+            Root@0..35
+              If@0..35
+                IfKw@0..2 "if"
+                Whitespace@2..3 " "
+                Literal@3..8
+                  Boolean@3..7 "true"
+                  Whitespace@7..8 " "
+                CodeBlock@8..11
+                  LBrace@8..9 "{"
+                  RBrace@9..10 "}"
+                  Whitespace@10..11 " "
+                ElseIf@11..35
+                  ElseKw@11..15 "else"
+                  Whitespace@15..16 " "
+                  If@16..35
+                    IfKw@16..18 "if"
+                    Whitespace@18..19 " "
+                    Literal@19..25
+                      Boolean@19..24 "false"
+                      Whitespace@24..25 " "
+                    CodeBlock@25..28
+                      LBrace@25..26 "{"
+                      RBrace@26..27 "}"
+                      Whitespace@27..28 " "
+                    Else@28..35
+                      ElseKw@28..32 "else"
+                      Whitespace@32..33 " "
+                      CodeBlock@33..35
+                        LBrace@33..34 "{"
+                        RBrace@34..35 "}""#]],
+        );
+    }
+
+    #[test]
+    fn else_recover_on_missing_block() {
+        check(
+            "if true {} else",
+            expect![[r#"
+            Root@0..15
+              If@0..15
+                IfKw@0..2 "if"
+                Whitespace@2..3 " "
+                Literal@3..8
+                  Boolean@3..7 "true"
+                  Whitespace@7..8 " "
+                CodeBlock@8..11
+                  LBrace@8..9 "{"
+                  RBrace@9..10 "}"
+                  Whitespace@10..11 " "
+                Error@11..15
+                  ElseKw@11..15 "else"
+            [31mParse Error[0m: at 11..15, expected [33m{[0m"#]],
+        )
+    }
+
+    #[test]
+    fn else_recover_on_missing_block_closing_brace() {
+        check(
+            "if true {} else { let x = 5",
+            expect![[r#"
+            Root@0..27
+              If@0..27
+                IfKw@0..2 "if"
+                Whitespace@2..3 " "
+                Literal@3..8
+                  Boolean@3..7 "true"
+                  Whitespace@7..8 " "
+                CodeBlock@8..11
+                  LBrace@8..9 "{"
+                  RBrace@9..10 "}"
+                  Whitespace@10..11 " "
+                Else@11..27
+                  ElseKw@11..15 "else"
+                  Whitespace@15..16 " "
+                  CodeBlock@16..27
+                    LBrace@16..17 "{"
+                    Whitespace@17..18 " "
+                    VariableDef@18..27
+                      LetKw@18..21 "let"
+                      Whitespace@21..22 " "
+                      Ident@22..23 "x"
+                      Whitespace@23..24 " "
+                      Equals@24..25 "="
+                      Whitespace@25..26 " "
+                      Literal@26..27
+                        Number@26..27 "5"
+            [31mParse Error[0m: at 26..27, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m}[0m"#]],
+        )
+    }
+
+    #[test]
     fn variable_assign_recover_on_missing_expr() {
         check(
             "let x = 5 x = let y = 100",
