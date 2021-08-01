@@ -122,6 +122,88 @@ Root@0..13
     }
 
     #[test]
+    fn if_stmt_recover_on_missing_block() {
+        check(
+            "if true or false",
+            expect![[r#"
+            Root@0..16
+              Error@0..16
+                IfKw@0..2 "if"
+                Whitespace@2..3 " "
+                InfixExpr@3..16
+                  Literal@3..8
+                    Boolean@3..7 "true"
+                    Whitespace@7..8 " "
+                  OrKw@8..10 "or"
+                  Whitespace@10..11 " "
+                  Literal@11..16
+                    Boolean@11..16 "false"
+            [31mParse Error[0m: at 11..16, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m{[0m"#]],
+        );
+    }
+
+    #[test]
+    fn if_stmt_recover_on_missing_expr() {
+        check(
+            "if { let x = 5 }",
+            expect![[r#"
+            Root@0..16
+              Error@0..16
+                IfKw@0..2 "if"
+                Whitespace@2..3 " "
+                CodeBlock@3..16
+                  LBrace@3..4 "{"
+                  Whitespace@4..5 " "
+                  VariableDef@5..15
+                    LetKw@5..8 "let"
+                    Whitespace@8..9 " "
+                    Ident@9..10 "x"
+                    Whitespace@10..11 " "
+                    Equals@11..12 "="
+                    Whitespace@12..13 " "
+                    Literal@13..15
+                      Number@13..14 "5"
+                      Whitespace@14..15 " "
+                  RBrace@15..16 "}"
+            [31mParse Error[0m: at 15..16, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m{[0m"#]],
+        )
+    }
+
+    #[test]
+    fn variable_assign_recover_on_missing_expr() {
+        check(
+            "let x = 5 x = let y = 100",
+            expect![[r#"
+            Root@0..25
+              VariableDef@0..10
+                LetKw@0..3 "let"
+                Whitespace@3..4 " "
+                Ident@4..5 "x"
+                Whitespace@5..6 " "
+                Equals@6..7 "="
+                Whitespace@7..8 " "
+                Literal@8..10
+                  Number@8..9 "5"
+                  Whitespace@9..10 " "
+              VariableAssign@10..14
+                Ident@10..11 "x"
+                Whitespace@11..12 " "
+                Equals@12..13 "="
+                Whitespace@13..14 " "
+              VariableDef@14..25
+                LetKw@14..17 "let"
+                Whitespace@17..18 " "
+                Ident@18..19 "y"
+                Whitespace@19..20 " "
+                Equals@20..21 "="
+                Whitespace@21..22 " "
+                Literal@22..25
+                  Number@22..25 "100"
+            [31mParse Error[0m: at 14..17, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m, but found [31mlet[0m"#]],
+        )
+    }
+
+    #[test]
     fn recover_on_let_token() {
         check(
             "let a =\nlet b = a",

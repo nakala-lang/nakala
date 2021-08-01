@@ -52,3 +52,21 @@ fn block_with_ref_outside_block() {
 
     utils::compare_output(vec![], Some(input), "500");
 }
+
+#[test]
+fn variable_assignment_inside_block_propagates_outside() {
+    let input = "
+        let x = true
+
+        {
+            let y = -504
+
+            x = y > 0
+
+        }
+
+        x
+    ";
+
+    utils::compare_output(vec![], Some(input), "false")
+}
