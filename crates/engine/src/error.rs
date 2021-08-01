@@ -20,6 +20,7 @@ pub enum EngineError {
     FunctionAlreadyExists { function_name: String },
     FunctionUndefined { function_name: String },
     MismatchedParameterCount { actual: usize, expected: usize },
+    MismatchedTypes { actual: Val, expected: Val },
     NotYetImplemented,
     Unknown,
 }
@@ -89,6 +90,11 @@ impl std::fmt::Display for EngineError {
                 "The function expected {} parameters, but received {}",
                 Green.paint(format!("{}", expected)),
                 Yellow.paint(format!("{}", actual))
+            ),
+            EngineError::MismatchedTypes { actual, expected } => format!(
+                "Expected type {}, but got {} instead",
+                Green.paint(format!("{}", expected.get_type())),
+                Yellow.paint(format!("{}", actual.get_type())),
             ),
             EngineError::NotYetImplemented => "This feature is not yet implemented".into(),
             EngineError::Unknown => "An unknown error occurred".into(),
