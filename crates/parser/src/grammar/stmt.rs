@@ -362,39 +362,39 @@ Root@0..13
         check(
             "if true {} else if false { let x = 5",
             expect![[r#"
-            Root@0..36
-              If@0..36
-                IfKw@0..2 "if"
-                Whitespace@2..3 " "
-                Literal@3..8
-                  Boolean@3..7 "true"
-                  Whitespace@7..8 " "
-                CodeBlock@8..11
-                  LBrace@8..9 "{"
-                  RBrace@9..10 "}"
-                  Whitespace@10..11 " "
-                ElseIf@11..36
-                  ElseKw@11..15 "else"
-                  Whitespace@15..16 " "
-                  If@16..36
-                    IfKw@16..18 "if"
-                    Whitespace@18..19 " "
-                    Literal@19..25
-                      Boolean@19..24 "false"
-                      Whitespace@24..25 " "
-                    CodeBlock@25..36
-                      LBrace@25..26 "{"
-                      Whitespace@26..27 " "
-                      VariableDef@27..36
-                        LetKw@27..30 "let"
-                        Whitespace@30..31 " "
-                        Ident@31..32 "x"
-                        Whitespace@32..33 " "
-                        Equals@33..34 "="
-                        Whitespace@34..35 " "
-                        Literal@35..36
-                          Number@35..36 "5"
-            [31mParse Error[0m: at 35..36, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m}[0m"#]],
+                Root@0..36
+                  If@0..36
+                    IfKw@0..2 "if"
+                    Whitespace@2..3 " "
+                    Literal@3..8
+                      Boolean@3..7 "true"
+                      Whitespace@7..8 " "
+                    CodeBlock@8..11
+                      LBrace@8..9 "{"
+                      RBrace@9..10 "}"
+                      Whitespace@10..11 " "
+                    ElseIf@11..36
+                      ElseKw@11..15 "else"
+                      Whitespace@15..16 " "
+                      If@16..36
+                        IfKw@16..18 "if"
+                        Whitespace@18..19 " "
+                        Literal@19..25
+                          Boolean@19..24 "false"
+                          Whitespace@24..25 " "
+                        CodeBlock@25..36
+                          LBrace@25..26 "{"
+                          Whitespace@26..27 " "
+                          VariableDef@27..36
+                            LetKw@27..30 "let"
+                            Whitespace@30..31 " "
+                            Ident@31..32 "x"
+                            Whitespace@32..33 " "
+                            Equals@33..34 "="
+                            Whitespace@34..35 " "
+                            Literal@35..36
+                              Number@35..36 "5"
+                [31mParse Error[0m: at 35..36, expected [33m.[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m}[0m"#]],
         )
     }
 
@@ -492,33 +492,33 @@ Root@0..13
         check(
             "if true {} else { let x = 5",
             expect![[r#"
-            Root@0..27
-              If@0..27
-                IfKw@0..2 "if"
-                Whitespace@2..3 " "
-                Literal@3..8
-                  Boolean@3..7 "true"
-                  Whitespace@7..8 " "
-                CodeBlock@8..11
-                  LBrace@8..9 "{"
-                  RBrace@9..10 "}"
-                  Whitespace@10..11 " "
-                Else@11..27
-                  ElseKw@11..15 "else"
-                  Whitespace@15..16 " "
-                  CodeBlock@16..27
-                    LBrace@16..17 "{"
-                    Whitespace@17..18 " "
-                    VariableDef@18..27
-                      LetKw@18..21 "let"
-                      Whitespace@21..22 " "
-                      Ident@22..23 "x"
-                      Whitespace@23..24 " "
-                      Equals@24..25 "="
-                      Whitespace@25..26 " "
-                      Literal@26..27
-                        Number@26..27 "5"
-            [31mParse Error[0m: at 26..27, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m}[0m"#]],
+                Root@0..27
+                  If@0..27
+                    IfKw@0..2 "if"
+                    Whitespace@2..3 " "
+                    Literal@3..8
+                      Boolean@3..7 "true"
+                      Whitespace@7..8 " "
+                    CodeBlock@8..11
+                      LBrace@8..9 "{"
+                      RBrace@9..10 "}"
+                      Whitespace@10..11 " "
+                    Else@11..27
+                      ElseKw@11..15 "else"
+                      Whitespace@15..16 " "
+                      CodeBlock@16..27
+                        LBrace@16..17 "{"
+                        Whitespace@17..18 " "
+                        VariableDef@18..27
+                          LetKw@18..21 "let"
+                          Whitespace@21..22 " "
+                          Ident@22..23 "x"
+                          Whitespace@23..24 " "
+                          Equals@24..25 "="
+                          Whitespace@25..26 " "
+                          Literal@26..27
+                            Number@26..27 "5"
+                [31mParse Error[0m: at 26..27, expected [33m.[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m}[0m"#]],
         )
     }
 

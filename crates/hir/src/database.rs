@@ -238,17 +238,17 @@ mod tests {
 
     #[test]
     fn lower_expr_stmt() {
-        check_stmt("123", Stmt::Expr(Expr::Number { n: 123 }));
+        check_stmt("123", Stmt::Expr(Expr::Number { n: 123.0 }));
     }
 
     #[test]
     fn lower_binary_expr() {
         let mut exprs = Arena::new();
-        let lhs = exprs.alloc(Expr::Number { n: 1 });
-        let rhs = exprs.alloc(Expr::Number { n: 2 });
+        let lhs = exprs.alloc(Expr::Number { n: 1.2 });
+        let rhs = exprs.alloc(Expr::Number { n: 2.0 });
 
         check_expr(
-            "1+2",
+            "1.2+2",
             Expr::Binary {
                 lhs,
                 rhs,
@@ -261,7 +261,7 @@ mod tests {
     #[test]
     fn lower_binary_expr_without_rhs() {
         let mut exprs = Arena::new();
-        let lhs = exprs.alloc(Expr::Number { n: 10 });
+        let lhs = exprs.alloc(Expr::Number { n: 10.0 });
         let rhs = exprs.alloc(Expr::Missing);
 
         check_expr(
@@ -277,7 +277,7 @@ mod tests {
 
     #[test]
     fn lower_literal() {
-        check_expr("999", Expr::Number { n: 999 }, Database::default());
+        check_expr("999", Expr::Number { n: 999.0 }, Database::default());
     }
 
     #[test]
@@ -292,10 +292,10 @@ mod tests {
     #[test]
     fn lower_unary_expr() {
         let mut exprs = Arena::new();
-        let ten = exprs.alloc(Expr::Number { n: 10 });
+        let ten = exprs.alloc(Expr::Number { n: 10.1 });
 
         check_expr(
-            "-10",
+            "-10.1",
             Expr::Unary {
                 expr: ten,
                 op: UnaryOp::Neg,
@@ -333,7 +333,7 @@ mod tests {
         check_expr(
             "{ 2 }",
             Expr::CodeBlock(CodeBlock {
-                stmts: vec![Stmt::Expr(Expr::Number { n: 2 })],
+                stmts: vec![Stmt::Expr(Expr::Number { n: 2.0 })],
             }),
             Database::default(),
         )
@@ -366,7 +366,7 @@ mod tests {
             "call add(10, 5)",
             Expr::FunctionCall {
                 name: "add".into(),
-                param_value_list: vec![Expr::Number { n: 10 }, Expr::Number { n: 5 }],
+                param_value_list: vec![Expr::Number { n: 10.0 }, Expr::Number { n: 5.0 }],
             },
             Database::default(),
         );
@@ -375,8 +375,8 @@ mod tests {
     #[test]
     fn lower_less_than() {
         let mut exprs = Arena::new();
-        let lhs = exprs.alloc(Expr::Number { n: 5 });
-        let rhs = exprs.alloc(Expr::Number { n: 2 });
+        let lhs = exprs.alloc(Expr::Number { n: 5.0 });
+        let rhs = exprs.alloc(Expr::Number { n: 2.0 });
 
         check_expr(
             "5 < 2",
@@ -392,8 +392,8 @@ mod tests {
     #[test]
     fn lower_less_than_or_equal() {
         let mut exprs = Arena::new();
-        let lhs = exprs.alloc(Expr::Number { n: 5 });
-        let rhs = exprs.alloc(Expr::Number { n: 2 });
+        let lhs = exprs.alloc(Expr::Number { n: 5.0 });
+        let rhs = exprs.alloc(Expr::Number { n: 2.0 });
 
         check_expr(
             "5 <= 2",
@@ -409,8 +409,8 @@ mod tests {
     #[test]
     fn lower_greater_than() {
         let mut exprs = Arena::new();
-        let lhs = exprs.alloc(Expr::Number { n: 5 });
-        let rhs = exprs.alloc(Expr::Number { n: 2 });
+        let lhs = exprs.alloc(Expr::Number { n: 5.0 });
+        let rhs = exprs.alloc(Expr::Number { n: 2.0 });
 
         check_expr(
             "5 > 2",
@@ -426,8 +426,8 @@ mod tests {
     #[test]
     fn lower_greater_than_or_equal() {
         let mut exprs = Arena::new();
-        let lhs = exprs.alloc(Expr::Number { n: 5 });
-        let rhs = exprs.alloc(Expr::Number { n: 2 });
+        let lhs = exprs.alloc(Expr::Number { n: 5.0 });
+        let rhs = exprs.alloc(Expr::Number { n: 2.0 });
 
         check_expr(
             "5 >= 2",
@@ -502,7 +502,7 @@ mod tests {
                 body: CodeBlock {
                     stmts: vec![Stmt::VariableAssign(VariableAssign {
                         name: "x".into(),
-                        value: Expr::Number { n: 5 }
+                        value: Expr::Number { n: 5.0 }
                     })]
                 },
                 else_branch: None
@@ -521,13 +521,13 @@ mod tests {
             Stmt::If(If {
                 expr: Expr::Boolean { b: true },
                 body: CodeBlock {
-                    stmts: vec![Stmt::Expr(Expr::Number { n: 1 })]
+                    stmts: vec![Stmt::Expr(Expr::Number { n: 1.0 })]
                 },
                 else_branch: Some(Box::new(ElseBranch::ElseIf(ElseIf {
                     if_stmt: If {
                         expr: Expr::Boolean { b: false },
                         body: CodeBlock {
-                            stmts: vec![Stmt::Expr(Expr::Number { n: 2 })]
+                            stmts: vec![Stmt::Expr(Expr::Number { n: 2.0 })]
                         },
                         else_branch: None
                     }
@@ -547,17 +547,17 @@ mod tests {
             Stmt::If(If {
                 expr: Expr::Boolean { b: true },
                 body: CodeBlock {
-                    stmts: vec![Stmt::Expr(Expr::Number { n: 1 })]
+                    stmts: vec![Stmt::Expr(Expr::Number { n: 1.0 })]
                 },
                 else_branch: Some(Box::new(ElseBranch::ElseIf(ElseIf {
                     if_stmt: If {
                         expr: Expr::Boolean { b: false },
                         body: CodeBlock {
-                            stmts: vec![Stmt::Expr(Expr::Number { n: 2 })]
+                            stmts: vec![Stmt::Expr(Expr::Number { n: 2.0 })]
                         },
                         else_branch: Some(Box::new(ElseBranch::Else(Else {
                             body: CodeBlock {
-                                stmts: vec![Stmt::Expr(Expr::Number { n: 3 })]
+                                stmts: vec![Stmt::Expr(Expr::Number { n: 3.0 })]
                             }
                         })))
                     }
@@ -577,11 +577,11 @@ mod tests {
             Stmt::If(If {
                 expr: Expr::Boolean { b: true },
                 body: CodeBlock {
-                    stmts: vec![Stmt::Expr(Expr::Number { n: 1 })]
+                    stmts: vec![Stmt::Expr(Expr::Number { n: 1.0 })]
                 },
                 else_branch: Some(Box::new(ElseBranch::Else(Else {
                     body: CodeBlock {
-                        stmts: vec![Stmt::Expr(Expr::Number { n: 3 })]
+                        stmts: vec![Stmt::Expr(Expr::Number { n: 3.0 })]
                     }
                 })))
             })

@@ -97,9 +97,19 @@ fn function_call(p: &mut Parser) -> CompletedMarker {
 
 fn literal(p: &mut Parser) -> CompletedMarker {
     assert!(p.at(TokenKind::Number) || p.at(TokenKind::String) || p.at(TokenKind::Boolean));
-
     let m = p.start();
-    p.bump();
+    if p.at(TokenKind::Number) {
+        p.bump();
+
+        // if we are at a dot, we should have another number after
+        if p.at(TokenKind::Dot) {
+            p.bump();
+            p.expect(TokenKind::Number);
+        }
+    } else {
+        p.bump();
+    }
+
     m.complete(p, SyntaxKind::Literal)
 }
 
@@ -230,6 +240,32 @@ mod tests {
                   Literal@0..3
                     Number@0..3 "123""#]],
         )
+    }
+
+    #[test]
+    fn parse_decimal_number() {
+        check(
+            "123.013",
+            expect![[r#"
+            Root@0..7
+              Literal@0..7
+                Number@0..3 "123"
+                Dot@3..4 "."
+                Number@4..7 "013""#]],
+        );
+    }
+
+    #[test]
+    fn do_not_parse_decimal_with_no_number_after_dot() {
+        check(
+            "123.",
+            expect![[r#"
+            Root@0..4
+              Literal@0..4
+                Number@0..3 "123"
+                Dot@3..4 "."
+            [31mParse Error[0m: at 3..4, expected [33mnumber[0m"#]],
+        );
     }
 
     #[test]
@@ -633,7 +669,7 @@ Root@0..28
                         Whitespace@13..14 " "
                         Literal@14..15
                           Number@14..15 "1"
-                [31mParse Error[0m: at 14..15, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m}[0m"#]],
+                [31mParse Error[0m: at 14..15, expected [33m.[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m}[0m"#]],
         );
     }
 
@@ -804,20 +840,20 @@ Root@0..23
         check(
             "call someFunction(5, 10",
             expect![[r#"
-            Root@0..23
-              FunctionCall@0..23
-                CallKw@0..4 "call"
-                Whitespace@4..5 " "
-                Ident@5..17 "someFunction"
-                ParamValueList@17..23
-                  LParen@17..18 "("
-                  Literal@18..19
-                    Number@18..19 "5"
-                  Comma@19..20 ","
-                  Whitespace@20..21 " "
-                  Literal@21..23
-                    Number@21..23 "10"
-            [31mParse Error[0m: at 21..23, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m, [33m,[0m, [33m)[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m"#]],
+                Root@0..23
+                  FunctionCall@0..23
+                    CallKw@0..4 "call"
+                    Whitespace@4..5 " "
+                    Ident@5..17 "someFunction"
+                    ParamValueList@17..23
+                      LParen@17..18 "("
+                      Literal@18..19
+                        Number@18..19 "5"
+                      Comma@19..20 ","
+                      Whitespace@20..21 " "
+                      Literal@21..23
+                        Number@21..23 "10"
+                [31mParse Error[0m: at 21..23, expected [33m.[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m, [33m,[0m, [33m)[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m"#]],
         );
     }
 

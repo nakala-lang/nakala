@@ -4,7 +4,7 @@ use super::EngineError;
 pub enum Val {
     Missing, // filler name
     Unit,    // Unit tuple
-    Number(i128),
+    Number(f64),
     String(String),
     Boolean(bool),
 }
@@ -238,11 +238,11 @@ impl std::fmt::Display for Val {
     }
 }
 
-impl From<Val> for i128 {
-    fn from(v: Val) -> i128 {
-        match v {
-            Val::Number(n) => n,
-            _ => panic!("Cannot convert {:?} to i128", v),
-        }
-    }
-}
+//impl From<Val> for i128 {
+//    fn from(v: Val) -> i128 {
+//        match v {
+//            Val::Number(n) => n,
+//            _ => panic!("Cannot convert {:?} to i128", v),
+//        }
+//    }
+//}

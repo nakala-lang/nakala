@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 
 #[derive(Debug)]
@@ -127,8 +128,14 @@ impl Literal {
 pub struct Number(SyntaxNode);
 
 impl Number {
-    pub fn parse(&self) -> u64 {
-        self.0.first_token().unwrap().text().parse().unwrap()
+    pub fn parse(&self) -> f64 {
+        self.0
+            .children_with_tokens()
+            .filter(|t| t.kind() == SyntaxKind::Number)
+            .map(|t| t.to_string())
+            .join(".")
+            .parse()
+            .unwrap()
     }
 }
 
