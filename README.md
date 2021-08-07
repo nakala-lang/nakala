@@ -4,9 +4,9 @@
   <img src="./assets/logo.png" width="150"/>
 </p>
 
-[![CI](https://github.com/reaganmcf/nakala/actions/workflows/CI.yml/badge.svg)](https://github.com/reaganmcf/nakala/actions/workflows/CI.yml)
+[![CI](https://github.com/nakala-lang/nakala/actions/workflows/CI.yml/badge.svg)](https://github.com/nakala-lang/nakala/actions/workflows/CI.yml)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcomed-green.svg)
-[![GitHub license](https://img.shields.io/github/license/reaganmcf/nakala.svg)](https://github.com/reaganmcf/nakala/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/nakala-lang/nakala.svg)](https://github.com/nakala-lang/nakala/blob/master/LICENSE)
 
 A programming language that I built based on [arzg's Eldiro blog posts](https://arzg.github.io/lang/). 
 The core architecture (especially the Parser) is practically identical to Eldiro, hence the name of the project: nakala (Punjabi for _mimic_).
