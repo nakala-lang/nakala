@@ -81,7 +81,7 @@ pub enum Expr {
         rhs: ExprIdx,
     },
     Number {
-        n: u64,
+        n: f64,
     },
     String {
         s: String,

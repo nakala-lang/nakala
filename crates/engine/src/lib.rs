@@ -27,17 +27,17 @@ pub fn eval(env: &mut Env, hir: Hir) -> Result<Val, EngineError> {
 
 fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineError> {
     match stmt {
-        Stmt::Expr(expr) => eval_expr(env, &db, expr),
+        Stmt::Expr(expr) => eval_expr(env, db, expr),
         Stmt::VariableDef(VariableDef { name, value }) => {
-            eval_variable_def(env, &db, name.to_string(), value)
+            eval_variable_def(env, db, name.to_string(), value)
         }
         Stmt::VariableAssign(VariableAssign { name, value }) => {
-            eval_variable_assign(env, &db, name.to_string(), value)
+            eval_variable_assign(env, db, name.to_string(), value)
         }
-        Stmt::FunctionDef(func_def) => eval_function_def(env, &db, func_def),
-        Stmt::If(if_stmt) => eval_if_stmt(env, &db, if_stmt),
-        Stmt::ElseIf(else_if) => eval_if_stmt(env, &db, else_if.if_stmt),
-        Stmt::Else(else_stmt) => eval_code_block(env, &db, else_stmt.body.stmts),
+        Stmt::FunctionDef(func_def) => eval_function_def(env, db, func_def),
+        Stmt::If(if_stmt) => eval_if_stmt(env, db, if_stmt),
+        Stmt::ElseIf(else_if) => eval_if_stmt(env, db, else_if.if_stmt),
+        Stmt::Else(else_stmt) => eval_code_block(env, db, else_stmt.body.stmts),
     }
 }
 
@@ -46,7 +46,7 @@ fn eval_code_block(env: &mut Env, db: &Database, stmts: Vec<Stmt>) -> Result<Val
     let mut return_val = Val::Unit;
 
     for stmt in stmts {
-        return_val = eval_stmt(&mut block_env, &db, stmt)?;
+        return_val = eval_stmt(&mut block_env, db, stmt)?;
     }
 
     // if the block_env has new values for the variables that are shared,
@@ -66,17 +66,17 @@ fn eval_function_def(
 
 fn eval_expr(env: &mut Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {
     match expr {
-        Expr::Binary { op, lhs, rhs } => eval_binary_expr(env, &db, op, lhs, rhs),
-        Expr::Number { n } => Ok(Val::Number(n.into())),
+        Expr::Binary { op, lhs, rhs } => eval_binary_expr(env, db, op, lhs, rhs),
+        Expr::Number { n } => Ok(Val::Number(n)),
         Expr::String { s } => Ok(Val::String(s)),
         Expr::Boolean { b } => Ok(Val::Boolean(b)),
         Expr::VariableRef { var } => env.get_variable(&var.to_string()),
-        Expr::Unary { op, expr } => eval_unary_expr(env, &db, op, db.exprs.index(expr).to_owned()),
-        Expr::CodeBlock(CodeBlock { stmts }) => eval_code_block(env, &db, stmts),
+        Expr::Unary { op, expr } => eval_unary_expr(env, db, op, db.exprs.index(expr).to_owned()),
+        Expr::CodeBlock(CodeBlock { stmts }) => eval_code_block(env, db, stmts),
         Expr::FunctionCall {
             name,
             param_value_list,
-        } => eval_function_call(env, &db, name, param_value_list),
+        } => eval_function_call(env, db, name, param_value_list),
         Expr::Missing => {
             unreachable!("Missing tokens will get caught before they reach the engine")
         }
@@ -147,8 +147,8 @@ fn eval_binary_expr(
     lhs: ExprIdx,
     rhs: ExprIdx,
 ) -> Result<Val, EngineError> {
-    let lhs_val = eval_expr(env, &db, db.exprs.index(lhs).to_owned())?;
-    let rhs_val = eval_expr(env, &db, db.exprs.index(rhs).to_owned())?;
+    let lhs_val = eval_expr(env, db, db.exprs.index(lhs).to_owned())?;
+    let rhs_val = eval_expr(env, db, db.exprs.index(rhs).to_owned())?;
     match op {
         BinaryOp::Add => lhs_val.add(rhs_val),
         BinaryOp::Sub => lhs_val.sub(rhs_val),

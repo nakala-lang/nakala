@@ -33,6 +33,9 @@ pub enum TokenKind {
     #[regex("true|false")]
     Boolean,
 
+    #[token(".")]
+    Dot,
+
     #[token("+")]
     Plus,
 
@@ -113,6 +116,7 @@ impl fmt::Display for TokenKind {
             Self::Number => "number",
             Self::String => "string",
             Self::Boolean => "boolean",
+            Self::Dot => ".",
             Self::Plus => "+",
             Self::Minus => "-",
             Self::Star => "*",
@@ -218,6 +222,11 @@ mod tests {
     #[test]
     fn lex_true_boolean() {
         check("true", TokenKind::Boolean);
+    }
+
+    #[test]
+    fn lex_dot() {
+        check(".", TokenKind::Dot);
     }
 
     #[test]

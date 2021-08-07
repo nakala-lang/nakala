@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 syntax = {path = "../syntax"}
+itertools = "0.10"
