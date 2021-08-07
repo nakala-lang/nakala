@@ -10,14 +10,30 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  clippy_check:
+  lint:
+    name: Linting (fmt + clippy)
+    needs: [prepare]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - run: rustup component add clippy
-      - uses: actions-rs/clippy-check@v1
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Clippy for all features
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
+      - name: Format check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
 
   build_and_test:
     runs-on: ubuntu-latest
