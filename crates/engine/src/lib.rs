@@ -67,7 +67,7 @@ fn eval_function_def(
 fn eval_expr(env: &mut Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {
     match expr {
         Expr::Binary { op, lhs, rhs } => eval_binary_expr(env, &db, op, lhs, rhs),
-        Expr::Number { n } => Ok(Val::Number(n.into())),
+        Expr::Number { n } => Ok(Val::Number(n)),
         Expr::String { s } => Ok(Val::String(s)),
         Expr::Boolean { b } => Ok(Val::Boolean(b)),
         Expr::VariableRef { var } => env.get_variable(&var.to_string()),

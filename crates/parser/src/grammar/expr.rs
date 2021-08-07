@@ -98,16 +98,10 @@ fn function_call(p: &mut Parser) -> CompletedMarker {
 fn literal(p: &mut Parser) -> CompletedMarker {
     assert!(p.at(TokenKind::Number) || p.at(TokenKind::String) || p.at(TokenKind::Boolean));
     let m = p.start();
-    if p.at(TokenKind::Number) {
+    p.bump();
+    if p.at(TokenKind::Dot) {
         p.bump();
-
-        // if we are at a dot, we should have another number after
-        if p.at(TokenKind::Dot) {
-            p.bump();
-            p.expect(TokenKind::Number);
-        }
-    } else {
-        p.bump();
+        p.expect(TokenKind::Number);
     }
 
     m.complete(p, SyntaxKind::Literal)
