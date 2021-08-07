@@ -56,6 +56,8 @@ fn expr_binding_power(p: &mut Parser, minimum_binding_power: u8) -> Option<Compl
         }
     }
 
+    p.clear_expected();
+
     Some(lhs)
 }
 
@@ -504,7 +506,7 @@ Root@0..7
                     LParen@0..1 "("
                     VariableRef@1..4
                       Ident@1..4 "foo"
-                [31mParse Error[0m: at 1..4, expected [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m)[0m"#]],
+                [31mParse Error[0m: at 1..4, expected [33m)[0m"#]],
         );
     }
 
@@ -663,7 +665,7 @@ Root@0..28
                         Whitespace@13..14 " "
                         Literal@14..15
                           Number@14..15 "1"
-                [31mParse Error[0m: at 14..15, expected [33m.[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m or [33m}[0m"#]],
+                [31mParse Error[0m: at 14..15, expected [33m}[0m"#]],
         );
     }
 
@@ -847,7 +849,7 @@ Root@0..23
                       Whitespace@20..21 " "
                       Literal@21..23
                         Number@21..23 "10"
-                [31mParse Error[0m: at 21..23, expected [33m.[0m, [33m+[0m, [33m-[0m, [33m*[0m, [33m/[0m, [33m>[0m, [33m>=[0m, [33m<[0m, [33m<=[0m, [33mor[0m, [33mand[0m, [33m==[0m, [33m,[0m, [33m)[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m"#]],
+                [31mParse Error[0m: at 21..23, expected [33m,[0m, [33m)[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m"#]],
         );
     }
 

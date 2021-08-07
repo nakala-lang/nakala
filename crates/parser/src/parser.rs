@@ -91,6 +91,10 @@ impl<'t, 'input> Parser<'t, 'input> {
         self.peek().is_none()
     }
 
+    pub(crate) fn clear_expected(&mut self) {
+        self.expected_kinds.clear();
+    }
+
     // FIXME
     //
     // Sometimes (particularly with variable assignments),
