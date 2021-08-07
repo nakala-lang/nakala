@@ -65,7 +65,7 @@ fn main() {
 }
 
 fn run_without_repl(buffer: &str, matches: ArgMatches) {
-    match parse_and_eval_buffer(&buffer, &mut Env::default()) {
+    match parse_and_eval_buffer(buffer, &mut Env::default()) {
         Ok(NakalaResult { parse, hir, val }) => {
             if matches.is_present("parse") {
                 println!("{}", parse.debug_tree());
