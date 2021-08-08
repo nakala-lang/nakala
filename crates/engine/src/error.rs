@@ -21,6 +21,7 @@ pub enum EngineError {
     FunctionUndefined { function_name: String },
     MismatchedParameterCount { actual: usize, expected: usize },
     MismatchedTypes { actual: Val, expected: Val },
+    EarlyReturn { value: Val },
     NotYetImplemented,
     Unknown,
 }
@@ -96,6 +97,10 @@ impl std::fmt::Display for EngineError {
                 Green.paint(expected.get_type().to_string()),
                 Yellow.paint(actual.get_type().to_string()),
             ),
+            // Early returns are uncaught when return is not called from within a function
+            EngineError::EarlyReturn { value: _ } => {
+                "Can only return when inside the context of a function".into()
+            }
             EngineError::NotYetImplemented => "This feature is not yet implemented".into(),
             EngineError::Unknown => "An unknown error occurred".into(),
         };
