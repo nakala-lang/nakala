@@ -65,7 +65,7 @@ fn main() {
 }
 
 fn run_without_repl(buffer: &str, matches: ArgMatches) {
-    match parse_and_eval_buffer(buffer, &mut Env::default()) {
+    match parse_and_eval_buffer(buffer, &mut Env::new(None)) {
         Ok(NakalaResult { parse, hir, val }) => {
             if matches.is_present("parse") {
                 println!("{}", parse.debug_tree());
@@ -94,41 +94,45 @@ fn cli_main(cli_args: ArgMatches) {
         .expect("Error configuring reedline with history");
     let prompt = DefaultPrompt::default();
 
-    let mut env = Env::default();
+    let mut env = Env::new(None);
 
     loop {
         let sig = line_editor.read_line(&prompt).unwrap();
         match sig {
             Signal::Success(buffer) => {
-                match from_string_to_parse(buffer.as_str()) {
-                    Ok(parse) => {
-                        if cli_args.is_present("parse") {
-                            println!("{}", parse.debug_tree());
-                        }
+                if buffer == "__env" {
+                    println!("{:#?}", env.get_all_bindings());
+                } else {
+                    match from_string_to_parse(buffer.as_str()) {
+                        Ok(parse) => {
+                            if cli_args.is_present("parse") {
+                                println!("{}", parse.debug_tree());
+                            }
 
-                        match from_parse_to_ast(parse) {
-                            Some(ast) => {
-                                let hir = from_ast_to_hir(ast);
+                            match from_parse_to_ast(parse) {
+                                Some(ast) => {
+                                    let hir = from_ast_to_hir(ast);
 
-                                if cli_args.is_present("hir") {
-                                    println!("{:#?}", hir.stmts);
+                                    if cli_args.is_present("hir") {
+                                        println!("{:#?}", hir.stmts);
+                                    }
+
+                                    match evaluate_hir(hir, &mut env) {
+                                        Ok(val) => println!("{:?}", val),
+                                        Err(e) => eprintln!("{}", e),
+                                    }
                                 }
-
-                                match evaluate_hir(hir, &mut env) {
-                                    Ok(val) => println!("{:?}", val),
-                                    Err(e) => eprintln!("{}", e),
+                                None => {
+                                    // show ast errors
+                                    eprintln!("Parse error: unable to parse into AST");
                                 }
                             }
-                            None => {
-                                // show ast errors
-                                eprintln!("Parse error: unable to parse into AST");
-                            }
                         }
-                    }
-                    Err(parse_errors) => {
-                        // show parse errors
-                        for error in parse_errors {
-                            eprintln!("{}", error)
+                        Err(parse_errors) => {
+                            // show parse errors
+                            for error in parse_errors {
+                                eprintln!("{}", error)
+                            }
                         }
                     }
                 }
