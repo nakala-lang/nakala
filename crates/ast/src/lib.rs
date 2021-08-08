@@ -310,6 +310,15 @@ pub enum ElseBranch {
 }
 
 #[derive(Debug)]
+pub struct Return(SyntaxNode);
+
+impl Return {
+    pub fn value(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast)
+    }
+}
+
+#[derive(Debug)]
 pub enum Stmt {
     VariableDef(VariableDef),
     Expr(Expr),
@@ -318,6 +327,7 @@ pub enum Stmt {
     If(If),
     ElseIf(ElseIf),
     Else(Else),
+    Return(Return),
 }
 
 impl Stmt {
@@ -329,6 +339,7 @@ impl Stmt {
             SyntaxKind::If => Self::If(If(node)),
             SyntaxKind::ElseIf => Self::ElseIf(ElseIf(node)),
             SyntaxKind::Else => Self::Else(Else(node)),
+            SyntaxKind::Return => Self::Return(Return(node)),
             _ => Self::Expr(Expr::cast(node)?),
         };
 
