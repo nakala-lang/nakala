@@ -10,18 +10,39 @@ type BindingList = (Vec<(String, Val)>, Vec<(String, Function)>);
 pub struct Env {
     // holds variable definitions
     variables: HashMap<String, Val>,
-
     // holds function definitions
     functions: HashMap<String, Function>,
+
+    enclosing_env: Option<Box<Self>>,
 }
 
 impl Env {
+    pub fn new(enclosing_env: Option<Box<Self>>) -> Self {
+        Self {
+            variables: HashMap::default(),
+            functions: HashMap::default(),
+            enclosing_env,
+        }
+    }
+
     pub fn get_variable(&self, variable_name: &str) -> Result<Val, EngineError> {
         match self.variables.get(variable_name) {
             Some(val) => Ok(val.to_owned()),
-            None => Err(EngineError::VariableUndefined {
-                variable_name: variable_name.to_string(),
-            }),
+            None => {
+                println!(
+                    "didnt find {} in the current env, trying parent...",
+                    variable_name
+                );
+                // FIXME probably don't have to clone here
+                // should instead listen to the borrow checker
+                if let Some(outside_env) = self.enclosing_env.clone() {
+                    outside_env.get_variable(variable_name)
+                } else {
+                    Err(EngineError::VariableUndefined {
+                        variable_name: variable_name.to_string(),
+                    })
+                }
+            }
         }
     }
 
@@ -39,9 +60,13 @@ impl Env {
 
     pub fn set_variable(&mut self, variable_name: &str, val: Val) -> Result<Val, EngineError> {
         if !self.variables.contains_key(variable_name) {
-            return Err(EngineError::VariableUndefined {
-                variable_name: variable_name.to_string(),
-            });
+            if let Some(mut outside_env) = self.enclosing_env.clone() {
+                return outside_env.set_variable(variable_name, val);
+            } else {
+                return Err(EngineError::VariableUndefined {
+                    variable_name: variable_name.to_string(),
+                });
+            }
         }
 
         *self.variables.get_mut(variable_name).unwrap() = val;
@@ -66,9 +91,15 @@ impl Env {
     pub fn get_function(&self, function_name: &str) -> Result<Function, EngineError> {
         match self.functions.get(function_name) {
             Some(func) => Ok(func.to_owned()),
-            None => Err(EngineError::FunctionUndefined {
-                function_name: function_name.to_string(),
-            }),
+            None => {
+                if let Some(outside_env) = self.enclosing_env.clone() {
+                    outside_env.get_function(function_name)
+                } else {
+                    Err(EngineError::FunctionUndefined {
+                        function_name: function_name.to_string(),
+                    })
+                }
+            }
         }
     }
 
