@@ -1,5 +1,5 @@
 use crate::{
-    BinaryOp, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Stmt, UnaryOp,
+    BinaryOp, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Return, Stmt, UnaryOp,
     VariableAssign, VariableDef,
 };
 use la_arena::Arena;
@@ -37,6 +37,9 @@ impl Database {
             }),
             ast::Stmt::Else(ast) => Stmt::Else(Else {
                 body: self.lower_code_block(ast.body()?),
+            }),
+            ast::Stmt::Return(ast) => Stmt::Return(Return {
+                value: self.lower_expr(ast.value()),
             }),
         };
 
