@@ -111,12 +111,3 @@ impl Env {
         }
     }
 }
-
-impl std::default::Default for Env {
-    fn default() -> Self {
-        Self {
-            variables: HashMap::default(),
-            functions: HashMap::default(),
-        }
-    }
-}
