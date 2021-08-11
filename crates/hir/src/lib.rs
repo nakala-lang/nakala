@@ -73,7 +73,7 @@ pub struct FunctionDef {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Return {
-    pub value: Expr,
+    pub value: Option<Expr>,
 }
 
 pub type ExprIdx = Idx<Expr>;

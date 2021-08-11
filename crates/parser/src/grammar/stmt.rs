@@ -84,6 +84,10 @@ fn return_stmt(p: &mut Parser) -> Option<CompletedMarker> {
     let m = p.start();
     p.bump();
 
+    if p.at(TokenKind::RBrace) {
+        return Some(m.complete(p, SyntaxKind::Return));
+    }
+
     expr::expr(p);
 
     Some(m.complete(p, SyntaxKind::Return))

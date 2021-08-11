@@ -39,7 +39,7 @@ impl Database {
                 body: self.lower_code_block(ast.body()?),
             }),
             ast::Stmt::Return(ast) => Stmt::Return(Return {
-                value: self.lower_expr(ast.value()),
+                value: ast.value().map(|_| self.lower_expr(ast.value())),
             }),
         };
 

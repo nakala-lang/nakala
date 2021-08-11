@@ -88,7 +88,7 @@ fn recursive_func_propagates_changes_to_outside_env() {
 
         fn rec_change_global(x) {
             if x < 1 {
-                ret 0
+                ret
             } else {
                 global_counter = global_counter + 1
                 call rec_change_global(x - 1)

@@ -1,6 +1,6 @@
 use hir::{
-    BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, FunctionDef, Hir, If, Stmt, UnaryOp,
-    VariableAssign, VariableDef,
+    BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, FunctionDef, Hir, If, Return, Stmt,
+    UnaryOp, VariableAssign, VariableDef,
 };
 use std::ops::Index;
 
@@ -38,7 +38,7 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         Stmt::If(if_stmt) => eval_if_stmt(env, db, if_stmt),
         Stmt::ElseIf(else_if) => eval_if_stmt(env, db, else_if.if_stmt),
         Stmt::Else(else_stmt) => eval_code_block(env, db, else_stmt.body.stmts),
-        Stmt::Return(return_stmt) => eval_expr(env, db, return_stmt.value),
+        Stmt::Return(return_stmt) => eval_return(env, db, return_stmt),
     }
 }
 
@@ -50,7 +50,7 @@ fn eval_code_block(env: &mut Env, db: &Database, stmts: Vec<Stmt>) -> Result<Val
         if let Stmt::Return(r) = stmt.clone() {
             block_env.propagate_enclosing_env_changes(env);
             return Err(EngineError::EarlyReturn {
-                value: eval_expr(&mut block_env, db, r.value)?,
+                value: eval_return(&mut block_env, db, r)?,
             });
         } else {
             return_val = eval_stmt(&mut block_env, db, stmt)?;
@@ -167,5 +167,13 @@ fn eval_binary_expr(
         BinaryOp::LessThanOrEqual => lhs_val.less_than_or_eq(rhs_val),
         BinaryOp::Or => lhs_val.or(rhs_val),
         BinaryOp::And => lhs_val.and(rhs_val),
+    }
+}
+
+fn eval_return(env: &mut Env, db: &Database, ret: Return) -> Result<Val, EngineError> {
+    if let Some(expr) = ret.value {
+        eval_expr(env, db, expr)
+    } else {
+        Ok(Val::Unit)
     }
 }
