@@ -1,19 +1,19 @@
-fn get_const() { 10 }
-fn add(num1, num2) { num1 + num2 }
+# the last statement in is returned implicitly
+fn get_const() { 15 }
 
-let sum = call add(
-  {
-    let someOtherVariable = 10
-    let factor1 = 12341
+let my_const = call get_const()
 
-    someOtherVariable * factor1
-  },
-  {
-    let delta = -10
+fn fib(x) {
+  if x <= 1 {
+    ret x
+  } else {
+    ret call fib(x-1) + call fib(x-2)
+  }
+}
 
-    delta * (-5)
-  } * call get_const()
-)
+let my_fib = call fib(my_const)
+
+my_fib
 
 
 
