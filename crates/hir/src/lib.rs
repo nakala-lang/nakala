@@ -26,6 +26,7 @@ pub enum Stmt {
     If(If),
     ElseIf(ElseIf),
     Else(Else),
+    Return(Return),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -68,6 +69,11 @@ pub struct FunctionDef {
     pub name: SmolStr,
     pub param_ident_list: Vec<SmolStr>,
     pub body: CodeBlock,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Return {
+    pub value: Option<Expr>,
 }
 
 pub type ExprIdx = Idx<Expr>;

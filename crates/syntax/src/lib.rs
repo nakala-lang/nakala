@@ -10,6 +10,7 @@ pub enum SyntaxKind {
     LetKw,
     IfKw,
     ElseKw,
+    RetKw,
     Ident,
     Number,
     String,
@@ -51,6 +52,7 @@ pub enum SyntaxKind {
     If,
     Else,
     ElseIf,
+    Return,
 }
 
 impl From<TokenKind> for SyntaxKind {
@@ -62,6 +64,7 @@ impl From<TokenKind> for SyntaxKind {
             TokenKind::LetKw => Self::LetKw,
             TokenKind::IfKw => Self::IfKw,
             TokenKind::ElseKw => Self::ElseKw,
+            TokenKind::RetKw => Self::RetKw,
             TokenKind::Ident => Self::Ident,
             TokenKind::Number => Self::Number,
             TokenKind::String => Self::String,
