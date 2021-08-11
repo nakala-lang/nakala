@@ -70,3 +70,41 @@ fn variable_assignment_inside_block_propagates_outside() {
 
     utils::compare_output(vec![], Some(input), "false")
 }
+
+#[test]
+fn variable_assignment_inside_nested_block_propagates_outside() {
+    let input = "
+        let x = 1
+        
+        {
+            let y = 2
+
+            {
+                let z = 3
+
+                y = z
+            }
+
+            x = y
+        }
+
+        x
+    ";
+
+    utils::compare_output(vec![], Some(input), "3");
+}
+
+#[test]
+fn block_scope_should_not_leak_var_defs_outside() {
+    let input = "
+        let x = true
+
+        {
+            let x = false
+        }
+
+        x
+    ";
+
+    utils::compare_output(vec![], Some(input), "true");
+}

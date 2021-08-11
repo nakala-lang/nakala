@@ -40,3 +40,64 @@ fn use_expr_in_call_param() {
         "1986"
     );
 }
+
+#[test]
+fn fib_recursive_works() {
+    utils::compare_output(
+        vec![],
+        Some(
+            "
+        fn fib(x) {
+            if x <= 1 {
+                ret x
+            } else {
+                ret call fib(x - 1) + call fib(x - 2)
+            }
+        }
+
+        call fib(15)",
+        ),
+        "610",
+    )
+}
+
+#[test]
+fn func_propagates_changes_to_outside_env() {
+    utils::compare_output(
+        vec![],
+        Some(
+            "
+        let global_counter = 0
+
+        fn change_global() {
+            global_counter = 1
+        }
+
+        call change_global()
+
+        global_counter",
+        ),
+        "1",
+    );
+}
+
+#[test]
+fn recursive_func_propagates_changes_to_outside_env() {
+    let input = "
+        let global_counter = 0
+
+        fn rec_change_global(x) {
+            if x < 1 {
+                ret 0
+            } else {
+                global_counter = global_counter + 1
+                call rec_change_global(x - 1)
+            }
+        }
+
+        call rec_change_global(5)
+
+        global_counter";
+
+    utils::compare_output(vec![], Some(input), "5");
+}
