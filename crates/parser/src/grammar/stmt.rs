@@ -7,7 +7,7 @@ pub(super) fn stmt(p: &mut Parser) -> Option<CompletedMarker> {
         func::func(p)
     } else if p.at(TokenKind::IfKw) {
         if_stmt(p)
-    } else if p.at(TokenKind::ReturnKw) {
+    } else if p.at(TokenKind::RetKw) {
         return_stmt(p)
     } else {
         // variable assignments can look like expressions,
@@ -80,7 +80,7 @@ fn else_stmt(p: &mut Parser) -> Option<CompletedMarker> {
 }
 
 fn return_stmt(p: &mut Parser) -> Option<CompletedMarker> {
-    assert!(p.at(TokenKind::ReturnKw));
+    assert!(p.at(TokenKind::RetKw));
     let m = p.start();
     p.bump();
 
