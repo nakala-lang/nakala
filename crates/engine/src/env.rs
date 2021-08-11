@@ -13,6 +13,7 @@ pub struct Env {
     // holds function definitions
     functions: HashMap<String, Function>,
 
+    // FIXME: read comment in `propagate_enclosing_env_changes`
     enclosing_env: Option<Box<Self>>,
 }
 
@@ -29,13 +30,9 @@ impl Env {
         match self.variables.get(variable_name) {
             Some(val) => Ok(val.to_owned()),
             None => {
-                println!(
-                    "didnt find {} in the current env, trying parent...",
-                    variable_name
-                );
                 // FIXME probably don't have to clone here
                 // should instead listen to the borrow checker
-                if let Some(outside_env) = self.enclosing_env.clone() {
+                if let Some(outside_env) = &self.enclosing_env {
                     outside_env.get_variable(variable_name)
                 } else {
                     Err(EngineError::VariableUndefined {
@@ -60,7 +57,7 @@ impl Env {
 
     pub fn set_variable(&mut self, variable_name: &str, val: Val) -> Result<Val, EngineError> {
         if !self.variables.contains_key(variable_name) {
-            if let Some(mut outside_env) = self.enclosing_env.clone() {
+            if let Some(ref mut outside_env) = self.enclosing_env {
                 return outside_env.set_variable(variable_name, val);
             } else {
                 return Err(EngineError::VariableUndefined {
@@ -92,7 +89,7 @@ impl Env {
         match self.functions.get(function_name) {
             Some(func) => Ok(func.to_owned()),
             None => {
-                if let Some(outside_env) = self.enclosing_env.clone() {
+                if let Some(outside_env) = &self.enclosing_env {
                     outside_env.get_function(function_name)
                 } else {
                     Err(EngineError::FunctionUndefined {
@@ -127,18 +124,16 @@ impl Env {
         )
     }
 
-    pub fn propagate_to(&self, other_env: &mut Env) {
-        let overlapping_variables: Vec<(String, Val)> = self
-            .variables
-            .clone()
-            .into_iter()
-            .filter(|(name, _)| other_env.get_variable(name).is_ok())
-            .collect();
-
-        for (name, val) in overlapping_variables {
-            other_env
-                .set_variable(name.as_str(), val)
-                .expect("Tried to update a value that is not actually shared");
+    // FIXME
+    //
+    // Since we are not passing mutable references of the enclosing_env, and instead are just
+    // cloning when needed, we have to propagate the changes to the outside env back to the mutable
+    // reference. This is kind of ugly, and we really should change the signature of
+    // `enclosing_env` to `Option<Box<&mut Self>>`, but that requires lifetime annotatins which are
+    // difficult to get right at the moment
+    pub fn propagate_enclosing_env_changes(&mut self, outside_env: &mut Self) {
+        if let Some(enclosing_env) = self.enclosing_env.clone() {
+            *outside_env = *enclosing_env;
         }
     }
 }

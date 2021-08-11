@@ -42,24 +42,18 @@ impl Function {
         let mut function_env = Env::new(Some(Box::new(env.clone())));
 
         for (index, param) in params.into_iter().enumerate() {
-            // param names could overlap with scope names, so we need to rename any overlaps
             let param_name = self.param_list.get(index).unwrap().to_string();
 
-            // Append a `_` every time to the overlapping outside of the function
-            while let Ok(overlapping_outside_variable) = function_env.get_variable(&param_name) {
-                let new_name = format!("{}_", overlapping_outside_variable);
-                function_env.rename_variable(&param_name, new_name)?;
-            }
-
-            function_env.define_variable(
-                &param_name,
-                super::eval_expr(&mut function_env.clone(), db, param)?,
-            )?;
+            let val = super::eval_expr(&mut function_env, db, param)?;
+            function_env.define_variable(&param_name, val.clone())?;
         }
 
         // with the cloned env to evaluate the function params, evaluate the body and return it
         let result =
             super::eval_code_block(&mut function_env, &self.body_db, self.body.stmts.clone());
+
+        function_env.propagate_enclosing_env_changes(env);
+
         if let Err(EngineError::EarlyReturn { value }) = result {
             Ok(value)
         } else {

@@ -47,18 +47,17 @@ fn eval_code_block(env: &mut Env, db: &Database, stmts: Vec<Stmt>) -> Result<Val
     let mut return_val = Val::Unit;
 
     for stmt in stmts {
-        if let Stmt::Return(r) = stmt {
+        if let Stmt::Return(r) = stmt.clone() {
+            block_env.propagate_enclosing_env_changes(env);
             return Err(EngineError::EarlyReturn {
                 value: eval_expr(&mut block_env, db, r.value)?,
             });
         } else {
-            return_val = eval_stmt(env, db, stmt)?;
+            return_val = eval_stmt(&mut block_env, db, stmt)?;
         }
     }
 
-    // if the block_env has new values for the variables that are shared,
-    // we should propagate the changes back to the main env
-    block_env.propagate_to(env);
+    block_env.propagate_enclosing_env_changes(env);
 
     Ok(return_val)
 }
@@ -97,10 +96,6 @@ fn eval_function_call(
     param_value_list: Vec<Expr>,
 ) -> Result<Val, EngineError> {
     let function = env.get_function(&func_name)?;
-    println!(
-        "Evaluating fib with param_value_list = {:#?}",
-        param_value_list
-    );
     function.evaluate_with_params(env, db, param_value_list)
 }
 
