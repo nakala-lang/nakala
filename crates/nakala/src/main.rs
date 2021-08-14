@@ -25,12 +25,6 @@ fn main() {
                 .help("Show the parse tree when running a program or using the REPL"),
         )
         .arg(
-            Arg::with_name("ast")
-                .long("--show-ast")
-                .takes_value(false)
-                .help("Show the AST when running a program or using the REPL"),
-        )
-        .arg(
             Arg::with_name("hir")
                 .long("--show-hir")
                 .takes_value(false)
@@ -72,18 +66,9 @@ fn main() {
 
 fn run_without_repl(buffer: &str, matches: ArgMatches) {
     match parse_and_eval_buffer(buffer, &mut Env::new(None)) {
-        Ok(NakalaResult {
-            parse,
-            ast,
-            hir,
-            val,
-        }) => {
+        Ok(NakalaResult { parse, hir, val }) => {
             if matches.is_present("parse") {
                 println!("{}", parse.debug_tree());
-            }
-
-            if matches.is_present("ast") {
-                println!("{:#?}", ast);
             }
 
             if matches.is_present("hir") {
@@ -126,10 +111,6 @@ fn cli_main(cli_args: ArgMatches) {
 
                             match from_parse_to_ast(parse) {
                                 Some(ast) => {
-                                    if cli_args.is_present("ast") {
-                                        println!("{:#?}", ast);
-                                    }
-
                                     let hir = from_ast_to_hir(ast);
 
                                     if cli_args.is_present("hir") {
@@ -169,7 +150,6 @@ fn cli_main(cli_args: ArgMatches) {
 
 pub struct NakalaResult {
     parse: Parse,
-    ast: ast::Root,
     hir: Hir,
     val: Val,
 }
@@ -202,12 +182,7 @@ pub fn parse_and_eval_buffer(
 ) -> std::result::Result<NakalaResult, EngineError> {
     let parse = parser::parse(buffer);
     let ast = ast::Root::cast(parse.syntax()).unwrap();
-    let hir = hir::lower(ast.clone());
+    let hir = hir::lower(ast);
 
-    engine::eval(env, hir.clone()).map(|val| NakalaResult {
-        parse,
-        ast,
-        hir,
-        val,
-    })
+    engine::eval(env, hir.clone()).map(|val| NakalaResult { parse, hir, val })
 }
