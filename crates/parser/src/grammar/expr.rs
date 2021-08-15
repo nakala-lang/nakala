@@ -65,13 +65,19 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
     let cm = if p.at(TokenKind::Number) || p.at(TokenKind::String) || p.at(TokenKind::Boolean) {
         literal(p)
     } else if p.at(TokenKind::Ident) {
-        variable_ref(p)
+        if p.peek_multiple(vec![TokenKind::Ident, TokenKind::LBracket]) {
+            index_expr(p)
+        } else {
+            variable_ref(p)
+        }
     } else if p.at(TokenKind::Minus) || p.at(TokenKind::NotKw) {
         prefix_expr(p)
     } else if p.at(TokenKind::LParen) {
         paren_expr(p)
     } else if p.at(TokenKind::CallKw) {
         function_call(p)
+    } else if p.at(TokenKind::LBracket) {
+        list(p)
     } else if p.at(TokenKind::LBrace) {
         code_block(p)?
     } else {
@@ -171,6 +177,42 @@ pub(crate) fn code_block(p: &mut Parser) -> Option<CompletedMarker> {
     }
 
     Some(m.complete(p, SyntaxKind::CodeBlock))
+}
+
+fn list(p: &mut Parser) -> CompletedMarker {
+    assert!(p.at(TokenKind::LBracket));
+
+    let m = p.start();
+    p.bump();
+
+    // Almost identical to function value params parsing
+    let mut should_still_parse = true;
+    while should_still_parse {
+        if p.at(TokenKind::Comma) {
+            p.bump();
+            should_still_parse = true;
+        } else if p.at(TokenKind::RBracket) {
+            p.bump();
+            should_still_parse = false;
+        } else {
+            should_still_parse = expr::expr(p).is_some();
+        }
+    }
+
+    m.complete(p, SyntaxKind::List)
+}
+
+fn index_expr(p: &mut Parser) -> CompletedMarker {
+    assert!(p.at(TokenKind::Ident));
+
+    let m = p.start();
+    p.bump();
+
+    p.expect(TokenKind::LBracket);
+    expr::expr(p);
+    p.expect(TokenKind::RBracket);
+
+    m.complete(p, SyntaxKind::IndexOp)
 }
 
 enum BinaryOp {
