@@ -25,6 +25,8 @@ pub enum SyntaxKind {
     RParen,
     LBrace,
     RBrace,
+    LBracket,
+    RBracket,
     GreaterThan,
     GreaterThanOrEqual,
     LessThan,
@@ -53,6 +55,8 @@ pub enum SyntaxKind {
     Else,
     ElseIf,
     Return,
+    List,
+    IndexOp,
 }
 
 impl From<TokenKind> for SyntaxKind {
@@ -79,6 +83,8 @@ impl From<TokenKind> for SyntaxKind {
             TokenKind::RParen => Self::RParen,
             TokenKind::LBrace => Self::LBrace,
             TokenKind::RBrace => Self::RBrace,
+            TokenKind::LBracket => Self::LBracket,
+            TokenKind::RBracket => Self::RBracket,
             TokenKind::GreaterThan => Self::GreaterThan,
             TokenKind::GreaterThanOrEqual => Self::GreaterThanOrEqual,
             TokenKind::LessThan => Self::LessThan,
