@@ -7,6 +7,7 @@ pub enum Val {
     Number(f64),
     String(String),
     Boolean(bool),
+    List(Vec<Self>),
 }
 
 impl Val {
@@ -17,6 +18,7 @@ impl Val {
             Val::Number(_) => "number",
             Val::String(_) => "string",
             Val::Boolean(_) => "boolean",
+            Val::List(_) => "list",
         }
     }
 
@@ -225,15 +227,43 @@ impl Val {
             }),
         }
     }
+
+    pub(crate) fn index(&self, index: Self) -> Result<Self, EngineError> {
+        if let Self::List(l) = self {
+            if let Self::Number(n) = index {
+                let index_as_int = n as usize;
+                // We only support int indices for now. This checks if the
+                // cast to u32 was lossless
+                if n == index_as_int as f64 {
+                    l.get(index_as_int)
+                        .map(|x| x.clone())
+                        .ok_or(EngineError::IndexOutOfBounds {
+                            index: index_as_int,
+                            len: l.len(),
+                        })
+                } else {
+                    Err(EngineError::ListIndicesMustBeIntegers)
+                }
+            } else {
+                Err(EngineError::MismatchedTypes {
+                    expected: Val::Number(0.0),
+                    actual: index,
+                })
+            }
+        } else {
+            Err(EngineError::InvalidIndexOperation { x: self.clone() })
+        }
+    }
 }
 
 impl std::fmt::Display for Val {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Val::Missing | Val::Unit => Ok(()),
-            Val::Number(n) => f.write_str(format!("{}", n).as_str()),
-            Val::String(s) => f.write_str(s),
-            Val::Boolean(b) => f.write_str(format!("{}", b).as_str()),
+            Val::Number(n) => write!(f, "{}", n),
+            Val::String(s) => write!(f, "{}", s),
+            Val::Boolean(b) => write!(f, "{}", b),
+            Val::List(l) => write!(f, "{:?}", l),
         }
     }
 }

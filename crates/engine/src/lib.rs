@@ -83,6 +83,8 @@ fn eval_expr(env: &mut Env, db: &Database, expr: Expr) -> Result<Val, EngineErro
             name,
             param_value_list,
         } => eval_function_call(env, db, name, param_value_list),
+        Expr::List { items } => eval_list(env, db, items),
+        Expr::IndexOp { ident, index } => eval_index_op(env, db, ident, *index),
         Expr::Missing => {
             unreachable!("Missing tokens will get caught before they reach the engine")
         }
@@ -97,6 +99,26 @@ fn eval_function_call(
 ) -> Result<Val, EngineError> {
     let function = env.get_function(&func_name)?;
     function.evaluate_with_params(env, db, param_value_list)
+}
+
+fn eval_list(env: &mut Env, db: &Database, items: Vec<Expr>) -> Result<Val, EngineError> {
+    let mut evaluated_items = Vec::new();
+    for expr in items {
+        evaluated_items.push(eval_expr(env, db, expr)?);
+    }
+
+    Ok(Val::List(evaluated_items))
+}
+
+fn eval_index_op(
+    env: &mut Env,
+    db: &Database,
+    ident: String,
+    index_expr: Expr,
+) -> Result<Val, EngineError> {
+    let val = env.get_variable(ident.as_str())?;
+    let index = eval_expr(env, db, index_expr)?;
+    val.index(index)
 }
 
 fn eval_variable_def(
