@@ -11,6 +11,8 @@ pub enum Expr {
     VariableRef(VariableRef),
     CodeBlock(CodeBlock),
     FunctionCall(FunctionCall),
+    List(List),
+    IndexOp(IndexOp),
 }
 
 impl Expr {
@@ -23,6 +25,8 @@ impl Expr {
             SyntaxKind::VariableRef => Self::VariableRef(VariableRef(node)),
             SyntaxKind::CodeBlock => Self::CodeBlock(CodeBlock(node)),
             SyntaxKind::FunctionCall => Self::FunctionCall(FunctionCall(node)),
+            SyntaxKind::List => Self::List(List(node)),
+            SyntaxKind::IndexOp => Self::IndexOp(IndexOp(node)),
             _ => {
                 return None;
             }
@@ -181,5 +185,27 @@ impl FunctionCall {
             .children()
             .find(|node| node.kind() == SyntaxKind::ParamValueList)
             .map_or(vec![], |n| n.children().filter_map(Expr::cast).collect())
+    }
+}
+
+#[derive(Debug)]
+pub struct List(SyntaxNode);
+
+impl List {
+    pub fn items(&self) -> Vec<Expr> {
+        self.0.children().filter_map(Expr::cast).collect()
+    }
+}
+
+#[derive(Debug)]
+pub struct IndexOp(SyntaxNode);
+
+impl IndexOp {
+    pub fn ident(&self) -> Option<SyntaxToken> {
+        self.0.first_token()
+    }
+
+    pub fn index(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast)
     }
 }
