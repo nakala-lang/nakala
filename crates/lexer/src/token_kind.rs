@@ -60,6 +60,12 @@ pub enum TokenKind {
     #[token("}")]
     RBrace,
 
+    #[token("[")]
+    LBracket,
+
+    #[token("]")]
+    RBracket,
+
     #[token("(")]
     LParen,
 
@@ -130,6 +136,8 @@ impl fmt::Display for TokenKind {
             Self::RParen => ")",
             Self::LBrace => "{",
             Self::RBrace => "}",
+            Self::LBracket => "[",
+            Self::RBracket => "]",
             Self::GreaterThan => ">",
             Self::GreaterThanOrEqual => ">=",
             Self::LessThan => "<",
