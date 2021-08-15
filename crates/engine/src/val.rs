@@ -233,10 +233,11 @@ impl Val {
             if let Self::Number(n) = index {
                 let index_as_int = n as usize;
                 // We only support int indices for now. This checks if the
-                // cast to u32 was lossless
-                if n == index_as_int as f64 {
+                // cast to usize was lossless
+                #[allow(clippy::float_cmp)]
+                if n == (n as usize) as f64 {
                     l.get(index_as_int)
-                        .map(|x| x.clone())
+                        .cloned()
                         .ok_or(EngineError::IndexOutOfBounds {
                             index: index_as_int,
                             len: l.len(),
