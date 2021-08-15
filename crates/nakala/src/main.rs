@@ -31,6 +31,12 @@ fn main() {
                 .help("Show the HIR when running a program or using the REPL"),
         )
         .arg(
+            Arg::with_name("dbg")
+            .long("--debug")
+            .takes_value(false)
+            .help("Enable common debugging settings, like showing values as the underlying Rust data type")
+        )
+        .arg(
             Arg::with_name("input")
                 .value_name("INPUT")
                 .long("--input")
@@ -118,7 +124,13 @@ fn cli_main(cli_args: ArgMatches) {
                                     }
 
                                     match evaluate_hir(hir, &mut env) {
-                                        Ok(val) => println!("{:?}", val),
+                                        Ok(val) => {
+                                            if cli_args.is_present("dbg") {
+                                                println!("{:?}", val);
+                                            } else {
+                                                println!("{}", val);
+                                            }
+                                        }
                                         Err(e) => eprintln!("{}", e),
                                     }
                                 }
