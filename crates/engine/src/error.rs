@@ -15,6 +15,7 @@ pub enum EngineError {
     InvalidNotOperation { x: Val },
     InvalidAndOperation { x: Val, y: Val },
     InvalidOrOperation { x: Val, y: Val },
+    InvalidIndexOperation { x: Val },
     VariableAlreadyExists { variable_name: String },
     VariableUndefined { variable_name: String },
     FunctionAlreadyExists { function_name: String },
@@ -22,6 +23,8 @@ pub enum EngineError {
     MismatchedParameterCount { actual: usize, expected: usize },
     MismatchedTypes { actual: Val, expected: Val },
     EarlyReturn { value: Val },
+    ListIndicesMustBeIntegers,
+    IndexOutOfBounds { index: usize, len: usize },
     NotYetImplemented,
     Unknown,
 }
@@ -66,6 +69,7 @@ impl std::fmt::Display for EngineError {
             EngineError::InvalidNotOperation { x } => missing_handler_msg_single("NOT", x),
             EngineError::InvalidAndOperation { x, y } => missing_handler_msg("AND", x, y),
             EngineError::InvalidOrOperation { x, y } => missing_handler_msg("OR", x, y),
+            EngineError::InvalidIndexOperation { x } => missing_handler_msg_single("INDEX", x),
             EngineError::VariableAlreadyExists { variable_name } => format!(
                 "The variable {} already exists in the scope",
                 Yellow.paint(variable_name)
@@ -101,6 +105,12 @@ impl std::fmt::Display for EngineError {
             EngineError::EarlyReturn { value: _ } => {
                 "Can only return when inside the context of a function".into()
             }
+            EngineError::ListIndicesMustBeIntegers => "List indices must be integers".into(),
+            EngineError::IndexOutOfBounds { index, len } => format!(
+                "The index {} is out of bounds for list of length {}",
+                Yellow.paint(format!("{}", index)),
+                Green.paint(format!("{}", len)),
+            ),
             EngineError::NotYetImplemented => "This feature is not yet implemented".into(),
             EngineError::Unknown => "An unknown error occurred".into(),
         };
