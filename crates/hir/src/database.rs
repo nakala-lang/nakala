@@ -56,6 +56,8 @@ impl Database {
                 ast::Expr::VariableRef(ast) => self.lower_variable_ref(ast),
                 ast::Expr::CodeBlock(ast) => Expr::CodeBlock(self.lower_code_block(ast)),
                 ast::Expr::FunctionCall(ast) => self.lower_function_call(ast),
+                ast::Expr::List(ast) => self.lower_list(ast),
+                ast::Expr::IndexOp(ast) => self.lower_index_op(ast),
             }
         } else {
             Expr::Missing
@@ -173,6 +175,23 @@ impl Database {
                 if_stmt: self.lower_if(else_if_ast.if_stmt()?)?,
             }),
         })
+    }
+
+    fn lower_list(&mut self, list: ast::List) -> Expr {
+        Expr::List {
+            items: list
+                .items()
+                .into_iter()
+                .map(|x| self.lower_expr(Some(x)))
+                .collect(),
+        }
+    }
+
+    fn lower_index_op(&mut self, index_op: ast::IndexOp) -> Expr {
+        Expr::IndexOp {
+            ident: index_op.ident().unwrap().text().into(),
+            index: Box::new(self.lower_expr(index_op.index())),
+        }
     }
 }
 

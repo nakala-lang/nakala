@@ -107,6 +107,13 @@ pub enum Expr {
         name: String,
         param_value_list: Vec<Expr>,
     },
+    List {
+        items: Vec<Expr>,
+    },
+    IndexOp {
+        ident: String,
+        index: Box<Expr>,
+    },
 }
 
 #[derive(Debug, PartialEq, Clone)]
