@@ -1,4 +1,5 @@
 use super::EngineError;
+use std::fmt::Display;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Val {
@@ -257,14 +258,25 @@ impl Val {
     }
 }
 
-impl std::fmt::Display for Val {
+impl Display for Val {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Val::Missing | Val::Unit => Ok(()),
             Val::Number(n) => write!(f, "{}", n),
             Val::String(s) => write!(f, "{}", s),
             Val::Boolean(b) => write!(f, "{}", b),
-            Val::List(l) => write!(f, "{:?}", l),
+            Val::List(l) => {
+                write!(f, "[")?;
+                for (index, val) in l.iter().enumerate() {
+                    write!(f, "{}", val)?;
+                    if index != l.len() - 1 {
+                        write!(f, ",")?;
+                    } else {
+                        write!(f, "]")?;
+                    }
+                }
+                Ok(())
+            }
         }
     }
 }
