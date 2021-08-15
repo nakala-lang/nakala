@@ -543,32 +543,32 @@ Root@0..13
         check(
             "let x = 5 x = let y = 100",
             expect![[r#"
-            Root@0..25
-              VariableDef@0..10
-                LetKw@0..3 "let"
-                Whitespace@3..4 " "
-                Ident@4..5 "x"
-                Whitespace@5..6 " "
-                Equals@6..7 "="
-                Whitespace@7..8 " "
-                Literal@8..10
-                  Number@8..9 "5"
-                  Whitespace@9..10 " "
-              VariableAssign@10..14
-                Ident@10..11 "x"
-                Whitespace@11..12 " "
-                Equals@12..13 "="
-                Whitespace@13..14 " "
-              VariableDef@14..25
-                LetKw@14..17 "let"
-                Whitespace@17..18 " "
-                Ident@18..19 "y"
-                Whitespace@19..20 " "
-                Equals@20..21 "="
-                Whitespace@21..22 " "
-                Literal@22..25
-                  Number@22..25 "100"
-            [31mParse Error[0m: at 14..17, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m, but found [31mlet[0m"#]],
+                Root@0..25
+                  VariableDef@0..10
+                    LetKw@0..3 "let"
+                    Whitespace@3..4 " "
+                    Ident@4..5 "x"
+                    Whitespace@5..6 " "
+                    Equals@6..7 "="
+                    Whitespace@7..8 " "
+                    Literal@8..10
+                      Number@8..9 "5"
+                      Whitespace@9..10 " "
+                  VariableAssign@10..14
+                    Ident@10..11 "x"
+                    Whitespace@11..12 " "
+                    Equals@12..13 "="
+                    Whitespace@13..14 " "
+                  VariableDef@14..25
+                    LetKw@14..17 "let"
+                    Whitespace@17..18 " "
+                    Ident@18..19 "y"
+                    Whitespace@19..20 " "
+                    Equals@20..21 "="
+                    Whitespace@21..22 " "
+                    Literal@22..25
+                      Number@22..25 "100"
+                [31mParse Error[0m: at 14..17, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m or [33m{[0m, but found [31mlet[0m"#]],
         )
     }
 
@@ -594,7 +594,7 @@ Root@0..13
                     Whitespace@15..16 " "
                     VariableRef@16..17
                       Ident@16..17 "a"
-                [31mParse Error[0m: at 8..11, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m, but found [31mlet[0m"#]],
+                [31mParse Error[0m: at 8..11, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m or [33m{[0m, but found [31mlet[0m"#]],
         );
     }
 }

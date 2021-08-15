@@ -564,7 +564,7 @@ Root@0..7
                       Literal@1..2
                         Number@1..2 "1"
                       Plus@2..3 "+"
-                [31mParse Error[0m: at 2..3, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m
+                [31mParse Error[0m: at 2..3, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m or [33m{[0m
                 [31mParse Error[0m: at 2..3, expected [33m)[0m"#]],
         );
     }
@@ -891,7 +891,7 @@ Root@0..23
                       Whitespace@20..21 " "
                       Literal@21..23
                         Number@21..23 "10"
-                [31mParse Error[0m: at 21..23, expected [33m,[0m, [33m)[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m or [33m{[0m"#]],
+                [31mParse Error[0m: at 21..23, expected [33m,[0m, [33m)[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m or [33m{[0m"#]],
         );
     }
 
@@ -1151,5 +1151,206 @@ Root@0..23
                 Literal@5..6
                   Number@5..6 "1""#]],
         )
+    }
+
+    #[test]
+    fn parse_simple_list_def() {
+        check(
+            "let x = [1]",
+            expect![[r#"
+            Root@0..11
+              VariableDef@0..11
+                LetKw@0..3 "let"
+                Whitespace@3..4 " "
+                Ident@4..5 "x"
+                Whitespace@5..6 " "
+                Equals@6..7 "="
+                Whitespace@7..8 " "
+                List@8..11
+                  LBracket@8..9 "["
+                  Literal@9..10
+                    Number@9..10 "1"
+                  RBracket@10..11 "]""#]],
+        )
+    }
+
+    #[test]
+    fn parse_multiple_type_list_def() {
+        check(
+            r#"let x = [5, "foo", 4.1, true]"#,
+            expect![[r#"
+            Root@0..29
+              VariableDef@0..29
+                LetKw@0..3 "let"
+                Whitespace@3..4 " "
+                Ident@4..5 "x"
+                Whitespace@5..6 " "
+                Equals@6..7 "="
+                Whitespace@7..8 " "
+                List@8..29
+                  LBracket@8..9 "["
+                  Literal@9..10
+                    Number@9..10 "5"
+                  Comma@10..11 ","
+                  Whitespace@11..12 " "
+                  Literal@12..17
+                    String@12..17 "\"foo\""
+                  Comma@17..18 ","
+                  Whitespace@18..19 " "
+                  Literal@19..22
+                    Number@19..20 "4"
+                    Dot@20..21 "."
+                    Number@21..22 "1"
+                  Comma@22..23 ","
+                  Whitespace@23..24 " "
+                  Literal@24..28
+                    Boolean@24..28 "true"
+                  RBracket@28..29 "]""#]],
+        )
+    }
+
+    #[test]
+    fn parse_expr_list_def() {
+        check(
+            r#"let x = [1 + 2, true or false, 5 >= 4.9, { let x = 1 let y = 2  x + y }]"#,
+            expect![[r#"
+                Root@0..72
+                  VariableDef@0..72
+                    LetKw@0..3 "let"
+                    Whitespace@3..4 " "
+                    Ident@4..5 "x"
+                    Whitespace@5..6 " "
+                    Equals@6..7 "="
+                    Whitespace@7..8 " "
+                    List@8..72
+                      LBracket@8..9 "["
+                      InfixExpr@9..14
+                        Literal@9..11
+                          Number@9..10 "1"
+                          Whitespace@10..11 " "
+                        Plus@11..12 "+"
+                        Whitespace@12..13 " "
+                        Literal@13..14
+                          Number@13..14 "2"
+                      Comma@14..15 ","
+                      Whitespace@15..16 " "
+                      InfixExpr@16..29
+                        Literal@16..21
+                          Boolean@16..20 "true"
+                          Whitespace@20..21 " "
+                        OrKw@21..23 "or"
+                        Whitespace@23..24 " "
+                        Literal@24..29
+                          Boolean@24..29 "false"
+                      Comma@29..30 ","
+                      Whitespace@30..31 " "
+                      InfixExpr@31..39
+                        Literal@31..33
+                          Number@31..32 "5"
+                          Whitespace@32..33 " "
+                        GreaterThanOrEqual@33..35 ">="
+                        Whitespace@35..36 " "
+                        Literal@36..39
+                          Number@36..37 "4"
+                          Dot@37..38 "."
+                          Number@38..39 "9"
+                      Comma@39..40 ","
+                      Whitespace@40..41 " "
+                      CodeBlock@41..71
+                        LBrace@41..42 "{"
+                        Whitespace@42..43 " "
+                        VariableDef@43..53
+                          LetKw@43..46 "let"
+                          Whitespace@46..47 " "
+                          Ident@47..48 "x"
+                          Whitespace@48..49 " "
+                          Equals@49..50 "="
+                          Whitespace@50..51 " "
+                          Literal@51..53
+                            Number@51..52 "1"
+                            Whitespace@52..53 " "
+                        VariableDef@53..64
+                          LetKw@53..56 "let"
+                          Whitespace@56..57 " "
+                          Ident@57..58 "y"
+                          Whitespace@58..59 " "
+                          Equals@59..60 "="
+                          Whitespace@60..61 " "
+                          Literal@61..64
+                            Number@61..62 "2"
+                            Whitespace@62..64 "  "
+                        InfixExpr@64..70
+                          VariableRef@64..66
+                            Ident@64..65 "x"
+                            Whitespace@65..66 " "
+                          Plus@66..67 "+"
+                          Whitespace@67..68 " "
+                          VariableRef@68..70
+                            Ident@68..69 "y"
+                            Whitespace@69..70 " "
+                        RBrace@70..71 "}"
+                      RBracket@71..72 "]""#]],
+        )
+    }
+
+    #[test]
+    fn parse_simple_index() {
+        check("let x = arr[0]", expect![[r#"
+            Root@0..14
+              VariableDef@0..14
+                LetKw@0..3 "let"
+                Whitespace@3..4 " "
+                Ident@4..5 "x"
+                Whitespace@5..6 " "
+                Equals@6..7 "="
+                Whitespace@7..8 " "
+                IndexOp@8..14
+                  Ident@8..11 "arr"
+                  LBracket@11..12 "["
+                  Literal@12..13
+                    Number@12..13 "0"
+                  RBracket@13..14 "]""#]]);
+    }
+
+    #[test]
+    fn parse_expr_index() {
+        check("arr[{let x = 1 let z = 3   x + z }]", expect![[r#"
+            Root@0..35
+              IndexOp@0..35
+                Ident@0..3 "arr"
+                LBracket@3..4 "["
+                CodeBlock@4..34
+                  LBrace@4..5 "{"
+                  VariableDef@5..15
+                    LetKw@5..8 "let"
+                    Whitespace@8..9 " "
+                    Ident@9..10 "x"
+                    Whitespace@10..11 " "
+                    Equals@11..12 "="
+                    Whitespace@12..13 " "
+                    Literal@13..15
+                      Number@13..14 "1"
+                      Whitespace@14..15 " "
+                  VariableDef@15..27
+                    LetKw@15..18 "let"
+                    Whitespace@18..19 " "
+                    Ident@19..20 "z"
+                    Whitespace@20..21 " "
+                    Equals@21..22 "="
+                    Whitespace@22..23 " "
+                    Literal@23..27
+                      Number@23..24 "3"
+                      Whitespace@24..27 "   "
+                  InfixExpr@27..33
+                    VariableRef@27..29
+                      Ident@27..28 "x"
+                      Whitespace@28..29 " "
+                    Plus@29..30 "+"
+                    Whitespace@30..31 " "
+                    VariableRef@31..33
+                      Ident@31..32 "z"
+                      Whitespace@32..33 " "
+                  RBrace@33..34 "}"
+                RBracket@34..35 "]""#]]);
     }
 }

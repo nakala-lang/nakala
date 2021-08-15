@@ -609,4 +609,47 @@ mod tests {
             })
         )
     }
+
+    #[test]
+    fn lower_list() {
+        let root = parse("let x = [1,2,3]");
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::VariableDef(VariableDef {
+                name: "x".into(),
+                value: Expr::List {
+                    items: vec![
+                        Expr::Number { n: 1.0 },
+                        Expr::Number { n: 2.0 },
+                        Expr::Number { n: 3.0 },
+                    ]
+                }
+            })
+        )
+    }
+
+    #[test]
+    fn lower_multi_type_list() {
+        let root = parse(r#"let foo = [true, "bar", 1.2, 1]"#);
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::VariableDef(VariableDef {
+                name: "foo".into(),
+                value: Expr::List {
+                    items: vec![
+                        Expr::Boolean { b: true },
+                        Expr::String { s: "bar".into() },
+                        Expr::Number { n: 1.2 },
+                        Expr::Number { n: 1.0 },
+                    ]
+                }
+            })
+        )
+    }
 }

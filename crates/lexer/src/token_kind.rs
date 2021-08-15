@@ -282,6 +282,16 @@ mod tests {
     }
 
     #[test]
+    fn lex_left_bracket() {
+        check("[", TokenKind::LBracket);
+    }
+
+    #[test]
+    fn lex_right_bracket() {
+        check("]", TokenKind::RBracket);
+    }
+
+    #[test]
     fn lex_left_parenthesis() {
         check("(", TokenKind::LParen);
     }
