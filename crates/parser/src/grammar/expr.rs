@@ -1295,7 +1295,9 @@ Root@0..23
 
     #[test]
     fn parse_simple_index() {
-        check("let x = arr[0]", expect![[r#"
+        check(
+            "let x = arr[0]",
+            expect![[r#"
             Root@0..14
               VariableDef@0..14
                 LetKw@0..3 "let"
@@ -1309,12 +1311,15 @@ Root@0..23
                   LBracket@11..12 "["
                   Literal@12..13
                     Number@12..13 "0"
-                  RBracket@13..14 "]""#]]);
+                  RBracket@13..14 "]""#]],
+        );
     }
 
     #[test]
     fn parse_expr_index() {
-        check("arr[{let x = 1 let z = 3   x + z }]", expect![[r#"
+        check(
+            "arr[{let x = 1 let z = 3   x + z }]",
+            expect![[r#"
             Root@0..35
               IndexOp@0..35
                 Ident@0..3 "arr"
@@ -1351,6 +1356,7 @@ Root@0..23
                       Ident@31..32 "z"
                       Whitespace@32..33 " "
                   RBrace@33..34 "}"
-                RBracket@34..35 "]""#]]);
+                RBracket@34..35 "]""#]],
+        );
     }
 }
