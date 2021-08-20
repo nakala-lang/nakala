@@ -1,7 +1,7 @@
 use crate::val::Val;
 use nu_ansi_term::Color::{Green, Red, Yellow};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum EngineError {
     InvalidAddOperation { x: Val, y: Val },
     InvalidSubOperation { x: Val, y: Val },
