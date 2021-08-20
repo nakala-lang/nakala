@@ -1,6 +1,6 @@
 use crate::{
-    BinaryOp, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Return, Stmt, UnaryOp,
-    VariableAssign, VariableDef,
+    BinaryOp, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Return, Stmt, StructDef,
+    StructMemberDef, StructMemberValue, UnaryOp, VariableAssign, VariableDef,
 };
 use la_arena::Arena;
 use syntax::SyntaxKind;
@@ -22,15 +22,7 @@ impl Database {
                 value: self.lower_expr(ast.value()),
             }),
             ast::Stmt::Expr(ast) => Stmt::Expr(self.lower_expr(Some(ast))),
-            ast::Stmt::FunctionDef(ast) => Stmt::FunctionDef(FunctionDef {
-                name: ast.name()?.text().into(),
-                param_ident_list: ast
-                    .param_ident_list()
-                    .into_iter()
-                    .map(|n| n.text().into())
-                    .collect(),
-                body: self.lower_code_block(ast.body()?),
-            }),
+            ast::Stmt::FunctionDef(ast) => Stmt::FunctionDef(self.lower_function_def(ast)?),
             ast::Stmt::If(ast) => Stmt::If(self.lower_if(ast)?),
             ast::Stmt::ElseIf(ast) => Stmt::ElseIf(ElseIf {
                 if_stmt: self.lower_if(ast.if_stmt()?)?,
@@ -41,6 +33,7 @@ impl Database {
             ast::Stmt::Return(ast) => Stmt::Return(Return {
                 value: ast.value().map(|_| self.lower_expr(ast.value())),
             }),
+            ast::Stmt::StructDef(ast) => Stmt::StructDef(self.lower_struct_def(ast)?),
         };
 
         Some(result)
@@ -153,6 +146,18 @@ impl Database {
         }
     }
 
+    fn lower_function_def(&mut self, ast: ast::FunctionDef) -> Option<FunctionDef> {
+        Some(FunctionDef {
+            name: ast.name()?.text().into(),
+            param_ident_list: ast
+                .param_ident_list()
+                .into_iter()
+                .map(|n| n.text().into())
+                .collect(),
+            body: self.lower_code_block(ast.body()?),
+        })
+    }
+
     fn lower_if(&mut self, if_stmt: ast::If) -> Option<If> {
         let expr = if_stmt.expr()?;
         let body = if_stmt.body()?;
@@ -192,6 +197,31 @@ impl Database {
             ident: index_op.ident().unwrap().text().into(),
             index: Box::new(self.lower_expr(index_op.index())),
         }
+    }
+
+    fn lower_struct_def(&mut self, ast: ast::StructDef) -> Option<StructDef> {
+        Some(StructDef {
+            name: ast.name()?.text().into(),
+            members: ast
+                .members()
+                .into_iter()
+                .filter_map(|mem| self.lower_struct_member(mem))
+                .collect(),
+        })
+    }
+
+    fn lower_struct_member(&mut self, mem: ast::StructMemberDef) -> Option<StructMemberDef> {
+        Some(StructMemberDef {
+            name: mem.name()?.text().into(),
+            value: match mem.value()? {
+                ast::StructMemberValue::Expr(expr) => {
+                    StructMemberValue::Expr(self.lower_expr(Some(expr)))
+                }
+                ast::StructMemberValue::FunctionDef(func) => {
+                    StructMemberValue::FunctionDef(self.lower_function_def(func)?)
+                }
+            },
+        })
     }
 }
 
