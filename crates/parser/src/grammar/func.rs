@@ -45,7 +45,6 @@ pub(crate) fn param_value_list(p: &mut Parser) -> Option<CompletedMarker> {
     while should_still_parse {
         if p.at(TokenKind::Comma) {
             p.bump();
-            should_still_parse = true;
         } else if p.at(TokenKind::RParen) {
             p.bump();
             should_still_parse = false;
