@@ -58,7 +58,6 @@ pub enum SyntaxKind {
     ElseIf,
     Return,
     StructDef,
-    StructBody,
     StructMemberDef,
     List,
     IndexOp,
