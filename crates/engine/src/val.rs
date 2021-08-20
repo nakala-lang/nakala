@@ -1,4 +1,5 @@
 use super::EngineError;
+use super::Struct;
 use std::fmt::Display;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -9,6 +10,7 @@ pub enum Val {
     String(String),
     Boolean(bool),
     List(Vec<Self>),
+    Struct(Struct),
 }
 
 impl Val {
@@ -20,6 +22,7 @@ impl Val {
             Val::String(_) => "string",
             Val::Boolean(_) => "boolean",
             Val::List(_) => "list",
+            Val::Struct(_) => "struct",
         }
     }
 
@@ -277,6 +280,7 @@ impl Display for Val {
                 }
                 Ok(())
             }
+            Val::Struct(s) => write!(f, "struct {}, members: {:?}", s.name, s.members),
         }
     }
 }
