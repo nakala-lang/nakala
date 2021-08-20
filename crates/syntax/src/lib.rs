@@ -11,6 +11,7 @@ pub enum SyntaxKind {
     IfKw,
     ElseKw,
     RetKw,
+    StructKw,
     Ident,
     Number,
     String,
@@ -37,6 +38,7 @@ pub enum SyntaxKind {
     ComparisonEquals,
     Comma,
     Comment,
+    Colon,
     Error,
     Root,
     InfixExpr,
@@ -55,6 +57,9 @@ pub enum SyntaxKind {
     Else,
     ElseIf,
     Return,
+    StructDef,
+    StructBody,
+    StructMemberDef,
     List,
     IndexOp,
 }
@@ -69,6 +74,7 @@ impl From<TokenKind> for SyntaxKind {
             TokenKind::IfKw => Self::IfKw,
             TokenKind::ElseKw => Self::ElseKw,
             TokenKind::RetKw => Self::RetKw,
+            TokenKind::StructKw => Self::StructKw,
             TokenKind::Ident => Self::Ident,
             TokenKind::Number => Self::Number,
             TokenKind::String => Self::String,
@@ -95,6 +101,7 @@ impl From<TokenKind> for SyntaxKind {
             TokenKind::ComparisonEquals => Self::ComparisonEquals,
             TokenKind::Comma => Self::Comma,
             TokenKind::Comment => Self::Comment,
+            TokenKind::Colon => Self::Colon,
             TokenKind::Error => Self::Error,
         }
     }

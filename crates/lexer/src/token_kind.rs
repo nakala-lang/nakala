@@ -24,6 +24,9 @@ pub enum TokenKind {
     #[token("ret")]
     RetKw,
 
+    #[token("struct")]
+    StructKw,
+
     #[regex("[A-Za-z][A-Za-z0-9_]*")]
     Ident,
 
@@ -102,6 +105,9 @@ pub enum TokenKind {
     #[regex("#.*")]
     Comment,
 
+    #[token(":")]
+    Colon,
+
     #[error]
     Error,
 }
@@ -122,6 +128,7 @@ impl fmt::Display for TokenKind {
             Self::IfKw => "if",
             Self::ElseKw => "else",
             Self::RetKw => "ret",
+            Self::StructKw => "struct",
             Self::Ident => "identifier",
             Self::Number => "number",
             Self::String => "string",
@@ -148,6 +155,7 @@ impl fmt::Display for TokenKind {
             Self::ComparisonEquals => "==",
             Self::Comma => ",",
             Self::Comment => "comment",
+            Self::Colon => ":",
             Self::Error => "an unrecognized token",
         })
     }
@@ -204,6 +212,11 @@ mod tests {
     #[test]
     fn lex_ret_keyword() {
         check("ret", TokenKind::RetKw);
+    }
+
+    #[test]
+    fn lex_struct_keyword() {
+        check("struct", TokenKind::StructKw);
     }
 
     #[test]

@@ -9,6 +9,8 @@ pub(super) fn stmt(p: &mut Parser) -> Option<CompletedMarker> {
         if_stmt(p)
     } else if p.at(TokenKind::RetKw) {
         return_stmt(p)
+    } else if p.at(TokenKind::StructKw) {
+        struct_::struct_def(p)
     } else {
         // variable assignments can look like expressions,
         // since you could have x + 1 for example. Therefore,
