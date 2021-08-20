@@ -11,6 +11,7 @@ pub enum Stmt {
     ElseIf(ElseIf),
     Else(Else),
     Return(Return),
+    StructDef(StructDef),
 }
 
 impl Stmt {
@@ -23,6 +24,7 @@ impl Stmt {
             SyntaxKind::ElseIf => Self::ElseIf(ElseIf(node)),
             SyntaxKind::Else => Self::Else(Else(node)),
             SyntaxKind::Return => Self::Return(Return(node)),
+            SyntaxKind::StructDef => Self::StructDef(StructDef(node)),
             _ => Self::Expr(Expr::cast(node)?),
         };
 
@@ -161,5 +163,57 @@ pub struct Return(SyntaxNode);
 impl Return {
     pub fn value(&self) -> Option<Expr> {
         self.0.children().find_map(Expr::cast)
+    }
+}
+
+#[derive(Debug)]
+pub struct StructDef(SyntaxNode);
+
+impl StructDef {
+    pub fn name(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(SyntaxElement::into_token)
+            .find(|token| token.kind() == SyntaxKind::Ident)
+    }
+
+    pub fn members(&self) -> Vec<StructMemberDef> {
+        self.0
+            .children()
+            .filter(|node| node.kind() == SyntaxKind::StructMemberDef)
+            .map(StructMemberDef)
+            .collect()
+    }
+}
+
+#[derive(Debug)]
+pub enum StructMemberValue {
+    Expr(Expr),
+    FunctionDef(FunctionDef),
+}
+
+#[derive(Debug)]
+pub struct StructMemberDef(SyntaxNode);
+
+impl StructMemberDef {
+    pub fn name(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(SyntaxElement::into_token)
+            .find(|token| token.kind() == SyntaxKind::Ident)
+    }
+
+    pub fn value(&self) -> Option<StructMemberValue> {
+        if let Some(f) = self
+            .0
+            .children()
+            .find(|token| token.kind() == SyntaxKind::FunctionDef)
+        {
+            Some(StructMemberValue::FunctionDef(FunctionDef(f)))
+        } else {
+            Some(StructMemberValue::Expr(
+                self.0.children().find_map(Expr::cast)?,
+            ))
+        }
     }
 }
