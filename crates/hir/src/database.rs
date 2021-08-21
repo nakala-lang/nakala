@@ -682,4 +682,93 @@ mod tests {
             })
         )
     }
+
+    #[test]
+    fn lower_simple_struct_def() {
+        let root = parse(r#"struct simple {}"#);
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::StructDef(StructDef {
+                name: "simple".into(),
+                members: vec![]
+            })
+        )
+    }
+
+    #[test]
+    fn lower_struct_def_with_expr_member() {
+        let root = parse(r#"struct simple { someMember: 1 }"#);
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::StructDef(StructDef {
+                name: "simple".into(),
+                members: vec![StructMemberDef {
+                    name: "someMember".into(),
+                    value: StructMemberValue::Expr(Expr::Number { n: 1.0 })
+                }]
+            })
+        )
+    }
+
+    #[test]
+    fn lower_struct_def_with_fn_member() {
+        let root = parse(r#"struct hasMember { someMember: fn test(x,y,z) { 5 } }"#);
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::StructDef(StructDef {
+                name: "hasMember".into(),
+                members: vec![StructMemberDef {
+                    name: "someMember".into(),
+                    value: StructMemberValue::FunctionDef(FunctionDef {
+                        name: "test".into(),
+                        body: CodeBlock {
+                            stmts: vec![Stmt::Expr(Expr::Number { n: 5.0 })]
+                        },
+                        param_ident_list: vec!["x".into(), "y".into(), "z".into()]
+                    })
+                }]
+            })
+        )
+    }
+
+    #[test]
+    fn lower_struct_with_multiple_members() {
+        let root = parse(r#"struct doubleMemStruct { mem1: 5, mem2: fn test(x) { ret 4 } }"#);
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::StructDef(StructDef {
+                name: "doubleMemStruct".into(),
+                members: vec![
+                    StructMemberDef {
+                        name: "mem1".into(),
+                        value: StructMemberValue::Expr(Expr::Number { n: 5.0 })
+                    },
+                    StructMemberDef {
+                        name: "mem2".into(),
+                        value: StructMemberValue::FunctionDef(FunctionDef {
+                            name: "test".into(),
+                            body: CodeBlock {
+                                stmts: vec![Stmt::Return(Return {
+                                    value: Some(Expr::Number { n: 4.0 })
+                                })]
+                            },
+                            param_ident_list: vec!["x".into()]
+                        })
+                    }
+                ]
+            })
+        )
+    }
 }
