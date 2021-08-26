@@ -7,6 +7,7 @@ pub enum SyntaxKind {
     Whitespace,
     FnKw,
     CallKw,
+    CreateKw,
     LetKw,
     IfKw,
     ElseKw,
@@ -61,6 +62,9 @@ pub enum SyntaxKind {
     StructMemberDef,
     List,
     IndexOp,
+    StructInit,
+    PropGet,
+    PropSet,
 }
 
 impl From<TokenKind> for SyntaxKind {
@@ -69,6 +73,7 @@ impl From<TokenKind> for SyntaxKind {
             TokenKind::Whitespace => Self::Whitespace,
             TokenKind::FnKw => Self::FnKw,
             TokenKind::CallKw => Self::CallKw,
+            TokenKind::CreateKw => Self::CreateKw,
             TokenKind::LetKw => Self::LetKw,
             TokenKind::IfKw => Self::IfKw,
             TokenKind::ElseKw => Self::ElseKw,
