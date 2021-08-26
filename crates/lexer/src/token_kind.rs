@@ -12,6 +12,9 @@ pub enum TokenKind {
     #[token("call")]
     CallKw,
 
+    #[token("create")]
+    CreateKw,
+
     #[token("let")]
     LetKw,
 
@@ -124,6 +127,7 @@ impl fmt::Display for TokenKind {
             Self::Whitespace => "whitespace",
             Self::FnKw => "fn",
             Self::CallKw => "call",
+            Self::CreateKw => "create",
             Self::LetKw => "let",
             Self::IfKw => "if",
             Self::ElseKw => "else",
