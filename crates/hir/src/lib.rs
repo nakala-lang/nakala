@@ -76,18 +76,6 @@ pub struct Return {
     pub value: Option<Expr>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct StructMemberDef {
-    pub name: SmolStr,
-    pub value: StructMemberValue,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum StructMemberValue {
-    Expr(Expr),
-    FunctionDef(FunctionDef),
-}
-
 pub type ExprIdx = Idx<Expr>;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -125,10 +113,6 @@ pub enum Expr {
     IndexOp {
         ident: String,
         index: Box<Expr>,
-    },
-    StructInit {
-        name: SmolStr,
-        members: Vec<StructMemberDef>,
     },
 }
 

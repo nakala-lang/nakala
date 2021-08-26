@@ -1,15 +1,12 @@
-use func::Function;
 use hir::{
     BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, FunctionDef, Hir, If, Return, Stmt,
-    StructMemberDef, StructMemberValue, UnaryOp, VariableAssign, VariableDef,
+    UnaryOp, VariableAssign, VariableDef,
 };
 use std::ops::Index;
-use struct_::Struct;
 
 pub mod env;
 pub mod error;
 pub mod func;
-pub mod struct_;
 pub mod val;
 
 use env::Env;
@@ -88,7 +85,6 @@ fn eval_expr(env: &mut Env, db: &Database, expr: Expr) -> Result<Val, EngineErro
         } => eval_function_call(env, db, name, param_value_list),
         Expr::List { items } => eval_list(env, db, items),
         Expr::IndexOp { ident, index } => eval_index_op(env, db, ident, *index),
-        Expr::StructInit { name, members } => eval_struct_init(env, db, name.to_string(), members),
         Expr::Missing => {
             unreachable!("Missing tokens will get caught before they reach the engine")
         }
@@ -202,36 +198,4 @@ fn eval_return(env: &mut Env, db: &Database, ret: Return) -> Result<Val, EngineE
     } else {
         Ok(Val::Unit)
     }
-}
-
-fn eval_struct_init(
-    env: &mut Env,
-    db: &Database,
-    name: String,
-    members: Vec<StructMemberDef>,
-) -> Result<Val, EngineError> {
-    let pairs = members
-        .into_iter()
-        .map(|item| match item.value {
-            StructMemberValue::Expr(e) => Ok((
-                item.name.into(),
-                struct_::StructMember::Val(eval_expr(env, db, e)?),
-            )),
-            StructMemberValue::FunctionDef(f) => Ok((
-                item.name.into(),
-                struct_::StructMember::Function(Function::new(f, db.clone())),
-            )),
-        })
-        .collect::<Vec<Result<(String, struct_::StructMember), EngineError>>>();
-
-    for res in &pairs {
-        if let Err(inner) = res {
-            return Err(inner.clone());
-        }
-    }
-
-    Ok(Val::Struct(Struct {
-        name: name.into(),
-        members: pairs.into_iter().map(|mem| mem.unwrap()).collect(),
-    }))
 }

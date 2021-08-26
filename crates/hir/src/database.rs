@@ -1,6 +1,6 @@
 use crate::{
-    BinaryOp, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Return, Stmt,
-    StructMemberDef, StructMemberValue, UnaryOp, VariableAssign, VariableDef,
+    BinaryOp, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Return, Stmt, UnaryOp,
+    VariableAssign, VariableDef,
 };
 use la_arena::Arena;
 use syntax::SyntaxKind;
@@ -50,7 +50,6 @@ impl Database {
                 ast::Expr::FunctionCall(ast) => self.lower_function_call(ast),
                 ast::Expr::List(ast) => self.lower_list(ast),
                 ast::Expr::IndexOp(ast) => self.lower_index_op(ast),
-                ast::Expr::StructInit(ast) => self.lower_struct_init(ast),
             }
         } else {
             Expr::Missing
@@ -197,31 +196,6 @@ impl Database {
             ident: index_op.ident().unwrap().text().into(),
             index: Box::new(self.lower_expr(index_op.index())),
         }
-    }
-
-    fn lower_struct_init(&mut self, ast: ast::StructInit) -> Expr {
-        Expr::StructInit {
-            name: ast.name().unwrap().text().into(),
-            members: ast
-                .members()
-                .into_iter()
-                .filter_map(|mem| self.lower_struct_member(mem))
-                .collect(),
-        }
-    }
-
-    fn lower_struct_member(&mut self, mem: ast::StructMemberDef) -> Option<StructMemberDef> {
-        Some(StructMemberDef {
-            name: mem.name()?.text().into(),
-            value: match mem.value()? {
-                ast::StructMemberValue::Expr(expr) => {
-                    StructMemberValue::Expr(self.lower_expr(Some(expr)))
-                }
-                ast::StructMemberValue::FunctionDef(func) => {
-                    StructMemberValue::FunctionDef(self.lower_function_def(func)?)
-                }
-            },
-        })
     }
 }
 
@@ -679,95 +653,6 @@ mod tests {
                         Expr::Number { n: 1.0 },
                     ]
                 }
-            })
-        )
-    }
-
-    #[test]
-    fn lower_simple_struct_def() {
-        let root = parse(r#"struct simple {}"#);
-        let ast = root.stmts().next().unwrap();
-        let hir = Database::default().lower_stmt(ast).unwrap();
-
-        assert_eq!(
-            hir,
-            Stmt::StructDef(StructDef {
-                name: "simple".into(),
-                members: vec![]
-            })
-        )
-    }
-
-    #[test]
-    fn lower_struct_def_with_expr_member() {
-        let root = parse(r#"struct simple { someMember: 1 }"#);
-        let ast = root.stmts().next().unwrap();
-        let hir = Database::default().lower_stmt(ast).unwrap();
-
-        assert_eq!(
-            hir,
-            Stmt::StructDef(StructDef {
-                name: "simple".into(),
-                members: vec![StructMemberDef {
-                    name: "someMember".into(),
-                    value: StructMemberValue::Expr(Expr::Number { n: 1.0 })
-                }]
-            })
-        )
-    }
-
-    #[test]
-    fn lower_struct_def_with_fn_member() {
-        let root = parse(r#"struct hasMember { someMember: fn test(x,y,z) { 5 } }"#);
-        let ast = root.stmts().next().unwrap();
-        let hir = Database::default().lower_stmt(ast).unwrap();
-
-        assert_eq!(
-            hir,
-            Stmt::StructDef(StructDef {
-                name: "hasMember".into(),
-                members: vec![StructMemberDef {
-                    name: "someMember".into(),
-                    value: StructMemberValue::FunctionDef(FunctionDef {
-                        name: "test".into(),
-                        body: CodeBlock {
-                            stmts: vec![Stmt::Expr(Expr::Number { n: 5.0 })]
-                        },
-                        param_ident_list: vec!["x".into(), "y".into(), "z".into()]
-                    })
-                }]
-            })
-        )
-    }
-
-    #[test]
-    fn lower_struct_with_multiple_members() {
-        let root = parse(r#"struct doubleMemStruct { mem1: 5, mem2: fn test(x) { ret 4 } }"#);
-        let ast = root.stmts().next().unwrap();
-        let hir = Database::default().lower_stmt(ast).unwrap();
-
-        assert_eq!(
-            hir,
-            Stmt::StructDef(StructDef {
-                name: "doubleMemStruct".into(),
-                members: vec![
-                    StructMemberDef {
-                        name: "mem1".into(),
-                        value: StructMemberValue::Expr(Expr::Number { n: 5.0 })
-                    },
-                    StructMemberDef {
-                        name: "mem2".into(),
-                        value: StructMemberValue::FunctionDef(FunctionDef {
-                            name: "test".into(),
-                            body: CodeBlock {
-                                stmts: vec![Stmt::Return(Return {
-                                    value: Some(Expr::Number { n: 4.0 })
-                                })]
-                            },
-                            param_ident_list: vec!["x".into()]
-                        })
-                    }
-                ]
             })
         )
     }

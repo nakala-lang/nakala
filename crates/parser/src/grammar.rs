@@ -1,7 +1,7 @@
+mod class;
 mod expr;
 mod func;
 mod stmt;
-mod struct_;
 
 use crate::parser::marker::CompletedMarker;
 use crate::parser::Parser;

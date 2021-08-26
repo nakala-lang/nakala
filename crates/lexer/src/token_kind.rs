@@ -12,9 +12,6 @@ pub enum TokenKind {
     #[token("call")]
     CallKw,
 
-    #[token("create")]
-    CreateKw,
-
     #[token("let")]
     LetKw,
 
@@ -27,8 +24,8 @@ pub enum TokenKind {
     #[token("ret")]
     RetKw,
 
-    #[token("struct")]
-    StructKw,
+    #[token("class")]
+    ClassKw,
 
     #[regex("[A-Za-z][A-Za-z0-9_]*")]
     Ident,
@@ -127,12 +124,11 @@ impl fmt::Display for TokenKind {
             Self::Whitespace => "whitespace",
             Self::FnKw => "fn",
             Self::CallKw => "call",
-            Self::CreateKw => "create",
             Self::LetKw => "let",
             Self::IfKw => "if",
             Self::ElseKw => "else",
             Self::RetKw => "ret",
-            Self::StructKw => "struct",
+            Self::ClassKw => "class",
             Self::Ident => "identifier",
             Self::Number => "number",
             Self::String => "string",
@@ -219,8 +215,8 @@ mod tests {
     }
 
     #[test]
-    fn lex_struct_keyword() {
-        check("struct", TokenKind::StructKw);
+    fn lex_class_keyword() {
+        check("class", TokenKind::ClassKw);
     }
 
     #[test]

@@ -67,8 +67,6 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
     } else if p.at(TokenKind::Ident) {
         if p.peek_multiple(vec![TokenKind::Ident, TokenKind::LBracket]) {
             index_expr(p)
-        } else if p.peek_multiple(vec![TokenKind::Ident, TokenKind::Dot]) {
-            prop_get_expr(p)
         } else {
             variable_ref(p)
         }
@@ -78,10 +76,6 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
         paren_expr(p)
     } else if p.at(TokenKind::CallKw) {
         function_call(p)
-    } else if p.at(TokenKind::CreateKw) {
-        struct_::struct_create(p)
-    } else if p.at(TokenKind::Dot) {
-        prop_get_expr(p)
     } else if p.at(TokenKind::LBracket) {
         list(p)
     } else if p.at(TokenKind::LBrace) {
@@ -92,19 +86,6 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
     };
 
     Some(cm)
-}
-
-fn prop_get_expr(p: &mut Parser) -> CompletedMarker {
-    assert!(p.at(TokenKind::Ident));
-    let m = p.start();
-    p.bump();
-
-    while p.at(TokenKind::Dot) {
-        p.expect(TokenKind::Dot);
-        p.expect(TokenKind::Ident);
-    }
-
-    m.complete(p, SyntaxKind::PropGet)
 }
 
 fn function_call(p: &mut Parser) -> CompletedMarker {
