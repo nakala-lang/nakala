@@ -5,6 +5,23 @@ pub(super) fn struct_def(p: &mut Parser) -> Option<CompletedMarker> {
     let m = p.start();
     p.bump();
 
+    struct_body(p);
+
+    Some(m.complete(p, SyntaxKind::StructDef))
+}
+
+pub(super) fn struct_create(p: &mut Parser) -> CompletedMarker {
+    assert!(p.at(TokenKind::CreateKw));
+    let m = p.start();
+    p.bump();
+
+    // struct body is basically the same as a struct def
+    struct_body(p);
+
+    m.complete(p, SyntaxKind::StructInit)
+}
+
+fn struct_body(p: &mut Parser) {
     p.expect(TokenKind::Ident);
     p.expect(TokenKind::LBrace);
 
@@ -23,8 +40,6 @@ pub(super) fn struct_def(p: &mut Parser) -> Option<CompletedMarker> {
             struct_member(p);
         }
     }
-
-    Some(m.complete(p, SyntaxKind::StructDef))
 }
 
 fn struct_member(p: &mut Parser) -> CompletedMarker {
@@ -42,7 +57,6 @@ fn struct_member(p: &mut Parser) -> CompletedMarker {
 
     m.complete(p, SyntaxKind::StructMemberDef)
 }
-
 #[cfg(test)]
 mod tests {
     use crate::check;
