@@ -27,6 +27,7 @@ pub enum Stmt {
     ElseIf(ElseIf),
     Else(Else),
     Return(Return),
+    ClassDef(ClassDef),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -74,6 +75,13 @@ pub struct FunctionDef {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Return {
     pub value: Option<Expr>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ClassDef {
+    pub name: SmolStr,
+    pub fields: Vec<SmolStr>,
+    pub methods: Vec<FunctionDef>,
 }
 
 pub type ExprIdx = Idx<Expr>;

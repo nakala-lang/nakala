@@ -1,6 +1,6 @@
 use hir::{
-    BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, FunctionDef, Hir, If, Return, Stmt,
-    UnaryOp, VariableAssign, VariableDef,
+    BinaryOp, ClassDef, CodeBlock, Database, ElseBranch, Expr, ExprIdx, FunctionDef, Hir, If,
+    Return, Stmt, UnaryOp, VariableAssign, VariableDef,
 };
 use std::ops::Index;
 
@@ -39,6 +39,7 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         Stmt::ElseIf(else_if) => eval_if_stmt(env, db, else_if.if_stmt),
         Stmt::Else(else_stmt) => eval_code_block(env, db, else_stmt.body.stmts),
         Stmt::Return(return_stmt) => eval_return(env, db, return_stmt),
+        Stmt::ClassDef(class_def) => eval_class_def(env, db, class_def),
     }
 }
 
@@ -198,4 +199,8 @@ fn eval_return(env: &mut Env, db: &Database, ret: Return) -> Result<Val, EngineE
     } else {
         Ok(Val::Unit)
     }
+}
+
+fn eval_class_def(env: &mut Env, db: &Database, class_def: ClassDef) -> Result<Val, EngineError> {
+    Err(EngineError::NotYetImplemented)
 }

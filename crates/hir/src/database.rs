@@ -1,6 +1,6 @@
 use crate::{
-    BinaryOp, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Return, Stmt, UnaryOp,
-    VariableAssign, VariableDef,
+    BinaryOp, ClassDef, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Return, Stmt,
+    UnaryOp, VariableAssign, VariableDef,
 };
 use la_arena::Arena;
 use syntax::SyntaxKind;
@@ -32,6 +32,11 @@ impl Database {
             }),
             ast::Stmt::Return(ast) => Stmt::Return(Return {
                 value: ast.value().map(|_| self.lower_expr(ast.value())),
+            }),
+            ast::Stmt::ClassDef(ast) => Stmt::ClassDef(ClassDef {
+                name: ast.name()?.text().into(),
+                fields: ast.fields().into_iter().map(|i| i.text().into()).collect(),
+                methods: vec![],
             }),
         };
 
