@@ -1,7 +1,7 @@
 use func::Function;
 use hir::{
     BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, FunctionDef, Hir, If, Return, Stmt,
-    StructDef, StructMemberValue, UnaryOp, VariableAssign, VariableDef,
+    StructMemberDef, StructMemberValue, UnaryOp, VariableAssign, VariableDef,
 };
 use std::ops::Index;
 use struct_::Struct;
@@ -42,7 +42,6 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         Stmt::ElseIf(else_if) => eval_if_stmt(env, db, else_if.if_stmt),
         Stmt::Else(else_stmt) => eval_code_block(env, db, else_stmt.body.stmts),
         Stmt::Return(return_stmt) => eval_return(env, db, return_stmt),
-        Stmt::StructDef(struct_def) => eval_struct_def(env, db, struct_def),
     }
 }
 
@@ -89,6 +88,7 @@ fn eval_expr(env: &mut Env, db: &Database, expr: Expr) -> Result<Val, EngineErro
         } => eval_function_call(env, db, name, param_value_list),
         Expr::List { items } => eval_list(env, db, items),
         Expr::IndexOp { ident, index } => eval_index_op(env, db, ident, *index),
+        Expr::StructInit { name, members } => eval_struct_init(env, db, name.to_string(), members),
         Expr::Missing => {
             unreachable!("Missing tokens will get caught before they reach the engine")
         }
@@ -204,13 +204,13 @@ fn eval_return(env: &mut Env, db: &Database, ret: Return) -> Result<Val, EngineE
     }
 }
 
-fn eval_struct_def(
+fn eval_struct_init(
     env: &mut Env,
     db: &Database,
-    struct_def: StructDef,
+    name: String,
+    members: Vec<StructMemberDef>,
 ) -> Result<Val, EngineError> {
-    let pairs = struct_def
-        .members
+    let pairs = members
         .into_iter()
         .map(|item| match item.value {
             StructMemberValue::Expr(e) => Ok((
@@ -231,7 +231,7 @@ fn eval_struct_def(
     }
 
     Ok(Val::Struct(Struct {
-        name: struct_def.name.into(),
+        name: name.into(),
         members: pairs.into_iter().map(|mem| mem.unwrap()).collect(),
     }))
 }
