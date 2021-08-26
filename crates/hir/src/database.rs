@@ -1,5 +1,5 @@
 use crate::{
-    BinaryOp, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Return, Stmt, StructDef,
+    BinaryOp, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Return, Stmt,
     StructMemberDef, StructMemberValue, UnaryOp, VariableAssign, VariableDef,
 };
 use la_arena::Arena;
@@ -33,7 +33,6 @@ impl Database {
             ast::Stmt::Return(ast) => Stmt::Return(Return {
                 value: ast.value().map(|_| self.lower_expr(ast.value())),
             }),
-            ast::Stmt::StructDef(ast) => Stmt::StructDef(self.lower_struct_def(ast)?),
         };
 
         Some(result)
@@ -51,6 +50,7 @@ impl Database {
                 ast::Expr::FunctionCall(ast) => self.lower_function_call(ast),
                 ast::Expr::List(ast) => self.lower_list(ast),
                 ast::Expr::IndexOp(ast) => self.lower_index_op(ast),
+                ast::Expr::StructInit(ast) => self.lower_struct_init(ast),
             }
         } else {
             Expr::Missing
@@ -199,15 +199,15 @@ impl Database {
         }
     }
 
-    fn lower_struct_def(&mut self, ast: ast::StructDef) -> Option<StructDef> {
-        Some(StructDef {
-            name: ast.name()?.text().into(),
+    fn lower_struct_init(&mut self, ast: ast::StructInit) -> Expr {
+        Expr::StructInit {
+            name: ast.name().unwrap().text().into(),
             members: ast
                 .members()
                 .into_iter()
                 .filter_map(|mem| self.lower_struct_member(mem))
                 .collect(),
-        })
+        }
     }
 
     fn lower_struct_member(&mut self, mem: ast::StructMemberDef) -> Option<StructMemberDef> {

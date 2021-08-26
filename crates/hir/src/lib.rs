@@ -27,7 +27,6 @@ pub enum Stmt {
     ElseIf(ElseIf),
     Else(Else),
     Return(Return),
-    StructDef(StructDef),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -75,12 +74,6 @@ pub struct FunctionDef {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Return {
     pub value: Option<Expr>,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct StructDef {
-    pub name: SmolStr,
-    pub members: Vec<StructMemberDef>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -132,6 +125,10 @@ pub enum Expr {
     IndexOp {
         ident: String,
         index: Box<Expr>,
+    },
+    StructInit {
+        name: SmolStr,
+        members: Vec<StructMemberDef>,
     },
 }
 
