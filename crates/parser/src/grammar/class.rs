@@ -4,10 +4,17 @@ use super::*;
 //
 //  class Apple {
 //      fields {
+//          x,y,z
+//      }
+//
+//      fn foo(this, z) {
+//
+//      }
+//
+//      fn bar(this, aaa) {
 //
 //      }
 //  }
-//
 pub(super) fn class_def(p: &mut Parser) -> Option<CompletedMarker> {
     assert!(p.at(TokenKind::ClassKw));
     let m = p.start();
@@ -25,6 +32,8 @@ pub(super) fn class_def(p: &mut Parser) -> Option<CompletedMarker> {
             // shouldn't have gotten here
             p.error();
             should_still_parse = false;
+        } else if p.at(TokenKind::FieldsKw) {
+            class_fields(p);
         } else {
             class_member(p);
         }
@@ -36,6 +45,29 @@ pub(super) fn class_def(p: &mut Parser) -> Option<CompletedMarker> {
 fn class_member(p: &mut Parser) -> CompletedMarker {
     let m = p.start();
 
-    // Until function defs can be expressed as expresion
-    m.complete(p, SyntaxKind::ClassMember)
+    func::func(p);
+
+    m.complete(p, SyntaxKind::ClassMethod)
+}
+
+fn class_fields(p: &mut Parser) {
+    assert!(p.at(TokenKind::FieldsKw));
+    p.bump();
+    p.expect(TokenKind::LBrace);
+
+    let mut should_still_parse = true;
+    while should_still_parse {
+        if p.at(TokenKind::Ident) {
+            let m = p.start();
+            p.bump();
+            m.complete(p, SyntaxKind::ClassField);
+        } else if p.at(TokenKind::Comma) {
+            p.bump();
+        } else if p.at(TokenKind::RBrace) {
+            should_still_parse = false;
+            p.bump();
+        } else {
+            p.error();
+        }
+    }
 }

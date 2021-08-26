@@ -27,6 +27,9 @@ pub enum TokenKind {
     #[token("class")]
     ClassKw,
 
+    #[token("fields")]
+    FieldsKw,
+
     #[regex("[A-Za-z][A-Za-z0-9_]*")]
     Ident,
 
@@ -129,6 +132,7 @@ impl fmt::Display for TokenKind {
             Self::ElseKw => "else",
             Self::RetKw => "ret",
             Self::ClassKw => "class",
+            Self::FieldsKw => "fields",
             Self::Ident => "identifier",
             Self::Number => "number",
             Self::String => "string",
@@ -217,6 +221,11 @@ mod tests {
     #[test]
     fn lex_class_keyword() {
         check("class", TokenKind::ClassKw);
+    }
+
+    #[test]
+    fn lex_fields_keyword() {
+        check("fields", TokenKind::FieldsKw);
     }
 
     #[test]
