@@ -1,4 +1,4 @@
-use crate::stmt::Stmt;
+use crate::stmt::{FunctionDef, Stmt};
 use itertools::Itertools;
 use syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 
@@ -13,6 +13,7 @@ pub enum Expr {
     FunctionCall(FunctionCall),
     List(List),
     IndexOp(IndexOp),
+    StructInit(StructInit),
 }
 
 impl Expr {
@@ -27,6 +28,7 @@ impl Expr {
             SyntaxKind::FunctionCall => Self::FunctionCall(FunctionCall(node)),
             SyntaxKind::List => Self::List(List(node)),
             SyntaxKind::IndexOp => Self::IndexOp(IndexOp(node)),
+            SyntaxKind::StructInit => Self::StructInit(StructInit(node)),
             _ => {
                 return None;
             }
@@ -207,5 +209,57 @@ impl IndexOp {
 
     pub fn index(&self) -> Option<Expr> {
         self.0.children().find_map(Expr::cast)
+    }
+}
+
+#[derive(Debug)]
+pub struct StructInit(SyntaxNode);
+
+impl StructInit {
+    pub fn name(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(SyntaxElement::into_token)
+            .find(|token| token.kind() == SyntaxKind::Ident)
+    }
+
+    pub fn members(&self) -> Vec<StructMemberDef> {
+        self.0
+            .children()
+            .filter(|node| node.kind() == SyntaxKind::StructMemberDef)
+            .map(StructMemberDef)
+            .collect()
+    }
+}
+
+#[derive(Debug)]
+pub enum StructMemberValue {
+    Expr(Expr),
+    FunctionDef(FunctionDef),
+}
+
+#[derive(Debug)]
+pub struct StructMemberDef(pub(crate) SyntaxNode);
+
+impl StructMemberDef {
+    pub fn name(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(SyntaxElement::into_token)
+            .find(|token| token.kind() == SyntaxKind::Ident)
+    }
+
+    pub fn value(&self) -> Option<StructMemberValue> {
+        if let Some(f) = self
+            .0
+            .children()
+            .find(|token| token.kind() == SyntaxKind::FunctionDef)
+        {
+            Some(StructMemberValue::FunctionDef(FunctionDef(f)))
+        } else {
+            Some(StructMemberValue::Expr(
+                self.0.children().find_map(Expr::cast)?,
+            ))
+        }
     }
 }
