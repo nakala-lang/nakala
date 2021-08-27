@@ -33,6 +33,9 @@ pub enum TokenKind {
     #[token("fields")]
     FieldsKw,
 
+    #[token("this")]
+    ThisKw,
+
     #[regex("[A-Za-z][A-Za-z0-9_]*")]
     Ident,
 
@@ -137,6 +140,7 @@ impl fmt::Display for TokenKind {
             Self::ClassKw => "class",
             Self::NewKw => "new",
             Self::FieldsKw => "fields",
+            Self::ThisKw => "this",
             Self::Ident => "identifier",
             Self::Number => "number",
             Self::String => "string",
@@ -230,6 +234,11 @@ mod tests {
     #[test]
     fn lex_new_keyword() {
         check("new", TokenKind::NewKw);
+    }
+
+    #[test]
+    fn lex_this_keyword() {
+        check("this", TokenKind::ThisKw);
     }
 
     #[test]
