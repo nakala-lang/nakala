@@ -85,3 +85,56 @@ pub(super) fn class_create(p: &mut Parser) -> CompletedMarker {
 
     m.complete(p, SyntaxKind::ClassCreate)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::check;
+    use expect_test::expect;
+
+    #[test]
+    fn parse_simple_class_def() {
+        check(
+            "class Apple {}",
+            expect![[r#"
+            Root@0..14
+              ClassDef@0..14
+                ClassKw@0..5 "class"
+                Whitespace@5..6 " "
+                Ident@6..11 "Apple"
+                Whitespace@11..12 " "
+                LBrace@12..13 "{"
+                RBrace@13..14 "}""#]],
+        );
+    }
+
+    #[test]
+    fn parse_class_def_with_fields() {
+        check(
+            "class Foo { fields {x,y, somethingElseHere} }",
+            expect![[r#"
+                Root@0..45
+                  ClassDef@0..45
+                    ClassKw@0..5 "class"
+                    Whitespace@5..6 " "
+                    Ident@6..9 "Foo"
+                    Whitespace@9..10 " "
+                    LBrace@10..11 "{"
+                    Whitespace@11..12 " "
+                    FieldsKw@12..18 "fields"
+                    Whitespace@18..19 " "
+                    LBrace@19..20 "{"
+                    ClassField@20..21
+                      Ident@20..21 "x"
+                    Comma@21..22 ","
+                    ClassField@22..23
+                      Ident@22..23 "y"
+                    Comma@23..24 ","
+                    Whitespace@24..25 " "
+                    ClassField@25..42
+                      Ident@25..42 "somethingElseHere"
+                    RBrace@42..43 "}"
+                    Whitespace@43..44 " "
+                    RBrace@44..45 "}""#]],
+        )
+    }
+}

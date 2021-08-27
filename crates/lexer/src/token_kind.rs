@@ -228,6 +228,11 @@ mod tests {
     }
 
     #[test]
+    fn lex_new_keyword() {
+        check("new", TokenKind::NewKw);
+    }
+
+    #[test]
     fn lex_fields_keyword() {
         check("fields", TokenKind::FieldsKw);
     }
