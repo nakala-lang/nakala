@@ -1,7 +1,7 @@
 use hir::{Database, FunctionDef};
 
 use super::EngineError;
-use crate::{func::Function, val::Val};
+use crate::{class::ClassDef, func::Function, val::Val};
 use std::collections::HashMap;
 
 type BindingList = (Vec<(String, Val)>, Vec<(String, Function)>);
@@ -12,6 +12,8 @@ pub struct Env {
     variables: HashMap<String, Val>,
     // holds function definitions
     functions: HashMap<String, Function>,
+    // holds class definitions
+    class_defs: HashMap<String, ClassDef>,
 
     // FIXME: read comment in `propagate_enclosing_env_changes`
     enclosing_env: Option<Box<Self>>,
@@ -22,6 +24,7 @@ impl Env {
         Self {
             variables: HashMap::default(),
             functions: HashMap::default(),
+            class_defs: HashMap::default(),
             enclosing_env,
         }
     }
@@ -43,6 +46,18 @@ impl Env {
         }
     }
 
+    pub fn define_class(&mut self, class: ClassDef) -> Result<(), EngineError> {
+        if self.class_defs.contains_key(class.name.as_str()) {
+            return Err(EngineError::ClassAlreadyDefined {
+                name: class.name.to_string(),
+            });
+        }
+
+        self.class_defs.insert(class.name.clone(), class);
+
+        Ok(())
+    }
+
     pub fn define_variable(&mut self, variable_name: &str, val: Val) -> Result<Val, EngineError> {
         if self.variables.contains_key(variable_name) {
             return Err(EngineError::VariableAlreadyExists {
@@ -55,7 +70,7 @@ impl Env {
         Ok(Val::Unit)
     }
 
-    pub fn set_variable(&mut self, variable_name: &str, val: Val) -> Result<Val, EngineError> {
+    pub fn set_variable(&mut self, variable_name: &str, val: Val) -> Result<(), EngineError> {
         if !self.variables.contains_key(variable_name) {
             if let Some(ref mut outside_env) = self.enclosing_env {
                 return outside_env.set_variable(variable_name, val);
@@ -68,7 +83,7 @@ impl Env {
 
         *self.variables.get_mut(variable_name).unwrap() = val;
 
-        Ok(Val::Unit)
+        Ok(())
     }
 
     pub fn rename_variable(&mut self, old: &str, new: String) -> Result<(), EngineError> {

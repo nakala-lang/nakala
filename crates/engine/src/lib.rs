@@ -1,14 +1,16 @@
 use hir::{
-    BinaryOp, ClassDef, CodeBlock, Database, ElseBranch, Expr, ExprIdx, FunctionDef, Hir, If,
-    Return, Stmt, UnaryOp, VariableAssign, VariableDef,
+    BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, FunctionDef, Hir, If, Return, Stmt,
+    UnaryOp, VariableAssign, VariableDef,
 };
 use std::ops::Index;
 
+pub mod class;
 pub mod env;
 pub mod error;
 pub mod func;
 pub mod val;
 
+use class::ClassDef;
 use env::Env;
 use error::EngineError;
 use val::Val;
@@ -139,7 +141,7 @@ fn eval_variable_assign(
     value: Expr,
 ) -> Result<Val, EngineError> {
     let val = eval_expr(env, db, value)?;
-    env.set_variable(&name, val)
+    env.set_variable(&name, val).map(|_| Val::Unit)
 }
 
 fn eval_if_stmt(env: &mut Env, db: &Database, if_stmt: If) -> Result<Val, EngineError> {
@@ -201,6 +203,11 @@ fn eval_return(env: &mut Env, db: &Database, ret: Return) -> Result<Val, EngineE
     }
 }
 
-fn eval_class_def(env: &mut Env, db: &Database, class_def: ClassDef) -> Result<Val, EngineError> {
-    Err(EngineError::NotYetImplemented)
+fn eval_class_def(
+    env: &mut Env,
+    db: &Database,
+    class_def: hir::ClassDef,
+) -> Result<Val, EngineError> {
+    env.define_class(ClassDef::new(class_def, db))
+        .map(|_| Val::Unit)
 }

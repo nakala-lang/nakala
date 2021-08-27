@@ -25,6 +25,7 @@ pub enum EngineError {
     EarlyReturn { value: Val },
     ListIndicesMustBeIntegers,
     IndexOutOfBounds { index: usize, len: usize },
+    ClassAlreadyDefined { name: String },
     NotYetImplemented,
     Unknown,
 }
@@ -110,6 +111,10 @@ impl std::fmt::Display for EngineError {
                 "The index {} is out of bounds for list of length {}",
                 Yellow.paint(format!("{}", index)),
                 Green.paint(format!("{}", len)),
+            ),
+            EngineError::ClassAlreadyDefined { name } => format!(
+                "The class {} is already defined",
+                Yellow.paint(format!("{}", name))
             ),
             EngineError::NotYetImplemented => "This feature is not yet implemented".into(),
             EngineError::Unknown => "An unknown error occurred".into(),
