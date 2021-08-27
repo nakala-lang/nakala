@@ -122,6 +122,10 @@ pub enum Expr {
         ident: String,
         index: Box<Expr>,
     },
+    ClassCreate {
+        name: String,
+        param_value_list: Vec<Expr>,
+    },
 }
 
 #[derive(Debug, PartialEq, Clone)]

@@ -71,3 +71,17 @@ fn class_fields(p: &mut Parser) {
         }
     }
 }
+
+// Classes are created like
+//
+// let x = new Apple(field1, field2, ...)
+pub(super) fn class_create(p: &mut Parser) -> CompletedMarker {
+    assert!(p.at(TokenKind::NewKw));
+    let m = p.start();
+    p.bump();
+
+    p.expect(TokenKind::Ident);
+    func::param_value_list(p);
+
+    m.complete(p, SyntaxKind::ClassCreate)
+}

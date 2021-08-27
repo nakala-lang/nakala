@@ -1,4 +1,5 @@
 use super::EngineError;
+use crate::class::Class;
 use std::fmt::Display;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -9,6 +10,7 @@ pub enum Val {
     String(String),
     Boolean(bool),
     List(Vec<Self>),
+    Class(Class),
 }
 
 impl Val {
@@ -20,6 +22,7 @@ impl Val {
             Val::String(_) => "string",
             Val::Boolean(_) => "boolean",
             Val::List(_) => "list",
+            Val::Class(_) => "class",
         }
     }
 
@@ -277,6 +280,7 @@ impl Display for Val {
                 }
                 Ok(())
             }
+            Val::Class(_) => write!(f, "Class Object"),
         }
     }
 }

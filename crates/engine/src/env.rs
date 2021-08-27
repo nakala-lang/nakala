@@ -1,5 +1,3 @@
-use hir::{Database, FunctionDef};
-
 use super::EngineError;
 use crate::{class::ClassDef, func::Function, val::Val};
 use std::collections::HashMap;
@@ -46,18 +44,6 @@ impl Env {
         }
     }
 
-    pub fn define_class(&mut self, class: ClassDef) -> Result<(), EngineError> {
-        if self.class_defs.contains_key(class.name.as_str()) {
-            return Err(EngineError::ClassAlreadyDefined {
-                name: class.name.to_string(),
-            });
-        }
-
-        self.class_defs.insert(class.name.clone(), class);
-
-        Ok(())
-    }
-
     pub fn define_variable(&mut self, variable_name: &str, val: Val) -> Result<Val, EngineError> {
         if self.variables.contains_key(variable_name) {
             return Err(EngineError::VariableAlreadyExists {
@@ -100,6 +86,33 @@ impl Env {
         }
     }
 
+    pub fn define_class(&mut self, class: ClassDef) -> Result<(), EngineError> {
+        if self.class_defs.contains_key(class.name.as_str()) {
+            return Err(EngineError::ClassAlreadyDefined {
+                name: class.name.to_string(),
+            });
+        }
+
+        self.class_defs.insert(class.name.clone(), class);
+
+        Ok(())
+    }
+
+    pub fn get_class_def(&self, class_name: &str) -> Result<ClassDef, EngineError> {
+        match self.class_defs.get(class_name) {
+            Some(def) => Ok(def.to_owned()),
+            None => {
+                if let Some(outside_env) = &self.enclosing_env {
+                    outside_env.get_class_def(class_name)
+                } else {
+                    Err(EngineError::ClassUndefined {
+                        name: class_name.to_string(),
+                    })
+                }
+            }
+        }
+    }
+
     pub fn get_function(&self, function_name: &str) -> Result<Function, EngineError> {
         match self.functions.get(function_name) {
             Some(func) => Ok(func.to_owned()),
@@ -115,19 +128,14 @@ impl Env {
         }
     }
 
-    pub fn set_function(
-        &mut self,
-        func: FunctionDef,
-        funcs_db: Database,
-    ) -> Result<Val, EngineError> {
+    pub fn set_function(&mut self, func: Function) -> Result<Val, EngineError> {
         if self.functions.contains_key(&func.name.to_string()) {
             return Err(EngineError::FunctionAlreadyExists {
                 function_name: func.name.to_string(),
             });
         }
 
-        self.functions
-            .insert(func.name.to_string(), Function::new(func, funcs_db));
+        self.functions.insert(func.name.to_string(), func);
 
         Ok(Val::Unit)
     }

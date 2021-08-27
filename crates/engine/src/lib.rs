@@ -10,7 +10,7 @@ pub mod error;
 pub mod func;
 pub mod val;
 
-use class::ClassDef;
+use class::{Class, ClassDef};
 use env::Env;
 use error::EngineError;
 use val::Val;
@@ -70,7 +70,7 @@ fn eval_function_def(
     db: &Database,
     func_def: FunctionDef,
 ) -> Result<Val, EngineError> {
-    env.set_function(func_def, db.clone())
+    env.set_function(func::Function::new(func_def, db.clone()))
 }
 
 fn eval_expr(env: &mut Env, db: &Database, expr: Expr) -> Result<Val, EngineError> {
@@ -88,6 +88,10 @@ fn eval_expr(env: &mut Env, db: &Database, expr: Expr) -> Result<Val, EngineErro
         } => eval_function_call(env, db, name, param_value_list),
         Expr::List { items } => eval_list(env, db, items),
         Expr::IndexOp { ident, index } => eval_index_op(env, db, ident, *index),
+        Expr::ClassCreate {
+            name,
+            param_value_list,
+        } => eval_class_create(env, db, name, param_value_list),
         Expr::Missing => {
             unreachable!("Missing tokens will get caught before they reach the engine")
         }
@@ -210,4 +214,30 @@ fn eval_class_def(
 ) -> Result<Val, EngineError> {
     env.define_class(ClassDef::new(class_def, db))
         .map(|_| Val::Unit)
+}
+
+fn eval_class_create(
+    env: &mut Env,
+    db: &Database,
+    name: String,
+    param_value_list: Vec<Expr>,
+) -> Result<Val, EngineError> {
+    let class_def = env.get_class_def(name.as_str())?;
+
+    let expected = class_def.fields.len();
+    let actual = param_value_list.len();
+    if expected != actual {
+        return Err(EngineError::ClassCreateMismatchedParameterCount {
+            name,
+            actual,
+            expected,
+        });
+    }
+
+    let mut init_value_list: Vec<Val> = vec![];
+    for expr in param_value_list {
+        init_value_list.push(eval_expr(env, db, expr)?);
+    }
+
+    Ok(Val::Class(Class::new(class_def, init_value_list)?))
 }

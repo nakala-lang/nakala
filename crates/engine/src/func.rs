@@ -4,11 +4,11 @@ use hir::{CodeBlock, Database, Expr, FunctionDef};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Function {
-    name: String,
-    param_list: Vec<String>,
-    body: CodeBlock,
+    pub(crate) name: String,
+    pub(crate) param_list: Vec<String>,
+    pub(crate) body: CodeBlock,
     // we need to keep the db of the original block around as well
-    body_db: Database,
+    pub(crate) body_db: Database,
 }
 
 impl Function {

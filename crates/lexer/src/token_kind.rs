@@ -27,6 +27,9 @@ pub enum TokenKind {
     #[token("class")]
     ClassKw,
 
+    #[token("new")]
+    NewKw,
+
     #[token("fields")]
     FieldsKw,
 
@@ -132,6 +135,7 @@ impl fmt::Display for TokenKind {
             Self::ElseKw => "else",
             Self::RetKw => "ret",
             Self::ClassKw => "class",
+            Self::NewKw => "new",
             Self::FieldsKw => "fields",
             Self::Ident => "identifier",
             Self::Number => "number",

@@ -13,6 +13,7 @@ pub enum Expr {
     FunctionCall(FunctionCall),
     List(List),
     IndexOp(IndexOp),
+    ClassCreate(ClassCreate),
 }
 
 impl Expr {
@@ -27,6 +28,7 @@ impl Expr {
             SyntaxKind::FunctionCall => Self::FunctionCall(FunctionCall(node)),
             SyntaxKind::List => Self::List(List(node)),
             SyntaxKind::IndexOp => Self::IndexOp(IndexOp(node)),
+            SyntaxKind::ClassCreate => Self::ClassCreate(ClassCreate(node)),
             _ => {
                 return None;
             }
@@ -207,5 +209,24 @@ impl IndexOp {
 
     pub fn index(&self) -> Option<Expr> {
         self.0.children().find_map(Expr::cast)
+    }
+}
+
+#[derive(Debug)]
+pub struct ClassCreate(SyntaxNode);
+
+impl ClassCreate {
+    pub fn name(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(SyntaxElement::into_token)
+            .find(|token| token.kind() == SyntaxKind::Ident)
+    }
+
+    pub fn param_value_list(&self) -> Vec<Expr> {
+        self.0
+            .children()
+            .find(|node| node.kind() == SyntaxKind::ParamValueList)
+            .map_or(vec![], |n| n.children().filter_map(Expr::cast).collect())
     }
 }

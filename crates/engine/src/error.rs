@@ -3,29 +3,94 @@ use nu_ansi_term::Color::{Green, Red, Yellow};
 
 #[derive(Debug, Clone)]
 pub enum EngineError {
-    InvalidAddOperation { x: Val, y: Val },
-    InvalidSubOperation { x: Val, y: Val },
-    InvalidMulOperation { x: Val, y: Val },
-    InvalidDivOperation { x: Val, y: Val },
-    InvalidNegOperation { x: Val },
-    InvalidGreaterThanOperation { x: Val, y: Val },
-    InvalidGreaterThanOrEqOperation { x: Val, y: Val },
-    InvalidLessThanOperation { x: Val, y: Val },
-    InvalidLessThanOrEqOperation { x: Val, y: Val },
-    InvalidNotOperation { x: Val },
-    InvalidAndOperation { x: Val, y: Val },
-    InvalidOrOperation { x: Val, y: Val },
-    InvalidIndexOperation { x: Val },
-    VariableAlreadyExists { variable_name: String },
-    VariableUndefined { variable_name: String },
-    FunctionAlreadyExists { function_name: String },
-    FunctionUndefined { function_name: String },
-    MismatchedParameterCount { actual: usize, expected: usize },
-    MismatchedTypes { actual: Val, expected: Val },
-    EarlyReturn { value: Val },
+    InvalidAddOperation {
+        x: Val,
+        y: Val,
+    },
+    InvalidSubOperation {
+        x: Val,
+        y: Val,
+    },
+    InvalidMulOperation {
+        x: Val,
+        y: Val,
+    },
+    InvalidDivOperation {
+        x: Val,
+        y: Val,
+    },
+    InvalidNegOperation {
+        x: Val,
+    },
+    InvalidGreaterThanOperation {
+        x: Val,
+        y: Val,
+    },
+    InvalidGreaterThanOrEqOperation {
+        x: Val,
+        y: Val,
+    },
+    InvalidLessThanOperation {
+        x: Val,
+        y: Val,
+    },
+    InvalidLessThanOrEqOperation {
+        x: Val,
+        y: Val,
+    },
+    InvalidNotOperation {
+        x: Val,
+    },
+    InvalidAndOperation {
+        x: Val,
+        y: Val,
+    },
+    InvalidOrOperation {
+        x: Val,
+        y: Val,
+    },
+    InvalidIndexOperation {
+        x: Val,
+    },
+    VariableAlreadyExists {
+        variable_name: String,
+    },
+    VariableUndefined {
+        variable_name: String,
+    },
+    FunctionAlreadyExists {
+        function_name: String,
+    },
+    FunctionUndefined {
+        function_name: String,
+    },
+    MismatchedParameterCount {
+        actual: usize,
+        expected: usize,
+    },
+    ClassCreateMismatchedParameterCount {
+        name: String,
+        actual: usize,
+        expected: usize,
+    },
+    MismatchedTypes {
+        actual: Val,
+        expected: Val,
+    },
+    EarlyReturn {
+        value: Val,
+    },
     ListIndicesMustBeIntegers,
-    IndexOutOfBounds { index: usize, len: usize },
-    ClassAlreadyDefined { name: String },
+    IndexOutOfBounds {
+        index: usize,
+        len: usize,
+    },
+    ClassAlreadyDefined {
+        name: String,
+    },
+    ClassUndefined {
+        name: String,
+    },
     NotYetImplemented,
     Unknown,
 }
@@ -95,7 +160,17 @@ impl std::fmt::Display for EngineError {
             EngineError::MismatchedParameterCount { actual, expected } => format!(
                 "The function expected {} parameters, but received {}",
                 Green.paint(format!("{}", expected)),
-                Yellow.paint(format!("{}", actual))
+                Red.paint(format!("{}", actual))
+            ),
+            EngineError::ClassCreateMismatchedParameterCount {
+                name,
+                actual,
+                expected,
+            } => format!(
+                "The class {} expected {} parameters, but received {}",
+                Yellow.paint(format!("{}", name)),
+                Green.paint(format!("{}", expected)),
+                Red.paint(format!("{}", actual))
             ),
             EngineError::MismatchedTypes { actual, expected } => format!(
                 "Expected type {}, but got {} instead",
@@ -114,6 +189,10 @@ impl std::fmt::Display for EngineError {
             ),
             EngineError::ClassAlreadyDefined { name } => format!(
                 "The class {} is already defined",
+                Yellow.paint(format!("{}", name))
+            ),
+            EngineError::ClassUndefined { name } => format!(
+                "The class {} is undefined in the scope",
                 Yellow.paint(format!("{}", name))
             ),
             EngineError::NotYetImplemented => "This feature is not yet implemented".into(),

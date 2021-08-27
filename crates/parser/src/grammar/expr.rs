@@ -78,6 +78,8 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
         function_call(p)
     } else if p.at(TokenKind::LBracket) {
         list(p)
+    } else if p.at(TokenKind::NewKw) {
+        class::class_create(p)
     } else if p.at(TokenKind::LBrace) {
         code_block(p)?
     } else {
@@ -564,7 +566,7 @@ Root@0..7
                       Literal@1..2
                         Number@1..2 "1"
                       Plus@2..3 "+"
-                [31mParse Error[0m: at 2..3, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m or [33m{[0m
+                [31mParse Error[0m: at 2..3, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m, [33mnew[0m or [33m{[0m
                 [31mParse Error[0m: at 2..3, expected [33m)[0m"#]],
         );
     }
@@ -891,7 +893,7 @@ Root@0..23
                       Whitespace@20..21 " "
                       Literal@21..23
                         Number@21..23 "10"
-                [31mParse Error[0m: at 21..23, expected [33m,[0m, [33m)[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m or [33m{[0m"#]],
+                [31mParse Error[0m: at 21..23, expected [33m,[0m, [33m)[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m, [33mnew[0m or [33m{[0m"#]],
         );
     }
 

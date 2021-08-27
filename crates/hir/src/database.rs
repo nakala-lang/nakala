@@ -59,6 +59,7 @@ impl Database {
                 ast::Expr::FunctionCall(ast) => self.lower_function_call(ast),
                 ast::Expr::List(ast) => self.lower_list(ast),
                 ast::Expr::IndexOp(ast) => self.lower_index_op(ast),
+                ast::Expr::ClassCreate(ast) => self.lower_class_create(ast),
             }
         } else {
             Expr::Missing
@@ -204,6 +205,17 @@ impl Database {
         Expr::IndexOp {
             ident: index_op.ident().unwrap().text().into(),
             index: Box::new(self.lower_expr(index_op.index())),
+        }
+    }
+
+    fn lower_class_create(&mut self, class_create: ast::ClassCreate) -> Expr {
+        Expr::ClassCreate {
+            name: class_create.name().unwrap().text().into(),
+            param_value_list: class_create
+                .param_value_list()
+                .into_iter()
+                .map(|expr| self.lower_expr(Some(expr)))
+                .collect(),
         }
     }
 }
