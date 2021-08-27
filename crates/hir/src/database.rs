@@ -36,7 +36,11 @@ impl Database {
             ast::Stmt::ClassDef(ast) => Stmt::ClassDef(ClassDef {
                 name: ast.name()?.text().into(),
                 fields: ast.fields().into_iter().map(|i| i.text().into()).collect(),
-                methods: vec![],
+                methods: ast
+                    .methods()
+                    .into_iter()
+                    .filter_map(|func_def| self.lower_function_def(func_def))
+                    .collect(),
             }),
         };
 
