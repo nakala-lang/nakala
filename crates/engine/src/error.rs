@@ -168,7 +168,7 @@ impl std::fmt::Display for EngineError {
                 expected,
             } => format!(
                 "The class {} expected {} parameters, but received {}",
-                Yellow.paint(format!("{}", name)),
+                Yellow.paint(name),
                 Green.paint(format!("{}", expected)),
                 Red.paint(format!("{}", actual))
             ),
@@ -187,14 +187,12 @@ impl std::fmt::Display for EngineError {
                 Yellow.paint(format!("{}", index)),
                 Green.paint(format!("{}", len)),
             ),
-            EngineError::ClassAlreadyDefined { name } => format!(
-                "The class {} is already defined",
-                Yellow.paint(format!("{}", name))
-            ),
-            EngineError::ClassUndefined { name } => format!(
-                "The class {} is undefined in the scope",
-                Yellow.paint(format!("{}", name))
-            ),
+            EngineError::ClassAlreadyDefined { name } => {
+                format!("The class {} is already defined", Yellow.paint(name))
+            }
+            EngineError::ClassUndefined { name } => {
+                format!("The class {} is undefined in the scope", Yellow.paint(name))
+            }
             EngineError::NotYetImplemented => "This feature is not yet implemented".into(),
             EngineError::Unknown => "An unknown error occurred".into(),
         };

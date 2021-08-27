@@ -190,7 +190,7 @@ impl ClassDef {
             .children()
             .filter(|token| token.kind() == SyntaxKind::ClassMethod)
             .filter_map(|t| t.first_child())
-            .map(|t| FunctionDef(t))
+            .map(FunctionDef)
             .collect()
     }
 }

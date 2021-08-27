@@ -88,9 +88,7 @@ impl Env {
 
     pub fn define_class(&mut self, class: ClassDef) -> Result<(), EngineError> {
         if self.class_defs.contains_key(class.name.as_str()) {
-            return Err(EngineError::ClassAlreadyDefined {
-                name: class.name.to_string(),
-            });
+            return Err(EngineError::ClassAlreadyDefined { name: class.name });
         }
 
         self.class_defs.insert(class.name.clone(), class);
@@ -129,9 +127,9 @@ impl Env {
     }
 
     pub fn set_function(&mut self, func: Function) -> Result<Val, EngineError> {
-        if self.functions.contains_key(&func.name.to_string()) {
+        if self.functions.contains_key(&func.name) {
             return Err(EngineError::FunctionAlreadyExists {
-                function_name: func.name.to_string(),
+                function_name: func.name,
             });
         }
 

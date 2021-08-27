@@ -55,10 +55,6 @@ impl PartialEq for Class {
     fn eq(&self, _other: &Self) -> bool {
         todo!("partial eq for classes")
     }
-
-    fn ne(&self, _other: &Self) -> bool {
-        todo!("partial eq for classes")
-    }
 }
 
 impl std::fmt::Debug for Class {
