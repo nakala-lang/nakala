@@ -179,9 +179,9 @@ impl ClassDef {
 
     pub fn fields(&self) -> Vec<SyntaxToken> {
         self.0
-            .children_with_tokens()
-            .filter_map(SyntaxElement::into_token)
+            .children()
             .filter(|t| t.kind() == SyntaxKind::ClassField)
+            .filter_map(|t| t.first_token())
             .collect()
     }
 
@@ -189,7 +189,7 @@ impl ClassDef {
         self.0
             .children()
             .filter(|token| token.kind() == SyntaxKind::ClassMethod)
-            .filter_map(|t| t.children().find(|t| t.kind() == SyntaxKind::FunctionDef))
+            .filter_map(|t| t.first_child())
             .map(|t| FunctionDef(t))
             .collect()
     }
