@@ -44,10 +44,7 @@ impl Class {
             self_env.set_function(func)?;
         }
 
-        Ok(Class {
-            self_env: Env::new(None),
-            def,
-        })
+        Ok(Class { self_env, def })
     }
 }
 
