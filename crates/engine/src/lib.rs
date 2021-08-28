@@ -187,11 +187,15 @@ fn eval_for_loop(env: &mut Env, db: &Database, for_loop: ForLoop) -> Result<Val,
     };
 
     let stmts = for_loop.body.stmts;
-    env.define_variable(item, Val::Unit)?;
+    let mut loop_env = Env::new(Some(Box::new(env.clone())));
+    loop_env.define_variable(item, Val::Unit)?;
+
     for collection_item in collection {
-        env.set_variable(item, collection_item)?;
-        eval_code_block(env, db, stmts.clone())?;
+        loop_env.set_variable(item, collection_item)?;
+        eval_code_block(&mut loop_env, db, stmts.clone())?;
     }
+
+    loop_env.propagate_enclosing_env_changes(env);
 
     Ok(Val::Unit)
 }
