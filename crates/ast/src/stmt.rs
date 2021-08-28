@@ -12,6 +12,7 @@ pub enum Stmt {
     Else(Else),
     Return(Return),
     ClassDef(ClassDef),
+    ForLoop(ForLoop),
 }
 
 impl Stmt {
@@ -191,5 +192,28 @@ impl ClassDef {
             .filter(|token| token.kind() == SyntaxKind::ClassMethod)
             .map(FunctionDef)
             .collect()
+    }
+}
+
+#[derive(Debug)]
+pub struct ForLoop(SyntaxNode);
+
+impl ForLoop {
+    pub fn item(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(SyntaxElement::into_token)
+            .find(|token| token.kind() == SyntaxKind::Ident)
+    }
+
+    pub fn collection(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast)
+    }
+
+    pub fn body(&self) -> Option<CodeBlock> {
+        self.0
+            .children()
+            .find(|t| t.kind() == SyntaxKind::CodeBlock)
+            .map(crate::expr::CodeBlock)
     }
 }

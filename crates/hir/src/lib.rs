@@ -28,6 +28,7 @@ pub enum Stmt {
     Else(Else),
     Return(Return),
     ClassDef(ClassDef),
+    ForLoop(ForLoop),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -82,6 +83,13 @@ pub struct ClassDef {
     pub name: SmolStr,
     pub fields: Vec<SmolStr>,
     pub methods: Vec<FunctionDef>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ForLoop {
+    pub item: SmolStr,
+    pub collection: Expr,
+    pub body: CodeBlock,
 }
 
 pub type ExprIdx = Idx<Expr>;

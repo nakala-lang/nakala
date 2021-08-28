@@ -1,6 +1,6 @@
 use crate::{
-    BinaryOp, ClassDef, CodeBlock, Else, ElseBranch, ElseIf, Expr, FunctionDef, If, Return, Stmt,
-    UnaryOp, VariableAssign, VariableDef,
+    BinaryOp, ClassDef, CodeBlock, Else, ElseBranch, ElseIf, Expr, ForLoop, FunctionDef, If,
+    Return, Stmt, UnaryOp, VariableAssign, VariableDef,
 };
 use la_arena::Arena;
 use syntax::SyntaxKind;
@@ -41,6 +41,11 @@ impl Database {
                     .into_iter()
                     .filter_map(|func_def| self.lower_function_def(func_def))
                     .collect(),
+            }),
+            ast::Stmt::ForLoop(ast) => Stmt::ForLoop(ForLoop {
+                item: ast.item()?.text().into(),
+                collection: self.lower_expr(ast.collection()),
+                body: self.lower_code_block(ast.body()?),
             }),
         };
 
