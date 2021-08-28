@@ -91,11 +91,12 @@ fn run_without_repl(buffer: &str, matches: ArgMatches) {
 
 fn cli_main(cli_args: ArgMatches) {
     let history = Box::new(
-        FileBackedHistory::with_file(10, "~/.config/nakala/history.txt".into())
+        FileBackedHistory::with_file(200, "~/.config/nakala/history.txt".into())
             .expect("Error configuring history with file"),
     );
 
-    let mut line_editor = Reedline::new()
+    let mut line_editor = Reedline::create()
+        .expect("Couldn't start REPL")
         .with_history(history)
         .expect("Error configuring reedline with history");
     let prompt = DefaultPrompt::default();
