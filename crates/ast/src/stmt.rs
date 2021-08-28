@@ -26,6 +26,7 @@ impl Stmt {
             SyntaxKind::Else => Self::Else(Else(node)),
             SyntaxKind::Return => Self::Return(Return(node)),
             SyntaxKind::ClassDef => Self::ClassDef(ClassDef(node)),
+            SyntaxKind::ForLoop => Self::ForLoop(ForLoop(node)),
             _ => Self::Expr(Expr::cast(node)?),
         };
 
