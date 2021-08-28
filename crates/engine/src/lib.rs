@@ -1,6 +1,6 @@
 use hir::{
-    BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, FunctionDef, Hir, If, Return, Stmt,
-    UnaryOp, VariableAssign, VariableDef,
+    BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, ForLoop, FunctionDef, Hir, If,
+    Return, Stmt, UnaryOp, VariableAssign, VariableDef,
 };
 use std::ops::Index;
 
@@ -42,6 +42,7 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         Stmt::Else(else_stmt) => eval_code_block(env, db, else_stmt.body.stmts),
         Stmt::Return(return_stmt) => eval_return(env, db, return_stmt),
         Stmt::ClassDef(class_def) => eval_class_def(env, db, class_def),
+        Stmt::ForLoop(for_loop) => eval_for_loop(env, db, for_loop),
     }
 }
 
@@ -160,6 +161,22 @@ fn eval_if_stmt(env: &mut Env, db: &Database, if_stmt: If) -> Result<Val, Engine
             None => Ok(Val::Unit),
         },
     }
+}
+
+fn eval_for_loop(env: &mut Env, db: &Database, for_loop: ForLoop) -> Result<Val, EngineError> {
+    let item = for_loop.item.as_str();
+    let collection = match eval_expr(env, db, for_loop.collection)? {
+        Val::List(items) => items,
+        x => return Err(EngineError::NonIterableValue { x }),
+    };
+
+    let stmts = for_loop.body.stmts;
+    for collection_item in collection {
+        env.define_variable(item, collection_item)?;
+        eval_code_block(env, db, stmts.clone())?;
+    }
+
+    Ok(Val::Unit)
 }
 
 fn eval_unary_expr(

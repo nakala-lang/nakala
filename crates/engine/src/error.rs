@@ -91,6 +91,9 @@ pub enum EngineError {
     ClassUndefined {
         name: String,
     },
+    NonIterableValue {
+        x: Val,
+    },
     NotYetImplemented,
     Unknown,
 }
@@ -192,6 +195,12 @@ impl std::fmt::Display for EngineError {
             }
             EngineError::ClassUndefined { name } => {
                 format!("The class {} is undefined in the scope", Yellow.paint(name))
+            }
+            EngineError::NonIterableValue { x } => {
+                format!(
+                    "Cannot iterate over value of type {}",
+                    Red.paint(x.get_type().to_string())
+                )
             }
             EngineError::NotYetImplemented => "This feature is not yet implemented".into(),
             EngineError::Unknown => "An unknown error occurred".into(),
