@@ -11,6 +11,8 @@ pub(super) fn stmt(p: &mut Parser) -> Option<CompletedMarker> {
         return_stmt(p)
     } else if p.at(TokenKind::ClassKw) {
         class::class_def(p)
+    } else if p.at(TokenKind::ForKw) {
+        for_loop(p)
     } else {
         // variable assignments can look like expressions,
         // since you could have x + 1 for example. Therefore,
@@ -105,6 +107,23 @@ fn variable_assign(p: &mut Parser) -> Option<CompletedMarker> {
     expr::expr(p);
 
     Some(m.complete(p, SyntaxKind::VariableAssign))
+}
+
+fn for_loop(p: &mut Parser) -> Option<CompletedMarker> {
+    assert!(p.at(TokenKind::ForKw));
+    let m = p.start();
+    p.bump();
+
+    p.expect(TokenKind::Ident);
+    p.expect(TokenKind::InKw);
+
+    expr::expr(p);
+
+    if expr::code_block(p).is_none() {
+        p.error();
+    }
+
+    Some(m.complete(p, SyntaxKind::ForLoop))
 }
 
 #[cfg(test)]
@@ -598,5 +617,193 @@ Root@0..13
                       Ident@16..17 "a"
                 [31mParse Error[0m: at 8..11, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m, [33mnew[0m or [33m{[0m, but found [31mlet[0m"#]],
         );
+    }
+
+    #[test]
+    fn parse_for_loop() {
+        check(
+            "for x in [1,2,3] { x }",
+            expect![[r#"
+            Root@0..22
+              ForLoop@0..22
+                ForKw@0..3 "for"
+                Whitespace@3..4 " "
+                Ident@4..5 "x"
+                Whitespace@5..6 " "
+                InKw@6..8 "in"
+                Whitespace@8..9 " "
+                List@9..17
+                  LBracket@9..10 "["
+                  Literal@10..11
+                    Number@10..11 "1"
+                  Comma@11..12 ","
+                  Literal@12..13
+                    Number@12..13 "2"
+                  Comma@13..14 ","
+                  Literal@14..15
+                    Number@14..15 "3"
+                  RBracket@15..16 "]"
+                  Whitespace@16..17 " "
+                CodeBlock@17..22
+                  LBrace@17..18 "{"
+                  Whitespace@18..19 " "
+                  VariableRef@19..21
+                    Ident@19..20 "x"
+                    Whitespace@20..21 " "
+                  RBrace@21..22 "}""#]],
+        );
+    }
+
+    #[test]
+    fn parse_ref_for_loop() {
+        check(
+            "let x = [1,2,3,4,5]
+        for item in x {
+          item 
+        }",
+            expect![[r#"
+                Root@0..69
+                  VariableDef@0..28
+                    LetKw@0..3 "let"
+                    Whitespace@3..4 " "
+                    Ident@4..5 "x"
+                    Whitespace@5..6 " "
+                    Equals@6..7 "="
+                    Whitespace@7..8 " "
+                    List@8..28
+                      LBracket@8..9 "["
+                      Literal@9..10
+                        Number@9..10 "1"
+                      Comma@10..11 ","
+                      Literal@11..12
+                        Number@11..12 "2"
+                      Comma@12..13 ","
+                      Literal@13..14
+                        Number@13..14 "3"
+                      Comma@14..15 ","
+                      Literal@15..16
+                        Number@15..16 "4"
+                      Comma@16..17 ","
+                      Literal@17..18
+                        Number@17..18 "5"
+                      RBracket@18..19 "]"
+                      Whitespace@19..28 "\n        "
+                  ForLoop@28..69
+                    ForKw@28..31 "for"
+                    Whitespace@31..32 " "
+                    Ident@32..36 "item"
+                    Whitespace@36..37 " "
+                    InKw@37..39 "in"
+                    Whitespace@39..40 " "
+                    VariableRef@40..42
+                      Ident@40..41 "x"
+                      Whitespace@41..42 " "
+                    CodeBlock@42..69
+                      LBrace@42..43 "{"
+                      Whitespace@43..54 "\n          "
+                      VariableRef@54..68
+                        Ident@54..58 "item"
+                        Whitespace@58..68 " \n        "
+                      RBrace@68..69 "}""#]],
+        )
+    }
+
+    #[test]
+    fn do_not_parse_for_without_in() {
+        check("for x [1,2,3] { }", expect![[r#"
+            Root@0..17
+              ForLoop@0..9
+                ForKw@0..3 "for"
+                Whitespace@3..4 " "
+                Ident@4..5 "x"
+                Whitespace@5..6 " "
+                Error@6..7
+                  LBracket@6..7 "["
+                Literal@7..8
+                  Number@7..8 "1"
+                Error@8..9
+                  Comma@8..9 ","
+              Literal@9..10
+                Number@9..10 "2"
+              Error@10..11
+                Comma@10..11 ","
+              Literal@11..12
+                Number@11..12 "3"
+              Error@12..14
+                RBracket@12..13 "]"
+                Whitespace@13..14 " "
+              CodeBlock@14..17
+                LBrace@14..15 "{"
+                Whitespace@15..16 " "
+                RBrace@16..17 "}"
+            [31mParse Error[0m: at 6..7, expected [33min[0m, but found [31m[[0m
+            [31mParse Error[0m: at 8..9, expected [33m{[0m, but found [31m,[0m
+            [31mParse Error[0m: at 10..11, expected [33mlet[0m, [33mfn[0m, [33mif[0m, [33mret[0m, [33mclass[0m, [33mfor[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m, [33mnew[0m or [33m{[0m, but found [31m,[0m
+            [31mParse Error[0m: at 12..13, expected [33mlet[0m, [33mfn[0m, [33mif[0m, [33mret[0m, [33mclass[0m, [33mfor[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m, [33mnew[0m or [33m{[0m, but found [31m][0m"#]]);
+    }
+
+    #[test]
+    fn do_not_parse_for_without_expr() {
+        check("for x in { }", expect![[r#"
+            Root@0..12
+              ForLoop@0..12
+                ForKw@0..3 "for"
+                Whitespace@3..4 " "
+                Ident@4..5 "x"
+                Whitespace@5..6 " "
+                InKw@6..8 "in"
+                Whitespace@8..9 " "
+                CodeBlock@9..12
+                  LBrace@9..10 "{"
+                  Whitespace@10..11 " "
+                  RBrace@11..12 "}"
+            [31mParse Error[0m: at 11..12, expected [33m{[0m"#]]);
+    }
+
+    #[test]
+    fn do_not_parse_for_without_opening_brace() {
+        check("for x in [1] }", expect![[r#"
+            Root@0..14
+              ForLoop@0..14
+                ForKw@0..3 "for"
+                Whitespace@3..4 " "
+                Ident@4..5 "x"
+                Whitespace@5..6 " "
+                InKw@6..8 "in"
+                Whitespace@8..9 " "
+                List@9..13
+                  LBracket@9..10 "["
+                  Literal@10..11
+                    Number@10..11 "1"
+                  RBracket@11..12 "]"
+                  Whitespace@12..13 " "
+                Error@13..14
+                  RBrace@13..14 "}"
+            [31mParse Error[0m: at 13..14, expected [33m{[0m, but found [31m}[0m"#]])
+    }
+
+    #[test]
+    fn do_not_parse_for_without_closing_brace() {
+        check("for x in [1,2] {", expect![[r#"
+            Root@0..16
+              ForLoop@0..16
+                ForKw@0..3 "for"
+                Whitespace@3..4 " "
+                Ident@4..5 "x"
+                Whitespace@5..6 " "
+                InKw@6..8 "in"
+                Whitespace@8..9 " "
+                List@9..15
+                  LBracket@9..10 "["
+                  Literal@10..11
+                    Number@10..11 "1"
+                  Comma@11..12 ","
+                  Literal@12..13
+                    Number@12..13 "2"
+                  RBracket@13..14 "]"
+                  Whitespace@14..15 " "
+                CodeBlock@15..16
+                  LBrace@15..16 "{"
+            [31mParse Error[0m: at 15..16, expected [33m}[0m"#]])
     }
 }
