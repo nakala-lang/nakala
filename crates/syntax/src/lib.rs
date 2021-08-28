@@ -15,7 +15,6 @@ pub enum SyntaxKind {
     ClassKw,
     NewKw,
     FieldsKw,
-    ThisKw,
     Ident,
     Number,
     String,
@@ -65,6 +64,7 @@ pub enum SyntaxKind {
     ClassField,
     ClassMethod,
     ClassCreate,
+    GetExpr,
     List,
     IndexOp,
 }
@@ -82,7 +82,6 @@ impl From<TokenKind> for SyntaxKind {
             TokenKind::ClassKw => Self::ClassKw,
             TokenKind::NewKw => Self::NewKw,
             TokenKind::FieldsKw => Self::FieldsKw,
-            TokenKind::ThisKw => Self::ThisKw,
             TokenKind::Ident => Self::Ident,
             TokenKind::Number => Self::Number,
             TokenKind::String => Self::String,

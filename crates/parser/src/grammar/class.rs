@@ -64,8 +64,6 @@ fn class_member_ident_list(p: &mut Parser) -> Option<CompletedMarker> {
     let m = p.start();
     p.expect(TokenKind::LParen);
 
-    p.expect(TokenKind::ThisKw);
-
     while p.at(TokenKind::Ident) || p.at(TokenKind::Comma) {
         p.bump();
     }
