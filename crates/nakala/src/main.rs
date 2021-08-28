@@ -128,8 +128,6 @@ fn cli_main(cli_args: ArgMatches) {
                                         Ok(val) => {
                                             if cli_args.is_present("dbg") {
                                                 println!("{:?}", val);
-                                            } else {
-                                                println!("{}", val);
                                             }
                                         }
                                         Err(e) => eprintln!("{}", e),
