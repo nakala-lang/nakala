@@ -4,8 +4,7 @@ use std::fmt::Display;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Val {
-    Missing, // filler name
-    Unit,    // Unit tuple
+    Unit, // Unit tuple
     Number(f64),
     String(String),
     Boolean(bool),
@@ -16,7 +15,6 @@ pub enum Val {
 impl Val {
     pub(crate) fn get_type(&self) -> &str {
         match self {
-            Val::Missing => "missing",
             Val::Unit => "unit",
             Val::Number(_) => "number",
             Val::String(_) => "string",
@@ -264,7 +262,7 @@ impl Val {
 impl Display for Val {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Val::Missing | Val::Unit => Ok(()),
+            Val::Unit => Ok(()),
             Val::Number(n) => write!(f, "{}", n),
             Val::String(s) => write!(f, "{}", s),
             Val::Boolean(b) => write!(f, "{}", b),
