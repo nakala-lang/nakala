@@ -165,14 +165,20 @@ fn eval_if_stmt(env: &mut Env, db: &Database, if_stmt: If) -> Result<Val, Engine
 
 fn eval_for_loop(env: &mut Env, db: &Database, for_loop: ForLoop) -> Result<Val, EngineError> {
     let item = for_loop.item.as_str();
-    let collection = match eval_expr(env, db, for_loop.collection)? {
+    let collection: Vec<Val> = match eval_expr(env, db, for_loop.collection)? {
         Val::List(items) => items,
+        Val::String(s) => s
+            .split("")
+            .into_iter()
+            .map(|x| Val::String(String::from(x)))
+            .collect(),
         x => return Err(EngineError::NonIterableValue { x }),
     };
 
     let stmts = for_loop.body.stmts;
+    env.define_variable(item, Val::Unit)?;
     for collection_item in collection {
-        env.define_variable(item, collection_item)?;
+        env.set_variable(item, collection_item)?;
         eval_code_block(env, db, stmts.clone())?;
     }
 
