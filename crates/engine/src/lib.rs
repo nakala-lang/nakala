@@ -4,6 +4,7 @@ use hir::{
 };
 use std::ops::Index;
 
+pub mod builtins;
 pub mod class;
 pub mod env;
 pub mod error;
@@ -14,6 +15,8 @@ use class::{Class, ClassDef};
 use env::Env;
 use error::EngineError;
 use val::Val;
+
+use crate::builtins::dispatch_builtin;
 
 pub fn eval(env: &mut Env, hir: Hir) -> Result<Val, EngineError> {
     let db = hir.db;
@@ -105,8 +108,16 @@ fn eval_function_call(
     func_name: String,
     param_value_list: Vec<Expr>,
 ) -> Result<Val, EngineError> {
-    let function = env.get_function(&func_name)?;
-    function.evaluate_with_params(env, db, param_value_list)
+    if builtins::BUILTINS.contains(&func_name.as_str()) {
+        let mut values = Vec::new();
+        for val in param_value_list {
+            values.push(eval_expr(env, db, val)?);
+        }
+        dispatch_builtin(func_name.as_str(), values)
+    } else {
+        let function = env.get_function(&func_name)?;
+        function.evaluate_with_params(env, db, param_value_list)
+    }
 }
 
 fn eval_list(env: &mut Env, db: &Database, items: Vec<Expr>) -> Result<Val, EngineError> {
