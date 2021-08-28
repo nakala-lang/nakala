@@ -30,6 +30,12 @@ pub enum TokenKind {
     #[token("new")]
     NewKw,
 
+    #[token("for")]
+    ForKw,
+
+    #[token("in")]
+    InKw,
+
     #[token("fields")]
     FieldsKw,
 
@@ -136,6 +142,8 @@ impl fmt::Display for TokenKind {
             Self::RetKw => "ret",
             Self::ClassKw => "class",
             Self::NewKw => "new",
+            Self::ForKw => "for",
+            Self::InKw => "in",
             Self::FieldsKw => "fields",
             Self::Ident => "identifier",
             Self::Number => "number",
@@ -230,6 +238,16 @@ mod tests {
     #[test]
     fn lex_new_keyword() {
         check("new", TokenKind::NewKw);
+    }
+
+    #[test]
+    fn lex_for_keyword() {
+        check("for", TokenKind::ForKw);
+    }
+
+    #[test]
+    fn lex_in_keyword() {
+        check("in", TokenKind::InKw);
     }
 
     #[test]
