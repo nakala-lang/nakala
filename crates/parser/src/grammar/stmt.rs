@@ -710,7 +710,9 @@ Root@0..13
 
     #[test]
     fn do_not_parse_for_without_in() {
-        check("for x [1,2,3] { }", expect![[r#"
+        check(
+            "for x [1,2,3] { }",
+            expect![[r#"
             Root@0..17
               ForLoop@0..9
                 ForKw@0..3 "for"
@@ -739,12 +741,15 @@ Root@0..13
             [31mParse Error[0m: at 6..7, expected [33min[0m, but found [31m[[0m
             [31mParse Error[0m: at 8..9, expected [33m{[0m, but found [31m,[0m
             [31mParse Error[0m: at 10..11, expected [33mlet[0m, [33mfn[0m, [33mif[0m, [33mret[0m, [33mclass[0m, [33mfor[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m, [33mnew[0m or [33m{[0m, but found [31m,[0m
-            [31mParse Error[0m: at 12..13, expected [33mlet[0m, [33mfn[0m, [33mif[0m, [33mret[0m, [33mclass[0m, [33mfor[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m, [33mnew[0m or [33m{[0m, but found [31m][0m"#]]);
+            [31mParse Error[0m: at 12..13, expected [33mlet[0m, [33mfn[0m, [33mif[0m, [33mret[0m, [33mclass[0m, [33mfor[0m, [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m, [33mnew[0m or [33m{[0m, but found [31m][0m"#]],
+        );
     }
 
     #[test]
     fn do_not_parse_for_without_expr() {
-        check("for x in { }", expect![[r#"
+        check(
+            "for x in { }",
+            expect![[r#"
             Root@0..12
               ForLoop@0..12
                 ForKw@0..3 "for"
@@ -757,12 +762,15 @@ Root@0..13
                   LBrace@9..10 "{"
                   Whitespace@10..11 " "
                   RBrace@11..12 "}"
-            [31mParse Error[0m: at 11..12, expected [33m{[0m"#]]);
+            [31mParse Error[0m: at 11..12, expected [33m{[0m"#]],
+        );
     }
 
     #[test]
     fn do_not_parse_for_without_opening_brace() {
-        check("for x in [1] }", expect![[r#"
+        check(
+            "for x in [1] }",
+            expect![[r#"
             Root@0..14
               ForLoop@0..14
                 ForKw@0..3 "for"
@@ -779,12 +787,15 @@ Root@0..13
                   Whitespace@12..13 " "
                 Error@13..14
                   RBrace@13..14 "}"
-            [31mParse Error[0m: at 13..14, expected [33m{[0m, but found [31m}[0m"#]])
+            [31mParse Error[0m: at 13..14, expected [33m{[0m, but found [31m}[0m"#]],
+        )
     }
 
     #[test]
     fn do_not_parse_for_without_closing_brace() {
-        check("for x in [1,2] {", expect![[r#"
+        check(
+            "for x in [1,2] {",
+            expect![[r#"
             Root@0..16
               ForLoop@0..16
                 ForKw@0..3 "for"
@@ -804,6 +815,7 @@ Root@0..13
                   Whitespace@14..15 " "
                 CodeBlock@15..16
                   LBrace@15..16 "{"
-            [31mParse Error[0m: at 15..16, expected [33m}[0m"#]])
+            [31mParse Error[0m: at 15..16, expected [33m}[0m"#]],
+        )
     }
 }
