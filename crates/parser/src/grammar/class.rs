@@ -163,69 +163,61 @@ mod tests {
 
     #[test]
     fn do_not_parse_method_without_this() {
-        check("class Foo { fn testing(this) { 5.0 }  fn somethingElse() { }  fn somethingElseAlso(x) { } }",
+        check("class Foo { fn testing() { 5.0 }  fn somethingElse() { }  fn somethingElseAlso(x) { } }",
         expect![[r#"
-            Root@0..91
-              ClassDef@0..91
+            Root@0..87
+              ClassDef@0..87
                 ClassKw@0..5 "class"
                 Whitespace@5..6 " "
                 Ident@6..9 "Foo"
                 Whitespace@9..10 " "
                 LBrace@10..11 "{"
                 Whitespace@11..12 " "
-                ClassMethod@12..38
+                ClassMethod@12..34
                   FnKw@12..14 "fn"
                   Whitespace@14..15 " "
                   Ident@15..22 "testing"
-                  ParamIdentList@22..29
+                  ParamIdentList@22..25
                     LParen@22..23 "("
-                    ThisKw@23..27 "this"
-                    RParen@27..28 ")"
-                    Whitespace@28..29 " "
-                  CodeBlock@29..38
-                    LBrace@29..30 "{"
-                    Whitespace@30..31 " "
-                    Literal@31..35
-                      Number@31..32 "5"
-                      Dot@32..33 "."
-                      Number@33..34 "0"
-                      Whitespace@34..35 " "
-                    RBrace@35..36 "}"
-                    Whitespace@36..38 "  "
-                ClassMethod@38..62
-                  FnKw@38..40 "fn"
-                  Whitespace@40..41 " "
-                  Ident@41..54 "somethingElse"
-                  ParamIdentList@54..59
-                    LParen@54..55 "("
-                    Error@55..57
-                      RParen@55..56 ")"
-                      Whitespace@56..57 " "
-                    Error@57..59
-                      LBrace@57..58 "{"
-                      Whitespace@58..59 " "
-                  Error@59..62
-                    RBrace@59..60 "}"
-                    Whitespace@60..62 "  "
-                ClassMethod@62..90
-                  FnKw@62..64 "fn"
-                  Whitespace@64..65 " "
-                  Ident@65..82 "somethingElseAlso"
-                  ParamIdentList@82..86
-                    LParen@82..83 "("
-                    Error@83..84
-                      Ident@83..84 "x"
-                    RParen@84..85 ")"
+                    RParen@23..24 ")"
+                    Whitespace@24..25 " "
+                  CodeBlock@25..34
+                    LBrace@25..26 "{"
+                    Whitespace@26..27 " "
+                    Literal@27..31
+                      Number@27..28 "5"
+                      Dot@28..29 "."
+                      Number@29..30 "0"
+                      Whitespace@30..31 " "
+                    RBrace@31..32 "}"
+                    Whitespace@32..34 "  "
+                ClassMethod@34..58
+                  FnKw@34..36 "fn"
+                  Whitespace@36..37 " "
+                  Ident@37..50 "somethingElse"
+                  ParamIdentList@50..53
+                    LParen@50..51 "("
+                    RParen@51..52 ")"
+                    Whitespace@52..53 " "
+                  CodeBlock@53..58
+                    LBrace@53..54 "{"
+                    Whitespace@54..55 " "
+                    RBrace@55..56 "}"
+                    Whitespace@56..58 "  "
+                ClassMethod@58..86
+                  FnKw@58..60 "fn"
+                  Whitespace@60..61 " "
+                  Ident@61..78 "somethingElseAlso"
+                  ParamIdentList@78..82
+                    LParen@78..79 "("
+                    Ident@79..80 "x"
+                    RParen@80..81 ")"
+                    Whitespace@81..82 " "
+                  CodeBlock@82..86
+                    LBrace@82..83 "{"
+                    Whitespace@83..84 " "
+                    RBrace@84..85 "}"
                     Whitespace@85..86 " "
-                  CodeBlock@86..90
-                    LBrace@86..87 "{"
-                    Whitespace@87..88 " "
-                    RBrace@88..89 "}"
-                    Whitespace@89..90 " "
-                RBrace@90..91 "}"
-            [31mParse Error[0m: at 55..56, expected [33mthis[0m, but found [31m)[0m
-            [31mParse Error[0m: at 57..58, expected [33midentifier[0m, [33m,[0m or [33m)[0m, but found [31m{[0m
-            [31mParse Error[0m: at 59..60, expected [33m{[0m, but found [31m}[0m
-            [31mParse Error[0m: at 83..84, expected [33mthis[0m, but found [31midentifier[0m"#]])
+                RBrace@86..87 "}""#]])
     }
 }
