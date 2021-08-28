@@ -52,6 +52,9 @@ pub enum EngineError {
     InvalidIndexOperation {
         x: Val,
     },
+    InvalidLenOperation {
+        x: Val,
+    },
     VariableAlreadyExists {
         variable_name: String,
     },
@@ -139,6 +142,7 @@ impl std::fmt::Display for EngineError {
             EngineError::InvalidAndOperation { x, y } => missing_handler_msg("AND", x, y),
             EngineError::InvalidOrOperation { x, y } => missing_handler_msg("OR", x, y),
             EngineError::InvalidIndexOperation { x } => missing_handler_msg_single("INDEX", x),
+            EngineError::InvalidLenOperation { x } => missing_handler_msg_single("LEN", x),
             EngineError::VariableAlreadyExists { variable_name } => format!(
                 "The variable {} already exists in the scope",
                 Yellow.paint(variable_name)
