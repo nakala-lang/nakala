@@ -3,7 +3,7 @@ for c in "reagan" {
 }
 
 let my_list = [1,2,3]
-for x in call len(my_list) {
+for x in my_list {
   call print(x)
 }
 
