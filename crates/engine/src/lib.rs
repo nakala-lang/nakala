@@ -179,7 +179,7 @@ fn eval_for_loop(env: &mut Env, db: &Database, for_loop: ForLoop) -> Result<Val,
     let collection: Vec<Val> = match eval_expr(env, db, for_loop.collection)? {
         Val::List(items) => items,
         Val::String(s) => s
-            .split("")
+            .chars()
             .into_iter()
             .map(|x| Val::String(String::from(x)))
             .collect(),
