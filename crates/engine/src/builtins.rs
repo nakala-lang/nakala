@@ -1,6 +1,6 @@
 use crate::{error::EngineError, val::Val};
 
-pub(crate) const BUILTINS: [&'static str; 3] = ["print", "println", "len"];
+pub(crate) const BUILTINS: [&str; 3] = ["print", "println", "len"];
 
 pub(crate) fn dispatch_builtin(
     func_name: &str,
