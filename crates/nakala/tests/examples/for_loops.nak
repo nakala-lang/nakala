@@ -1,0 +1,9 @@
+for c in "reagan" {
+  call println(c)
+}
+
+let my_list = [1,2,3]
+for x in call len(my_list) {
+  call print(x)
+}
+

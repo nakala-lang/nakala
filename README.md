@@ -74,6 +74,11 @@ As nakala is in its very early stages, the language does not have many features.
   <img src="./assets/ifs.png" />
 </p>
 
+#### Loops
+<p align="center">
+  <img src="./assets/for_loops.png" />
+</p>
+
 #### `.nak` File Format
 
 You can store a nakala program in a `.nak` file and run it using the CLI tool. For example:
