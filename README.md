@@ -25,7 +25,7 @@ Nakala only has two core values:
 2. Using (and working on) nakala should always be fun
 
 ## Features
-As nakala is in its very early stages, the language does not have many features. However, it does have:
+Even though nakala is still in active development, many features are supported so far:
 
 #### Binary Expressions
 <p align="center">
