@@ -40,3 +40,19 @@ fn duplicate_loops_work_correclty() {
     ";
     utils::compare_output(vec![], Some(input), "6");
 }
+
+#[test]
+fn nested_loops_work() {
+    let input = "
+        let iters = 0
+
+        for i in [1,2,3,4,5] {
+            for j in [1,2,3] {
+                iters = iters + 1
+            }
+        }
+
+        call print(iters)
+    ";
+    utils::compare_output(vec![], Some(input), "15")
+}
