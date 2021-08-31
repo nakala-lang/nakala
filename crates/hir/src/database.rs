@@ -690,4 +690,87 @@ mod tests {
             })
         )
     }
+
+    #[test]
+    fn lower_list_shorthand_simple() {
+        let root = parse("let x = [0; 3]");
+        let ast = root.stmts().next().unwrap();
+        let hir = Database::default().lower_stmt(ast).unwrap();
+
+        assert_eq!(
+            hir,
+            Stmt::VariableDef(VariableDef {
+                name: "x".into(),
+                value: Expr::ListShorthand {
+                    value: Box::new(Expr::Number { n: 0.0 }),
+                    count: Box::new(Expr::Number { n: 3.0 })
+                }
+            })
+        )
+    }
+
+    #[test]
+    fn lower_list_shorthand_lhs_expr() {
+        let mut exprs = Arena::new();
+        let lhs = exprs.alloc(Expr::Number { n: 5.0 });
+
+        check_expr(
+            "[-5; 5]",
+            Expr::ListShorthand {
+                value: Box::new(Expr::Unary {
+                    expr: lhs,
+                    op: UnaryOp::Neg,
+                }),
+                count: Box::new(Expr::Number { n: 5.0 }),
+            },
+            Database { exprs },
+        );
+    }
+
+    #[test]
+    fn lower_list_shorthand_rhs_expr() {
+        let mut exprs = Arena::new();
+        let a = exprs.alloc(Expr::Number { n: 10.0 });
+        let b = exprs.alloc(Expr::Number { n: 5.0 });
+
+        check_expr(
+            "[10 <= 5; 10]",
+            Expr::ListShorthand {
+                value: Box::new(Expr::Binary {
+                    lhs: a,
+                    rhs: b,
+                    op: BinaryOp::LessThanOrEqual,
+                }),
+                count: Box::new(Expr::Number { n: 10.0 }),
+            },
+            Database { exprs },
+        );
+    }
+
+    #[test]
+    fn lower_list_shorthand_both_expr() {
+        let mut exprs = Arena::new();
+        let lhs_a = exprs.alloc(Expr::Number { n: 1.0 });
+        let lhs_b = exprs.alloc(Expr::Number { n: 2.0 });
+
+        let rhs_a = exprs.alloc(Expr::Number { n: 3.0 });
+        let rhs_b = exprs.alloc(Expr::Number { n: 4.0 });
+
+        check_expr(
+            "[1 + 2; 3 + 4]",
+            Expr::ListShorthand {
+                value: Box::new(Expr::Binary {
+                    lhs: lhs_a,
+                    rhs: lhs_b,
+                    op: BinaryOp::Add,
+                }),
+                count: Box::new(Expr::Binary {
+                    lhs: rhs_a,
+                    rhs: rhs_b,
+                    op: BinaryOp::Add,
+                }),
+            },
+            Database { exprs },
+        );
+    }
 }
