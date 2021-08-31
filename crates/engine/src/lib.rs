@@ -91,6 +91,7 @@ fn eval_expr(env: &mut Env, db: &Database, expr: Expr) -> Result<Val, EngineErro
             param_value_list,
         } => eval_function_call(env, db, name, param_value_list),
         Expr::List { items } => eval_list(env, db, items),
+        Expr::ListShorthand { value, count } => eval_list_shorthand(env, db, *value, *count),
         Expr::IndexOp { ident, index } => eval_index_op(env, db, ident, *index),
         Expr::ClassCreate {
             name,
@@ -127,6 +128,22 @@ fn eval_list(env: &mut Env, db: &Database, items: Vec<Expr>) -> Result<Val, Engi
     }
 
     Ok(Val::List(evaluated_items))
+}
+
+fn eval_list_shorthand(
+    env: &mut Env,
+    db: &Database,
+    value: Expr,
+    count: Expr,
+) -> Result<Val, EngineError> {
+    let value = eval_expr(env, db, value)?;
+    let count = eval_expr(env, db, count)?;
+
+    if let Val::Number(n) = count {
+        Ok(Val::List(vec![value; n as usize]))
+    } else {
+        Err(EngineError::InvalidListShorthandRhs { actual: count })
+    }
 }
 
 fn eval_index_op(
