@@ -114,6 +114,9 @@ pub enum TokenKind {
     #[token(",")]
     Comma,
 
+    #[token(";")]
+    SemiColon,
+
     #[regex("#.*")]
     Comment,
 
@@ -170,6 +173,7 @@ impl fmt::Display for TokenKind {
             Self::NotKw => "not",
             Self::ComparisonEquals => "==",
             Self::Comma => ",",
+            Self::SemiColon => ";",
             Self::Comment => "comment",
             Self::Colon => ":",
             Self::Error => "an unrecognized token",
@@ -393,6 +397,11 @@ mod tests {
     #[test]
     fn lex_comma() {
         check(",", TokenKind::Comma);
+    }
+
+    #[test]
+    fn lex_semi_colon() {
+        check(";", TokenKind::SemiColon);
     }
 
     #[test]
