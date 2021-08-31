@@ -42,6 +42,7 @@ pub enum SyntaxKind {
     NotKw,
     ComparisonEquals,
     Comma,
+    SemiColon,
     Comment,
     Colon,
     Error,
@@ -70,6 +71,7 @@ pub enum SyntaxKind {
     List,
     IndexOp,
     ForLoop,
+    ListShorthand,
 }
 
 impl From<TokenKind> for SyntaxKind {
@@ -112,6 +114,7 @@ impl From<TokenKind> for SyntaxKind {
             TokenKind::NotKw => Self::NotKw,
             TokenKind::ComparisonEquals => Self::ComparisonEquals,
             TokenKind::Comma => Self::Comma,
+            TokenKind::SemiColon => Self::SemiColon,
             TokenKind::Comment => Self::Comment,
             TokenKind::Colon => Self::Colon,
             TokenKind::Error => Self::Error,
