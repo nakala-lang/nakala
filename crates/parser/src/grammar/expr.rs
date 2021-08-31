@@ -1374,7 +1374,9 @@ Root@0..23
 
     #[test]
     fn parse_simple_shorthand_list() {
-        check("[0; 5]", expect![[r#"
+        check(
+            "[0; 5]",
+            expect![[r#"
             Root@0..6
               ListShorthand@0..6
                 LBracket@0..1 "["
@@ -1384,7 +1386,8 @@ Root@0..23
                 Whitespace@3..4 " "
                 Literal@4..5
                   Number@4..5 "5"
-                RBracket@5..6 "]""#]]);
+                RBracket@5..6 "]""#]],
+        );
     }
 
     #[test]
