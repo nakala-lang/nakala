@@ -126,6 +126,10 @@ pub enum Expr {
     List {
         items: Vec<Expr>,
     },
+    ListShorthand {
+        value: Box<Expr>,
+        count: Box<Expr>,
+    },
     IndexOp {
         ident: String,
         index: Box<Expr>,

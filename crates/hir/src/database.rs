@@ -63,6 +63,7 @@ impl Database {
                 ast::Expr::CodeBlock(ast) => Expr::CodeBlock(self.lower_code_block(ast)),
                 ast::Expr::FunctionCall(ast) => self.lower_function_call(ast),
                 ast::Expr::List(ast) => self.lower_list(ast),
+                ast::Expr::ListShorthand(ast) => self.lower_list_shorthand(ast),
                 ast::Expr::IndexOp(ast) => self.lower_index_op(ast),
                 ast::Expr::ClassCreate(ast) => self.lower_class_create(ast),
             }
@@ -203,6 +204,13 @@ impl Database {
                 .into_iter()
                 .map(|x| self.lower_expr(Some(x)))
                 .collect(),
+        }
+    }
+
+    fn lower_list_shorthand(&mut self, ast: ast::ListShorthand) -> Expr {
+        Expr::ListShorthand {
+            value: Box::new(self.lower_expr(ast.value())),
+            count: Box::new(self.lower_expr(ast.count())),
         }
     }
 
