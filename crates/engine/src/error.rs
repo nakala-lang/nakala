@@ -84,6 +84,9 @@ pub enum EngineError {
         value: Val,
     },
     ListIndicesMustBeIntegers,
+    InvalidListShorthandRhs {
+        actual: Val,
+    },
     IndexOutOfBounds {
         index: usize,
         len: usize,
@@ -189,6 +192,11 @@ impl std::fmt::Display for EngineError {
                 "Can only return when inside the context of a function".into()
             }
             EngineError::ListIndicesMustBeIntegers => "List indices must be integers".into(),
+            EngineError::InvalidListShorthandRhs { actual } => format!(
+                "List Shorthand right hand side must be a {}, but got {} instead",
+                Green.paint("number"),
+                Yellow.paint(actual.get_type())
+            ),
             EngineError::IndexOutOfBounds { index, len } => format!(
                 "The index {} is out of bounds for list of length {}",
                 Yellow.paint(format!("{}", index)),
