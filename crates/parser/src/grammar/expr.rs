@@ -186,22 +186,32 @@ fn list(p: &mut Parser) -> CompletedMarker {
 
     let m = p.start();
     p.bump();
-
-    // Almost identical to function value params parsing
-    let mut should_still_parse = true;
-    while should_still_parse {
-        if p.at(TokenKind::Comma) {
-            p.bump();
-            should_still_parse = true;
-        } else if p.at(TokenKind::RBracket) {
-            p.bump();
-            should_still_parse = false;
-        } else {
-            should_still_parse = expr::expr(p).is_some();
+    expr::expr(p);
+    if p.at(TokenKind::SemiColon) {
+        // Semicolon means we are parsing a shorthand list
+        // which follows the syntax [<expr>; <expr>]
+        p.expect(TokenKind::SemiColon);
+        if expr::expr(p).is_none() {
+            p.error();
         }
+        p.expect(TokenKind::RBracket);
+        m.complete(p, SyntaxKind::ListShorthand)
+    } else {
+        // Almost identical to function value params parsing
+        let mut should_still_parse = true;
+        while should_still_parse {
+            if p.at(TokenKind::Comma) {
+                p.bump();
+                should_still_parse = true;
+            } else if p.at(TokenKind::RBracket) {
+                p.bump();
+                should_still_parse = false;
+            } else {
+                should_still_parse = expr::expr(p).is_some();
+            }
+        }
+        m.complete(p, SyntaxKind::List)
     }
-
-    m.complete(p, SyntaxKind::List)
 }
 
 fn index_expr(p: &mut Parser) -> CompletedMarker {
@@ -1359,6 +1369,97 @@ Root@0..23
                       Whitespace@32..33 " "
                   RBrace@33..34 "}"
                 RBracket@34..35 "]""#]],
+        );
+    }
+
+    #[test]
+    fn parse_simple_shorthand_list() {
+        check("[0; 5]", expect![[r#"
+            Root@0..6
+              ListShorthand@0..6
+                LBracket@0..1 "["
+                Literal@1..2
+                  Number@1..2 "0"
+                SemiColon@2..3 ";"
+                Whitespace@3..4 " "
+                Literal@4..5
+                  Number@4..5 "5"
+                RBracket@5..6 "]""#]]);
+    }
+
+    #[test]
+    fn parse_lhs_expr_shorthand_list() {
+        check(
+            "let x = 100
+        [x * -104; 100]",
+            expect![[r#"
+                Root@0..35
+                  VariableDef@0..20
+                    LetKw@0..3 "let"
+                    Whitespace@3..4 " "
+                    Ident@4..5 "x"
+                    Whitespace@5..6 " "
+                    Equals@6..7 "="
+                    Whitespace@7..8 " "
+                    Literal@8..20
+                      Number@8..11 "100"
+                      Whitespace@11..20 "\n        "
+                  ListShorthand@20..35
+                    LBracket@20..21 "["
+                    InfixExpr@21..29
+                      VariableRef@21..23
+                        Ident@21..22 "x"
+                        Whitespace@22..23 " "
+                      Star@23..24 "*"
+                      Whitespace@24..25 " "
+                      PrefixExpr@25..29
+                        Minus@25..26 "-"
+                        Literal@26..29
+                          Number@26..29 "104"
+                    SemiColon@29..30 ";"
+                    Whitespace@30..31 " "
+                    Literal@31..34
+                      Number@31..34 "100"
+                    RBracket@34..35 "]""#]],
+        )
+    }
+
+    #[test]
+    fn parse_rhs_expr_shorthand_list() {
+        check(
+            r#"let x = -1
+        ["hi"; x * -100]"#,
+            expect![[r#"
+                Root@0..35
+                  VariableDef@0..19
+                    LetKw@0..3 "let"
+                    Whitespace@3..4 " "
+                    Ident@4..5 "x"
+                    Whitespace@5..6 " "
+                    Equals@6..7 "="
+                    Whitespace@7..8 " "
+                    PrefixExpr@8..19
+                      Minus@8..9 "-"
+                      Literal@9..19
+                        Number@9..10 "1"
+                        Whitespace@10..19 "\n        "
+                  ListShorthand@19..35
+                    LBracket@19..20 "["
+                    Literal@20..24
+                      String@20..24 "\"hi\""
+                    SemiColon@24..25 ";"
+                    Whitespace@25..26 " "
+                    InfixExpr@26..34
+                      VariableRef@26..28
+                        Ident@26..27 "x"
+                        Whitespace@27..28 " "
+                      Star@28..29 "*"
+                      Whitespace@29..30 " "
+                      PrefixExpr@30..34
+                        Minus@30..31 "-"
+                        Literal@31..34
+                          Number@31..34 "100"
+                    RBracket@34..35 "]""#]],
         );
     }
 }
