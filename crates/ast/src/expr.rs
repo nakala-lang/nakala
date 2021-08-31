@@ -12,6 +12,7 @@ pub enum Expr {
     CodeBlock(CodeBlock),
     FunctionCall(FunctionCall),
     List(List),
+    ListShorthand(ListShorthand),
     IndexOp(IndexOp),
     ClassCreate(ClassCreate),
 }
@@ -27,6 +28,7 @@ impl Expr {
             SyntaxKind::CodeBlock => Self::CodeBlock(CodeBlock(node)),
             SyntaxKind::FunctionCall => Self::FunctionCall(FunctionCall(node)),
             SyntaxKind::List => Self::List(List(node)),
+            SyntaxKind::ListShorthand => Self::ListShorthand(ListShorthand(node)),
             SyntaxKind::IndexOp => Self::IndexOp(IndexOp(node)),
             SyntaxKind::ClassCreate => Self::ClassCreate(ClassCreate(node)),
             _ => {
@@ -196,6 +198,19 @@ pub struct List(SyntaxNode);
 impl List {
     pub fn items(&self) -> Vec<Expr> {
         self.0.children().filter_map(Expr::cast).collect()
+    }
+}
+
+#[derive(Debug)]
+pub struct ListShorthand(SyntaxNode);
+
+impl ListShorthand {
+    pub fn value(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast)
+    }
+
+    pub fn count(&self) -> Option<Expr> {
+        self.0.children().filter_map(Expr::cast).last()
     }
 }
 
