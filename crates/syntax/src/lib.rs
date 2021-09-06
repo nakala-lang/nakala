@@ -53,7 +53,6 @@ pub enum SyntaxKind {
     PrefixExpr,
     VariableDef,
     VariableRef,
-    VariableAssign,
     CodeBlock,
     FunctionDef,
     FunctionCall,
@@ -72,6 +71,7 @@ pub enum SyntaxKind {
     IndexOp,
     ForLoop,
     ListShorthand,
+    Assignment,
 }
 
 impl From<TokenKind> for SyntaxKind {
