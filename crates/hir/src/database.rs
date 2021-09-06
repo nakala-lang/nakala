@@ -1,6 +1,6 @@
 use crate::{
-    BinaryOp, ClassDef, CodeBlock, Else, ElseBranch, ElseIf, Expr, ForLoop, FunctionDef, If,
-    Return, Stmt, UnaryOp, VariableAssign, VariableDef,
+    Assignment, BinaryOp, ClassDef, CodeBlock, Else, ElseBranch, ElseIf, Expr, ForLoop,
+    FunctionDef, If, Return, Stmt, UnaryOp, VariableDef,
 };
 use la_arena::Arena;
 use syntax::SyntaxKind;
@@ -17,9 +17,14 @@ impl Database {
                 name: ast.name()?.text().into(),
                 value: self.lower_expr(ast.value()),
             }),
-            ast::Stmt::VariableAssign(ast) => Stmt::VariableAssign(VariableAssign {
+            ast::Stmt::VariableAssign(ast) => Stmt::Assignment(Assignment::Variable {
                 name: ast.name()?.text().into(),
                 value: self.lower_expr(ast.value()),
+            }),
+            ast::Stmt::ListIndexAssign(ast) => Stmt::Assignment(Assignment::ListIndex {
+                name: ast.name()?.text().into(),
+                value: self.lower_expr(ast.value()),
+                index: self.lower_expr(ast.value()),
             }),
             ast::Stmt::Expr(ast) => Stmt::Expr(self.lower_expr(Some(ast))),
             ast::Stmt::FunctionDef(ast) => Stmt::FunctionDef(self.lower_function_def(ast)?),
@@ -560,7 +565,7 @@ mod tests {
             Stmt::If(If {
                 expr: Expr::Boolean { b: true },
                 body: CodeBlock {
-                    stmts: vec![Stmt::VariableAssign(VariableAssign {
+                    stmts: vec![Stmt::Assignment(Assignment::Variable {
                         name: "x".into(),
                         value: Expr::Number { n: 5.0 }
                     })]
