@@ -7,6 +7,7 @@ pub enum Stmt {
     Expr(Expr),
     FunctionDef(FunctionDef),
     VariableAssign(VariableAssign),
+    ListIndexAssign(ListIndexAssign),
     If(If),
     ElseIf(ElseIf),
     Else(Else),
@@ -20,7 +21,17 @@ impl Stmt {
         let result = match node.kind() {
             SyntaxKind::VariableDef => Self::VariableDef(VariableDef(node)),
             SyntaxKind::FunctionDef => Self::FunctionDef(FunctionDef(node)),
-            SyntaxKind::VariableAssign => Self::VariableAssign(VariableAssign(node)),
+            SyntaxKind::Assignment => {
+                if node
+                    .children_with_tokens()
+                    .find(|t| t.kind() == SyntaxKind::LBrace)
+                    .is_some()
+                {
+                    todo!("list index assignments not yet supported")
+                } else {
+                    Self::VariableAssign(VariableAssign(node))
+                }
+            }
             SyntaxKind::If => Self::If(If(node)),
             SyntaxKind::ElseIf => Self::ElseIf(ElseIf(node)),
             SyntaxKind::Else => Self::Else(Else(node)),
@@ -90,6 +101,23 @@ impl VariableAssign {
 
     pub fn value(&self) -> Option<Expr> {
         self.0.children().find_map(Expr::cast)
+    }
+}
+
+#[derive(Debug)]
+pub struct ListIndexAssign(SyntaxNode);
+
+impl ListIndexAssign {
+    pub fn name(&self) -> Option<SyntaxToken> {
+        self.0.first_token()
+    }
+
+    pub fn index(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast)
+    }
+
+    pub fn value(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast).into_iter().nth(1)
     }
 }
 
