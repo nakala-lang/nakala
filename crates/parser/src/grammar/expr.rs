@@ -65,7 +65,7 @@ fn lhs(p: &mut Parser) -> Option<CompletedMarker> {
     let cm = if p.at(TokenKind::Number) || p.at(TokenKind::String) || p.at(TokenKind::Boolean) {
         literal(p)
     } else if p.at(TokenKind::Ident) {
-        if p.peek_multiple(vec![TokenKind::Ident, TokenKind::LBracket]) {
+        if p.peek_multiple(2) == vec![TokenKind::Ident, TokenKind::LBracket] {
             index_expr(p)
         } else {
             variable_ref(p)

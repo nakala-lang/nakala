@@ -101,18 +101,19 @@ impl<'t, 'input> Parser<'t, 'input> {
     // we need to peek more than one token. This probably
     // should be replaced with better parse functionality but
     // for now, this should be good enough
-    pub(crate) fn peek_multiple(&mut self, kinds: Vec<TokenKind>) -> bool {
+    pub(crate) fn peek_multiple(&mut self, n: usize) -> Vec<TokenKind> {
         let mut cloned_parser = self.clone();
 
-        for kind in kinds.into_iter() {
-            if cloned_parser.at_end() || !cloned_parser.at(kind) {
-                return false;
+        let mut ret = vec![];
+        while let Some(t) = cloned_parser.peek() {
+            if ret.len() == n {
+                break;
             }
-
+            ret.push(t);
             cloned_parser.bump();
         }
 
-        true
+        ret
     }
 
     fn peek(&mut self) -> Option<TokenKind> {

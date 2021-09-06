@@ -61,7 +61,7 @@ fn if_stmt(p: &mut Parser) -> Option<CompletedMarker> {
         Some(m.complete(p, SyntaxKind::Error))
     } else {
         // at the end of the if's code block, there be else branches
-        if p.peek_multiple(vec![TokenKind::ElseKw, TokenKind::IfKw]) {
+        if p.peek_multiple(2) == vec![TokenKind::ElseKw, TokenKind::IfKw] {
             else_if(p);
         } else if p.at(TokenKind::ElseKw) {
             else_stmt(p);
@@ -609,6 +609,26 @@ Root@0..13
                       Number@22..25 "100"
                 [31mParse Error[0m: at 14..17, expected [33mnumber[0m, [33mstring[0m, [33mboolean[0m, [33midentifier[0m, [33m-[0m, [33mnot[0m, [33m([0m, [33mcall[0m, [33m[[0m, [33mnew[0m or [33m{[0m, but found [31mlet[0m"#]],
         )
+    }
+
+    #[test]
+    fn simple_list_index_assign() {
+        check("x[1] = 5", expect![[r#""#]])
+    }
+
+    #[test]
+    fn expr_list_index_assign() {
+        check("x[5 + 5] = 1", expect![[r#""#]])
+    }
+
+    #[test]
+    fn simple_list_index_assign_to_expr() {
+        check("x[1] = 5 + 10", expect![[r#""#]]);
+    }
+
+    #[test]
+    fn expr_list_index_assign_to_expr() {
+        check(r#"x[5 + -1] = "hello""#, expect![[r#""#]])
     }
 
     #[test]
