@@ -1,6 +1,6 @@
 use hir::{
-    BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, ForLoop, FunctionDef, Hir, If,
-    Return, Stmt, UnaryOp, VariableAssign, VariableDef,
+    Assignment, BinaryOp, CodeBlock, Database, ElseBranch, Expr, ExprIdx, ForLoop, FunctionDef,
+    Hir, If, Return, Stmt, UnaryOp, VariableDef,
 };
 use std::ops::Index;
 
@@ -36,9 +36,7 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         Stmt::VariableDef(VariableDef { name, value }) => {
             eval_variable_def(env, db, name.to_string(), value)
         }
-        Stmt::VariableAssign(VariableAssign { name, value }) => {
-            eval_variable_assign(env, db, name.to_string(), value)
-        }
+        Stmt::Assignment(assign) => eval_assignment(env, db, assign),
         Stmt::FunctionDef(func_def) => eval_function_def(env, db, func_def),
         Stmt::If(if_stmt) => eval_if_stmt(env, db, if_stmt),
         Stmt::ElseIf(else_if) => eval_if_stmt(env, db, else_if.if_stmt),
@@ -46,6 +44,48 @@ fn eval_stmt(env: &mut Env, db: &Database, stmt: Stmt) -> Result<Val, EngineErro
         Stmt::Return(return_stmt) => eval_return(env, db, return_stmt),
         Stmt::ClassDef(class_def) => eval_class_def(env, db, class_def),
         Stmt::ForLoop(for_loop) => eval_for_loop(env, db, for_loop),
+    }
+}
+
+fn eval_assignment(env: &mut Env, db: &Database, assign: Assignment) -> Result<Val, EngineError> {
+    match assign {
+        Assignment::Variable { name, value } => {
+            let val = eval_expr(env, db, value)?;
+            env.set_variable(&name, val).map(|_| Val::Unit)
+        }
+        Assignment::ListIndex { name, value, index } => {
+            let val = eval_expr(env, db, value)?;
+            let list = env.get_variable(&name)?;
+            let index = eval_expr(env, db, index)?;
+            if let Val::List(mut l) = list {
+                if let Val::Number(n) = index {
+                    let index_as_int = n as usize;
+                    // We only support int indices for now. This checks if the
+                    // cast to usize was lossless
+                    #[allow(clippy::float_cmp)]
+                    if n == (n as usize) as f64 {
+                        if index_as_int >= l.len() {
+                            Err(EngineError::IndexOutOfBounds {
+                                index: index_as_int,
+                                len: l.len(),
+                            })
+                        } else {
+                            l[index_as_int] = val;
+                            Ok(Val::Unit)
+                        }
+                    } else {
+                        Err(EngineError::ListIndicesMustBeIntegers)
+                    }
+                } else {
+                    Err(EngineError::MismatchedTypes {
+                        expected: Val::Number(0.0),
+                        actual: index,
+                    })
+                }
+            } else {
+                Err(EngineError::InvalidIndexOperation { x: list })
+            }
+        }
     }
 }
 
@@ -165,16 +205,6 @@ fn eval_variable_def(
 ) -> Result<Val, EngineError> {
     let val = eval_expr(env, db, value)?;
     env.define_variable(&name, val)
-}
-
-fn eval_variable_assign(
-    env: &mut Env,
-    db: &Database,
-    name: String,
-    value: Expr,
-) -> Result<Val, EngineError> {
-    let val = eval_expr(env, db, value)?;
-    env.set_variable(&name, val).map(|_| Val::Unit)
 }
 
 fn eval_if_stmt(env: &mut Env, db: &Database, if_stmt: If) -> Result<Val, EngineError> {
