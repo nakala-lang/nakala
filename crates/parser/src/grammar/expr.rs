@@ -224,7 +224,15 @@ fn index_expr(p: &mut Parser) -> CompletedMarker {
     expr::expr(p);
     p.expect(TokenKind::RBracket);
 
-    m.complete(p, SyntaxKind::IndexOp)
+    // this might have been an assignment, not a expression
+    let next_tokens = p.peek_multiple(2);
+    if next_tokens.get(0) == Some(&TokenKind::Equals)
+        && next_tokens.get(1) != Some(&TokenKind::Equals)
+    {
+        m.complete(p, SyntaxKind::Assignment)
+    } else {
+        m.complete(p, SyntaxKind::IndexOp)
+    }
 }
 
 enum BinaryOp {

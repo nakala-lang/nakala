@@ -18,8 +18,18 @@ pub(super) fn stmt(p: &mut Parser) -> Option<CompletedMarker> {
         // since you could have x + 1 for example. Therefore,
         // we have to peek for the following signature to be sure
         //   <ident> <equals>
-        if p.peek_multiple(vec![TokenKind::Ident, TokenKind::Equals]) {
-            variable_assign(p)
+        //   <ident>[<expr>] <equals>
+        let next_tokens = p.peek_multiple(2);
+        if let Some(TokenKind::Ident) = next_tokens.get(0) {
+            if matches!(
+                next_tokens.get(1),
+                Some(TokenKind::Equals) | Some(TokenKind::LBracket)
+            ) {
+                println!("{:?} resulting in assignment", next_tokens);
+                assignment(p)
+            } else {
+                expr::expr(p)
+            }
         } else {
             expr::expr(p)
         }
@@ -97,16 +107,24 @@ fn return_stmt(p: &mut Parser) -> Option<CompletedMarker> {
     Some(m.complete(p, SyntaxKind::Return))
 }
 
-fn variable_assign(p: &mut Parser) -> Option<CompletedMarker> {
+fn assignment(p: &mut Parser) -> Option<CompletedMarker> {
     assert!(p.at(TokenKind::Ident));
     let m = p.start();
 
     p.bump();
+
+    // Support for list index assignments like `my_arr[1] = 5`
+    if p.at(TokenKind::LBracket) {
+        p.expect(TokenKind::LBracket);
+        expr::expr(p);
+        p.expect(TokenKind::RBracket);
+    }
+
     p.expect(TokenKind::Equals);
 
     expr::expr(p);
 
-    Some(m.complete(p, SyntaxKind::VariableAssign))
+    Some(m.complete(p, SyntaxKind::Assignment))
 }
 
 fn for_loop(p: &mut Parser) -> Option<CompletedMarker> {
@@ -154,14 +172,14 @@ Root@0..13
         check(
             "x = 5",
             expect![[r#"
-            Root@0..5
-              VariableAssign@0..5
-                Ident@0..1 "x"
-                Whitespace@1..2 " "
-                Equals@2..3 "="
-                Whitespace@3..4 " "
-                Literal@4..5
-                  Number@4..5 "5""#]],
+                Root@0..5
+                  Assignment@0..5
+                    Ident@0..1 "x"
+                    Whitespace@1..2 " "
+                    Equals@2..3 "="
+                    Whitespace@3..4 " "
+                    Literal@4..5
+                      Number@4..5 "5""#]],
         )
     }
 
@@ -311,7 +329,7 @@ Root@0..13
                             Literal@37..39
                               Number@37..38 "5"
                               Whitespace@38..39 " "
-                          VariableAssign@39..46
+                          Assignment@39..46
                             Ident@39..40 "x"
                             Whitespace@40..41 " "
                             Equals@41..42 "="
@@ -319,7 +337,7 @@ Root@0..13
                             Literal@43..46
                               Number@43..45 "10"
                               Whitespace@45..46 " "
-                          VariableAssign@46..57
+                          Assignment@46..57
                             Ident@46..47 "x"
                             Whitespace@47..48 " "
                             Equals@48..49 "="
@@ -575,7 +593,7 @@ Root@0..13
                     Literal@8..10
                       Number@8..9 "5"
                       Whitespace@9..10 " "
-                  VariableAssign@10..14
+                  Assignment@10..14
                     Ident@10..11 "x"
                     Whitespace@11..12 " "
                     Equals@12..13 "="
