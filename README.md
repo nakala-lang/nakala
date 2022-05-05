@@ -27,6 +27,7 @@ Nakala only has two core values:
 - [ ] Create language's grammar
 - [ ] Lexer
 - [ ] Parser / AST
+- [ ] Type Checking
 - [ ] Runtime
 - [ ] Compiler
 
