@@ -5,15 +5,17 @@ use std::fmt;
 pub enum TokenKind {
     #[regex(r"[\s\t\n\f]+")] 
     Whitespace,
+    #[regex(r"//.*")]
+    Comment,
 
     // Single-character tokens
-    #[token(")")]
-    LeftParen,
     #[token("(")]
+    LeftParen,
+    #[token(")")]
     RightParen,
-    #[token("}")]
-    LeftBrace,
     #[token("{")]
+    LeftBrace,
+    #[token("}")]
     RightBrace,
     #[token(",")]
     Comma,
@@ -92,6 +94,62 @@ pub enum TokenKind {
     Error,
 }
 
+impl fmt::Display for TokenKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Whitespace => "whitespace",
+            Self::Comment => "comment",
+
+            // Single-character tokens
+            Self::LeftParen => "(",
+            Self::RightParen => ")",
+            Self::LeftBrace => "{",
+            Self::RightBrace => "}",
+            Self::Comma => ",",
+            Self::Dot => ".",
+            Self::Minus => "-",
+            Self::Plus => "+",
+            Self::Semicolon => ";",
+            Self::Slash => "/",
+            Self::Star => "*",
+
+            // One or more character tokens
+            Self::Bang => "!",
+            Self::BangEqual => "!=",
+            Self::Equal => "=",
+            Self::EqualEqual => "==",
+            Self::Greater => ">",
+            Self::GreaterEqual => ">=",
+            Self::Less => "<",
+            Self::LessEqual => "<=",
+            
+            // Literals
+            Self::Ident => "ident",
+            Self::String => "string",
+            Self::Number => "number",
+
+            // Keywords
+            Self::And => "and",
+            Self::Class => "class",
+            Self::Else => "else",
+            Self::False => "false",
+            Self::Func => "func",
+            Self::If => "if",
+            Self::Null => "null",
+            Self::Or => "or",
+            Self::Print => "print",
+            Self::Ret => "ret",
+            Self::Super => "super",
+            Self::This => "this",
+            Self::True => "true",
+            Self::Let => "let",
+            Self::Until => "until",
+
+            Self::Error => "error"
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -103,6 +161,7 @@ mod tests {
         let token = lexer.next().unwrap();
         assert_eq!(token.kind, kind);
         assert_eq!(token.text, input);
+        assert_eq!(lexer.next(), None);
     }
 
     #[test]
@@ -117,23 +176,38 @@ mod tests {
     }
 
     #[test]
+    fn lex_comment() {
+        check("// this is a comment", TokenKind::Comment);
+    }
+
+    #[test]
+    fn lex_comment_excluding_next_line() {
+        let mut lexer = Lexer::new(r"//this is a comment
++");
+        
+        let token = lexer.next().unwrap();
+        assert_eq!(token.kind, TokenKind::Comment);
+        assert_eq!(token.text, "//this is a comment");
+    }
+
+    #[test]
     fn lex_left_paren() {
-        check(")", TokenKind::LeftParen);
+        check("(", TokenKind::LeftParen);
     }
 
     #[test]
     fn lex_right_paren() {
-        check("(", TokenKind::RightParen);
+        check(")", TokenKind::RightParen);
     }
 
     #[test]
     fn lex_left_brace() {
-        check("}", TokenKind::LeftBrace);
+        check("{", TokenKind::LeftBrace);
     }
 
     #[test]
     fn lex_right_brace() {
-        check("{", TokenKind::RightBrace);
+        check("}", TokenKind::RightBrace);
     }
 
     #[test]
