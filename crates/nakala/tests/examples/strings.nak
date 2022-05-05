@@ -1,5 +1,0 @@
-let my_name = "Reagan"
-
-let are_equal = my_name == "Reagan"
-
-are_equal
