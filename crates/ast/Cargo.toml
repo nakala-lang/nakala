@@ -1,5 +1,5 @@
 [package]
-name = "parser"
+name = "ast"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,3 @@ edition = "2021"
 
 [dependencies]
 lexer = { path = "../lexer" }
-ast = { path = "../ast" }
-miette = { version = "4.7.0" }
-text-size = "1.1.0"
-thiserror = "1.0.31"

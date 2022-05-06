@@ -2,6 +2,15 @@
 
 The grammar specification for nakala, A C style language. Huge shoutout to Bob Nystrom from "Crafting Interpreters", as I used a lot of his language design for this (as I would be confident it would end up with a working language as I wanted in the end)
 
+```
+expr -> literal | unary | binary | grouping
+literal -> NUMBER | STRING | "true" | "false" | "null"
+grouping -> "(" expr ")"
+unary -> ( "-" | "!" ) expr
+binary -> expr op expr
+op -> "==" | "!=" | "<" | "<=" | ">" | ">=" | "+" | "-" | "*" | "/"
+```
+
 ### Types
 ```
 bool

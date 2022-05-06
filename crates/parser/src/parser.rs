@@ -1,79 +1,25 @@
-use crate::source::Source;
-use lexer::{TokenKind, Token};
+use crate::{error::ParseError, source::Source};
+use ast::*;
+use lexer::{Token, TokenKind};
+use miette::Result;
 
-#[derive(Debug, PartialEq)]
-pub enum Op {
-    Equals,
-    NotEquals,
-    LessThan,
-    LessThanEquals,
-    GreaterThan,
-    GreaterThanEquals,
-    Add,
-    Sub,
-    Mul,
-    Div
+pub struct Parser<'input> {
+    source: Source<'input>,
 }
 
-impl From<TokenKind> for Op {
-    fn from(kind: TokenKind) -> Self {
-        match kind {
-            TokenKind::Equal => Op::Equals,
-            TokenKind::BangEqual => Op::NotEquals,
-            TokenKind::Less => Op::LessThan,
-            TokenKind::LessEqual => Op::LessThanEquals,
-            TokenKind::Greater => Op::GreaterThan,
-            TokenKind::GreaterEqual => Op::GreaterThanEquals,
-            TokenKind::Plus => Op::Add,
-            TokenKind::Minus => Op::Sub,
-            TokenKind::Star => Op::Mul,
-            TokenKind::Slash => Op::Div,
-            _ => unreachable!("ICE : Tried to convert non-op token into Op enum")
-        }
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Expr {
-    Literal(Literal),
-    Unary {
-        op: Op,
-        rhs: Box<Expr>
-    },
-    Binary {
-        lhs: Box<Expr>,
-        op: Op,
-        rhs: Box<Expr>
-    },
-    Grouping(Box<Expr>)
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Literal {
-    Number {
-        val: f64
-    },
-    String {
-        val: String
-    },
-    True,
-    False,
-    Null
-}
-
-pub struct Parser<'t, 'input> {
-    source: Source<'t, 'input>,
-}
-
-impl<'t, 'input> Parser<'t, 'input> {
-    pub fn new(source: Source<'t, 'input>) -> Self {
-        Self {
-            source
-        }
+impl<'input> Parser<'input> {
+    pub fn new(source: Source<'input>) -> Self {
+        Self { source }
     }
 
-    fn bump(&mut self) -> &Token {
-        self.source.next_token().unwrap()
+    fn bump(&mut self) -> Result<&Token, ParseError> {
+        let eof = self.source.eof();
+        let eof_err = Err(ParseError::UnexpectedEof((&self.source).into(), eof));
+
+        match self.source.next_token() {
+            Some(t) => Ok(t),
+            None => eof_err,
+        }
     }
 
     fn at(&mut self, kind: TokenKind) -> bool {
@@ -84,114 +30,137 @@ impl<'t, 'input> Parser<'t, 'input> {
         self.source.peek_kind().map_or(false, |k| set.contains(&k))
     }
 
-    pub(crate) fn expr(&mut self) -> Expr {
+    pub(crate) fn expr(&mut self) -> Result<Expr, ParseError> {
         self.equality()
     }
-    
-    fn equality(&mut self) -> Expr {
-        let mut expr = self.comparison();
+
+    fn equality(&mut self) -> Result<Expr, ParseError> {
+        let mut expr = self.comparison()?;
         while self.at_set(&[TokenKind::BangEqual, TokenKind::EqualEqual]) {
-            let op = self.bump().kind.into();
-            let rhs = self.comparison();
+            let op = self.bump()?.kind.into();
+            let rhs = self.comparison()?;
 
             expr = Expr::Binary {
                 lhs: Box::new(expr),
                 op,
-                rhs: Box::new(rhs)
+                rhs: Box::new(rhs),
             }
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn comparison(&mut self) -> Expr {
-        let mut expr = self.term();
-        
-        while self.at_set(&[TokenKind::Greater, TokenKind::GreaterEqual, TokenKind::Less, TokenKind::LessEqual]) {
-            let op = self.bump().kind.into();
-            let rhs = self.term();
+    fn comparison(&mut self) -> Result<Expr, ParseError> {
+        let mut expr = self.term()?;
+
+        while self.at_set(&[
+            TokenKind::Greater,
+            TokenKind::GreaterEqual,
+            TokenKind::Less,
+            TokenKind::LessEqual,
+        ]) {
+            let op = self.bump()?.kind.into();
+            let rhs = self.term()?;
 
             expr = Expr::Binary {
                 lhs: Box::new(expr),
                 op,
-                rhs: Box::new(rhs)
+                rhs: Box::new(rhs),
             }
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn term(&mut self) -> Expr {
-        let mut expr = self.factor();
+    fn term(&mut self) -> Result<Expr, ParseError> {
+        let mut expr = self.factor()?;
 
         while self.at_set(&[TokenKind::Minus, TokenKind::Plus]) {
-            let op = self.bump().kind.into();
-            let rhs = self.factor();
+            let op = self.bump()?.kind.into();
+            let rhs = self.factor()?;
 
             expr = Expr::Binary {
                 lhs: Box::new(expr),
                 op,
-                rhs: Box::new(rhs)
+                rhs: Box::new(rhs),
             }
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn factor(&mut self) -> Expr {
-        let mut expr = self.unary();
+    fn factor(&mut self) -> Result<Expr, ParseError> {
+        let mut expr = self.unary()?;
 
         while self.at_set(&[TokenKind::Slash, TokenKind::Star]) {
-            let op = self.bump().kind.into();
-            let rhs = self.unary();
+            let op = self.bump()?.kind.into();
+            let rhs = self.unary()?;
 
             expr = Expr::Binary {
                 lhs: Box::new(expr),
                 op,
-                rhs: Box::new(rhs)
+                rhs: Box::new(rhs),
             }
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn unary(&mut self) -> Expr {
+    fn unary(&mut self) -> Result<Expr, ParseError> {
         if self.at_set(&[TokenKind::Bang, TokenKind::Minus]) {
-            let op = self.bump().kind.into();
-            let rhs = self.unary();
+            let op = self.bump()?.kind.into();
+            let rhs = self.unary()?;
 
-            Expr::Unary {
+            Ok(Expr::Unary {
                 op,
-                rhs: Box::new(rhs)
-            }
+                rhs: Box::new(rhs),
+            })
         } else {
             self.primary()
         }
     }
 
-    fn primary(&mut self) -> Expr {
+    fn primary(&mut self) -> Result<Expr, ParseError> {
         if self.at(TokenKind::False) {
-            Expr::Literal(Literal::False)
+            Ok(Expr::Literal(Literal::False))
         } else if self.at(TokenKind::True) {
-            Expr::Literal(Literal::True)
+            Ok(Expr::Literal(Literal::True))
         } else if self.at(TokenKind::Null) {
-            Expr::Literal(Literal::Null)
+            Ok(Expr::Literal(Literal::Null))
         } else if self.at(TokenKind::LeftParen) {
-            let expr = self.expr();
-            let t = self.bump();
+            self.bump();
+            let expr = self.expr()?;
+            let t = self.bump()?;
             if t.kind != TokenKind::RightParen {
-                todo!("error: expected right paren")
+                let actual = t.text.to_string();
+                let span = t.span;
+                Err(ParseError::ExpectedToken(
+                    (&self.source).into(),
+                    actual,
+                    TokenKind::RightParen,
+                    span,
+                ))
             } else {
-                Expr::Grouping(Box::new(expr))
+                Ok(Expr::Grouping(Box::new(expr)))
             }
         } else if self.at(TokenKind::Number) {
-            let token = self.bump();
-            Expr::Literal(Literal::Number { val: token.text.parse::<f64>().expect("ICE: Couldn't parse number") })
+            let token = self.bump()?;
+            Ok(Expr::Literal(Literal::Number {
+                val: token
+                    .text
+                    .parse::<f64>()
+                    .expect("ICE: Couldn't parse number"),
+            }))
         } else if self.at(TokenKind::String) {
-            let token = self.bump();
-            Expr::Literal(Literal::String { val: token.text.into() })
+            let token = self.bump()?;
+            Ok(Expr::Literal(Literal::String {
+                val: token.text.into(),
+            }))
         } else {
-            unreachable!("ICE: primary didn't expand")
+            Err(ParseError::ExpectedExpression(
+                (&self.source).into(),
+                self.bump()?.span,
+            ))
         }
     }
 }
