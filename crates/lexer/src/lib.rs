@@ -42,12 +42,3 @@ impl<'a> Iterator for Lexer<'a> {
         Some(Self::Item { kind, text, range })
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
