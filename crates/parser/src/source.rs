@@ -38,6 +38,10 @@ impl<'input> Source<'input> {
         (self.raw.len() - 1, 0).into()
     }
 
+    pub fn at_end(&self) -> bool {
+        self.peek_token_raw().is_none()
+    }
+
     fn eat_trivia(&mut self) {
         while self.at_trivia() {
             self.cursor += 1;

@@ -1,7 +1,7 @@
-use lexer::TokenKind;
-use thiserror::Error;
 use crate::source::Source;
+use lexer::TokenKind;
 use miette::{Diagnostic, NamedSource, SourceSpan};
+use thiserror::Error;
 
 #[derive(Error, Diagnostic, Debug)]
 pub enum ParseError {
@@ -10,20 +10,15 @@ pub enum ParseError {
         code(nak::cant_parse_primary_expr),
         help("Change this into an expression")
     )]
-    ExpectedExpression(
-        #[source_code] NamedSource,
-        #[label] SourceSpan
-    ),
+    ExpectedExpression(#[source_code] NamedSource, #[label] SourceSpan),
 
     #[error("Expected token {1}")]
-    #[diagnostic(
-        code(nak::expected_token)
-    )]
+    #[diagnostic(code(nak::expected_token))]
     ExpectedToken(
         #[source_code] NamedSource,
         String,
         TokenKind,
-        #[label("Consider adding '{2}' here")] SourceSpan
+        #[label("Consider adding '{2}' here")] SourceSpan,
     ),
 
     #[error("Unexpected EOF")]
@@ -31,8 +26,5 @@ pub enum ParseError {
         code(nak::unexpected_eof),
         help("Expected more tokens, but none were found")
     )]
-    UnexpectedEof(
-        #[source_code] NamedSource,
-        #[label] SourceSpan
-    )
+    UnexpectedEof(#[source_code] NamedSource, #[label] SourceSpan),
 }

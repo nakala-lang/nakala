@@ -3,7 +3,7 @@ use std::fmt;
 
 #[derive(Logos, Debug, Copy, Clone, PartialEq)]
 pub enum TokenKind {
-    #[regex(r"[\s\t\n\f]+")] 
+    #[regex(r"[\s\t\n\f]+")]
     Whitespace,
     #[regex(r"//.*")]
     Comment,
@@ -128,7 +128,7 @@ impl fmt::Display for TokenKind {
             Self::GreaterEqual => ">=",
             Self::Less => "<",
             Self::LessEqual => "<=",
-            
+
             // Literals
             Self::Ident => "ident",
             Self::String => "string",
@@ -151,7 +151,7 @@ impl fmt::Display for TokenKind {
             Self::Let => "let",
             Self::Until => "until",
 
-            Self::Error => "error"
+            Self::Error => "error",
         })
     }
 }
@@ -188,9 +188,11 @@ mod tests {
 
     #[test]
     fn lex_comment_excluding_next_line() {
-        let mut lexer = Lexer::new(r"//this is a comment
-+");
-        
+        let mut lexer = Lexer::new(
+            r"//this is a comment
++",
+        );
+
         let token = lexer.next().unwrap();
         assert_eq!(token.kind, TokenKind::Comment);
         assert_eq!(token.text, "//this is a comment");
@@ -250,7 +252,7 @@ mod tests {
     fn lex_star() {
         check("*", TokenKind::Star);
     }
-  
+
     #[test]
     fn lex_bang() {
         check("!", TokenKind::Bang);
@@ -265,12 +267,12 @@ mod tests {
     fn lex_equal() {
         check("=", TokenKind::Equal);
     }
- 
+
     #[test]
     fn lex_equal_equal() {
         check("==", TokenKind::EqualEqual);
     }
-    
+
     #[test]
     fn lex_greater() {
         check(">", TokenKind::Greater);
@@ -285,7 +287,7 @@ mod tests {
     fn lex_less() {
         check("<", TokenKind::Less);
     }
- 
+
     #[test]
     fn lex_less_equal() {
         check("<=", TokenKind::LessEqual);
@@ -313,7 +315,10 @@ mod tests {
 
     #[test]
     fn lex_weird_string() {
-        check(r#""jfsdkaljf asdk kfjsd akfjsda asd fiasd""#, TokenKind::String);
+        check(
+            r#""jfsdkaljf asdk kfjsd akfjsda asd fiasd""#,
+            TokenKind::String,
+        );
     }
 
     #[test]
@@ -330,7 +335,6 @@ mod tests {
     fn lex_zero_leading_float() {
         check("0.123", TokenKind::Number);
     }
-
 
     #[test]
     fn lex_and() {

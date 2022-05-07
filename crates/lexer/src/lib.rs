@@ -1,6 +1,6 @@
 use logos::Logos;
-use std::ops::Range as StdRange;
 use miette::SourceSpan;
+use std::ops::Range as StdRange;
 
 mod token_kind;
 pub use token_kind::TokenKind;
@@ -9,17 +9,17 @@ pub use token_kind::TokenKind;
 pub struct Token<'a> {
     pub kind: TokenKind,
     pub text: &'a str,
-    pub span: SourceSpan
+    pub span: SourceSpan,
 }
 
 pub struct Lexer<'a> {
-    inner: logos::Lexer<'a, TokenKind>
+    inner: logos::Lexer<'a, TokenKind>,
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
         Self {
-            inner: TokenKind::lexer(input)
+            inner: TokenKind::lexer(input),
         }
     }
 }

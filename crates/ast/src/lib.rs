@@ -11,13 +11,13 @@ pub enum Op {
     Add,
     Sub,
     Mul,
-    Div
+    Div,
 }
 
 impl From<TokenKind> for Op {
     fn from(kind: TokenKind) -> Self {
         match kind {
-            TokenKind::Equal => Op::Equals,
+            TokenKind::EqualEqual => Op::Equals,
             TokenKind::BangEqual => Op::NotEquals,
             TokenKind::Less => Op::LessThan,
             TokenKind::LessEqual => Op::LessThanEquals,
@@ -27,7 +27,7 @@ impl From<TokenKind> for Op {
             TokenKind::Minus => Op::Sub,
             TokenKind::Star => Op::Mul,
             TokenKind::Slash => Op::Div,
-            _ => unreachable!("ICE : Tried to convert non-op token into Op enum")
+            _ => unreachable!("ICE : Tried to convert non-op token into Op enum"),
         }
     }
 }
@@ -37,25 +37,27 @@ pub enum Expr {
     Literal(Literal),
     Unary {
         op: Op,
-        rhs: Box<Expr>
+        rhs: Box<Expr>,
     },
     Binary {
         lhs: Box<Expr>,
         op: Op,
-        rhs: Box<Expr>
+        rhs: Box<Expr>,
     },
-    Grouping(Box<Expr>)
+    Grouping(Box<Expr>),
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Literal {
-    Number {
-        val: f64
-    },
-    String {
-        val: String
-    },
+    Number { val: f64 },
+    String { val: String },
     True,
     False,
-    Null
+    Null,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Stmt {
+    Expr(Expr),
+    Print(Expr),
 }

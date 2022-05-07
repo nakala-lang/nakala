@@ -30,6 +30,52 @@ impl<'input> Parser<'input> {
         self.source.peek_kind().map_or(false, |k| set.contains(&k))
     }
 
+    fn expect(&mut self, kind: TokenKind) -> Result<(), ParseError> {
+        let t = self.bump()?;
+        if t.kind != kind {
+            let actual = t.text.to_string();
+            let span = t.span;
+            Err(ParseError::ExpectedToken(
+                (&self.source).into(),
+                actual,
+                kind,
+                span,
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub(crate) fn program(&mut self) -> Result<Vec<Stmt>, ParseError> {
+        let mut stmts: Vec<Stmt> = Vec::new();
+        while !self.source.at_end() {
+            stmts.push(self.stmt()?);
+        }
+
+        Ok(stmts)
+    }
+
+    fn stmt(&mut self) -> Result<Stmt, ParseError> {
+        if self.at(TokenKind::Print) {
+            self.bump()?;
+            self.print_stmt()
+        } else {
+            self.expr_stmt()
+        }
+    }
+
+    fn print_stmt(&mut self) -> Result<Stmt, ParseError> {
+        let expr = self.expr()?;
+        self.expect(TokenKind::Semicolon)?;
+        Ok(Stmt::Print(expr))
+    }
+
+    fn expr_stmt(&mut self) -> Result<Stmt, ParseError> {
+        let expr = self.expr()?;
+        self.expect(TokenKind::Semicolon)?;
+        Ok(Stmt::Expr(expr))
+    }
+
     pub(crate) fn expr(&mut self) -> Result<Expr, ParseError> {
         self.equality()
     }
@@ -122,27 +168,21 @@ impl<'input> Parser<'input> {
 
     fn primary(&mut self) -> Result<Expr, ParseError> {
         if self.at(TokenKind::False) {
+            self.bump()?;
             Ok(Expr::Literal(Literal::False))
         } else if self.at(TokenKind::True) {
+            self.bump()?;
             Ok(Expr::Literal(Literal::True))
         } else if self.at(TokenKind::Null) {
+            self.bump()?;
             Ok(Expr::Literal(Literal::Null))
         } else if self.at(TokenKind::LeftParen) {
-            self.bump();
+            // skip over LeftParen
+            let _ = self.bump();
+
             let expr = self.expr()?;
-            let t = self.bump()?;
-            if t.kind != TokenKind::RightParen {
-                let actual = t.text.to_string();
-                let span = t.span;
-                Err(ParseError::ExpectedToken(
-                    (&self.source).into(),
-                    actual,
-                    TokenKind::RightParen,
-                    span,
-                ))
-            } else {
-                Ok(Expr::Grouping(Box::new(expr)))
-            }
+            self.expect(TokenKind::RightParen)?;
+            Ok(Expr::Grouping(Box::new(expr)))
         } else if self.at(TokenKind::Number) {
             let token = self.bump()?;
             Ok(Expr::Literal(Literal::Number {
@@ -153,8 +193,14 @@ impl<'input> Parser<'input> {
             }))
         } else if self.at(TokenKind::String) {
             let token = self.bump()?;
+
+            // Trim the first and last char, as they are " characters
+            let mut token_text = token.text.to_string();
+            token_text.remove(0);
+            token_text.remove(token_text.len() - 1);
+
             Ok(Expr::Literal(Literal::String {
-                val: token.text.into(),
+                val: token_text
             }))
         } else {
             Err(ParseError::ExpectedExpression(
