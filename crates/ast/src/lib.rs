@@ -45,12 +45,17 @@ pub enum Expr {
         rhs: Box<Expr>,
     },
     Grouping(Box<Expr>),
+    Variable(String),
+    Assign {
+        name: String,
+        rhs: Box<Expr>
+    }
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Literal {
-    Number { val: f64 },
-    String { val: String },
+    Number(f64),
+    String(String),
     True,
     False,
     Null,
@@ -60,4 +65,6 @@ pub enum Literal {
 pub enum Stmt {
     Expr(Expr),
     Print(Expr),
+    Variable { name: String, expr: Option<Expr> },
+    Block(Vec<Stmt>)
 }

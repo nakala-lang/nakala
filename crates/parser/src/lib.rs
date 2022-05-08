@@ -30,168 +30,256 @@ mod tests {
         }
     }
 
+    fn check(expected: Vec<Stmt>, actual: &str) {
+        let result = parse(actual.into()).unwrap().stmts;
+        assert_eq!(expected, result);
+    }
+
     #[test]
     fn parse_string() {
-        let expected = vec![Stmt::Expr(Expr::Literal(Literal::String {
-            val: "foo".to_string(),
-        }))];
-        let actual = parse(r#""foo";"#.into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Literal(Literal::String(
+                "foo".to_string(),
+            )))],
+            r#""foo";"#,
+        );
     }
 
     #[test]
     fn parse_true() {
-        let expected = vec![Stmt::Expr(Expr::Literal(Literal::True))];
-        let actual = parse("true;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(vec![Stmt::Expr(Expr::Literal(Literal::True))], "true;");
     }
 
     #[test]
     fn parse_false() {
-        let expected = vec![Stmt::Expr(Expr::Literal(Literal::False))];
-        let actual = parse("false;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(vec![Stmt::Expr(Expr::Literal(Literal::False))], "false;");
     }
 
     #[test]
     fn parse_null() {
-        let expected = vec![Stmt::Expr(Expr::Literal(Literal::Null))];
-        let actual = parse("null;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(vec![Stmt::Expr(Expr::Literal(Literal::Null))], "null;");
     }
 
     #[test]
     fn parse_integer() {
-        let expected = vec![Stmt::Expr(Expr::Literal(Literal::Number { val: 5.0 }))];
-        let actual = parse("5;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(vec![Stmt::Expr(Expr::Literal(Literal::Number(5.0)))], "5;");
     }
 
     #[test]
     fn parse_float() {
-        let expected = vec![Stmt::Expr(Expr::Literal(Literal::Number { val: 1.23 }))];
-        let actual = parse("1.23;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Literal(Literal::Number(1.23)))],
+            "1.23;",
+        );
     }
 
     #[test]
     fn parse_add() {
-        let expected = vec![Stmt::Expr(Expr::Binary {
-            lhs: Box::new(Expr::Literal(Literal::Number { val: 1.0 })),
-            op: Op::Add,
-            rhs: Box::new(Expr::Literal(Literal::Number { val: 2.0 })),
-        })];
-        let actual = parse("1 + 2;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Binary {
+                lhs: Box::new(Expr::Literal(Literal::Number(1.0))),
+                op: Op::Add,
+                rhs: Box::new(Expr::Literal(Literal::Number(2.0))),
+            })],
+            "1 + 2;",
+        );
     }
 
     #[test]
     fn parse_sub() {
-        let expected = vec![Stmt::Expr(Expr::Binary {
-            lhs: Box::new(Expr::Literal(Literal::Number { val: 1.12 })),
-            op: Op::Sub,
-            rhs: Box::new(Expr::Literal(Literal::Number { val: 2.0 })),
-        })];
-        let actual = parse("1.12 - 2;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Binary {
+                lhs: Box::new(Expr::Literal(Literal::Number(1.12))),
+                op: Op::Sub,
+                rhs: Box::new(Expr::Literal(Literal::Number(2.0))),
+            })],
+            "1.12 - 2;",
+        )
     }
 
     #[test]
     fn parse_mul() {
-        let expected = vec![Stmt::Expr(Expr::Binary {
-            lhs: Box::new(Expr::Literal(Literal::Number { val: 2.0 })),
-            op: Op::Mul,
-            rhs: Box::new(Expr::Literal(Literal::Number { val: 32.31 })),
-        })];
-        let actual = parse("2 * 32.31;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Binary {
+                lhs: Box::new(Expr::Literal(Literal::Number(2.0))),
+                op: Op::Mul,
+                rhs: Box::new(Expr::Literal(Literal::Number(32.31))),
+            })],
+            "2 * 32.31;",
+        );
     }
 
     #[test]
     fn parse_div() {
-        let expected = vec![Stmt::Expr(Expr::Binary {
-            lhs: Box::new(Expr::Literal(Literal::Number { val: 100.5 })),
-            op: Op::Div,
-            rhs: Box::new(Expr::Literal(Literal::Number { val: 0.5 })),
-        })];
-        let actual = parse("100.5 / 0.5;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Binary {
+                lhs: Box::new(Expr::Literal(Literal::Number(100.5))),
+                op: Op::Div,
+                rhs: Box::new(Expr::Literal(Literal::Number(0.5))),
+            })],
+            "100.5 / 0.5;",
+        );
     }
 
     #[test]
     fn parse_unary() {
-        let expected = vec![Stmt::Expr(Expr::Unary {
-            op: Op::Sub,
-            rhs: Box::new(Expr::Literal(Literal::Number { val: 123.4 })),
-        })];
-        let actual = parse("-123.4;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Unary {
+                op: Op::Sub,
+                rhs: Box::new(Expr::Literal(Literal::Number(123.4))),
+            })],
+            "-123.4;",
+        );
     }
 
     #[test]
     fn parse_grouping() {
-        let expected = vec![Stmt::Expr(Expr::Grouping(Box::new(Expr::Binary {
-            lhs: Box::new(Expr::Grouping(Box::new(Expr::Literal(Literal::Number {
-                val: 1.0,
-            })))),
-            op: Op::Add,
-            rhs: Box::new(Expr::Unary {
-                op: Op::Sub,
-                rhs: Box::new(Expr::Literal(Literal::Number { val: 42.3 })),
-            }),
-        })))];
-        let actual = parse("((1.0) + -42.3);".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Grouping(Box::new(Expr::Binary {
+                lhs: Box::new(Expr::Grouping(Box::new(Expr::Literal(Literal::Number(
+                    1.0,
+                ))))),
+                op: Op::Add,
+                rhs: Box::new(Expr::Unary {
+                    op: Op::Sub,
+                    rhs: Box::new(Expr::Literal(Literal::Number(42.3))),
+                }),
+            })))],
+            "((1.0) + -42.3);",
+        );
     }
 
     #[test]
     fn parse_not_equal() {
-        let expected = vec![Stmt::Expr(Expr::Binary {
-            lhs: Box::new(Expr::Literal(Literal::String {
-                val: "foo".to_string(),
-            })),
-            op: Op::NotEquals,
-            rhs: Box::new(Expr::Literal(Literal::String {
-                val: "bar".to_string(),
-            })),
-        })];
-        let actual = parse(r#""foo" != "bar";"#.into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Binary {
+                lhs: Box::new(Expr::Literal(Literal::String("foo".to_string()))),
+                op: Op::NotEquals,
+                rhs: Box::new(Expr::Literal(Literal::String("bar".to_string()))),
+            })],
+            r#""foo" != "bar";"#,
+        );
     }
 
     #[test]
     fn parse_equal() {
-        let expected = vec![Stmt::Expr(Expr::Binary {
-            lhs: Box::new(Expr::Literal(Literal::Number { val: 42.0 })),
-            op: Op::Equals,
-            rhs: Box::new(Expr::Literal(Literal::Null))
-        })];
-        let actual = parse("42.0 == null;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Binary {
+                lhs: Box::new(Expr::Literal(Literal::Number(42.0))),
+                op: Op::Equals,
+                rhs: Box::new(Expr::Literal(Literal::Null)),
+            })],
+            "42.0 == null;",
+        );
     }
 
     #[test]
     fn parse_less_than() {
-        let expected = vec![Stmt::Expr(Expr::Binary {
-            lhs: Box::new(Expr::Literal(Literal::Number { val: 10.0 })),
-            op: Op::LessThan,
-            rhs: Box::new(Expr::Literal(Literal::Number { val: 42.0 })),
-        })];
-
-        let actual = parse("10.0 < 42.0;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Binary {
+                lhs: Box::new(Expr::Literal(Literal::Number(10.0))),
+                op: Op::LessThan,
+                rhs: Box::new(Expr::Literal(Literal::Number(42.0))),
+            })],
+            "10.0 < 42.0;",
+        );
     }
 
     #[test]
     fn parse_less_than_equals() {
-        let expected = vec![Stmt::Expr(Expr::Binary {
-            lhs: Box::new(Expr::Literal(Literal::Number { val: 10.0 })),
-            op: Op::LessThanEquals,
-            rhs: Box::new(Expr::Literal(Literal::Number { val: 10.0 })),
-        })];
-
-        let actual = parse("10.0 <= 10.0;".into()).unwrap().stmts;
-        assert_eq!(expected, actual);
+        check(
+            vec![Stmt::Expr(Expr::Binary {
+                lhs: Box::new(Expr::Literal(Literal::Number(10.0))),
+                op: Op::LessThanEquals,
+                rhs: Box::new(Expr::Literal(Literal::Number(10.0))),
+            })],
+            "10.0 <= 10.0;",
+        );
     }
 
+    #[test]
+    fn parse_variable_decl() {
+        check(
+            vec![Stmt::Variable {
+                name: "something_Int3resting".to_string(),
+                expr: None,
+            }],
+            "let something_Int3resting;",
+        );
+    }
+
+    #[test]
+    fn parse_variable_decl_with_init() {
+        check(
+            vec![Stmt::Variable {
+                name: "x".to_string(),
+                expr: Some(Expr::Variable("x".to_string())),
+            }],
+            "let x = x;",
+        );
+    }
+
+    #[test]
+    fn parse_variable_assignment() {
+        check(
+            vec![Stmt::Expr(Expr::Assign {
+                name: "x".to_string(),
+                rhs: Box::new(Expr::Literal(Literal::String("foobar".to_string()))),
+            })],
+            r#"x = "foobar";"#,
+        );
+    }
+
+    #[test]
+    fn parse_variable_expr() {
+        check(
+            vec![Stmt::Expr(Expr::Binary {
+                lhs: Box::new(Expr::Literal(Literal::Number(100.0))),
+                op: Op::Mul,
+                rhs: Box::new(Expr::Variable("myVariable".to_string())),
+            })],
+            "100 * myVariable;",
+        );
+    }
+
+    #[test]
+    fn parse_empty_block() {
+        check(vec![Stmt::Block(vec![])], "{}");
+    }
+
+    #[test]
+    fn parse_simple_block() {
+        check(
+            vec![Stmt::Block(vec![
+                Stmt::Variable {
+                    name: "x".to_string(),
+                    expr: Some(Expr::Literal(Literal::Number(1.0))),
+                },
+                Stmt::Expr(Expr::Binary {
+                    lhs: Box::new(Expr::Literal(Literal::Number(1.0))),
+                    op: Op::Add,
+                    rhs: Box::new(Expr::Variable("x".to_string())),
+                }),
+            ])],
+            "{let x = 1; 1 + x;}",
+        )
+    }
+
+    #[test]
+    fn parse_nested_block() {
+        check(
+            vec![Stmt::Block(vec![
+                Stmt::Variable {
+                    name: "x".to_string(),
+                    expr: Some(Expr::Literal(Literal::Number(5.0))),
+                },
+                Stmt::Block(vec![Stmt::Expr(Expr::Binary {
+                    lhs: Box::new(Expr::Variable("foo".to_string())),
+                    op: Op::Sub,
+                    rhs: Box::new(Expr::Variable("bar".to_string())),
+                })]),
+            ])],
+            "{ let x = 5; { foo - bar; } }",
+        )
+    }
 }

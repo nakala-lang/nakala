@@ -1,4 +1,3 @@
-use crate::source::Source;
 use lexer::TokenKind;
 use miette::{Diagnostic, NamedSource, SourceSpan};
 use thiserror::Error;
@@ -27,4 +26,11 @@ pub enum ParseError {
         help("Expected more tokens, but none were found")
     )]
     UnexpectedEof(#[source_code] NamedSource, #[label] SourceSpan),
+
+    #[error("Invalid assignment target")]
+    #[diagnostic(
+        code(nak::invalid_assign_target),
+        help("You can only assign to variables")
+    )]
+    InvalidAssignmentTarget(#[source_code] NamedSource, #[label] SourceSpan)
 }
