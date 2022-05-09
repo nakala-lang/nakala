@@ -5,11 +5,11 @@ pub mod source;
 use crate::error::ParseError;
 use crate::parser::Parser;
 use crate::source::Source;
-use ast::*;
+use ast::stmt::Statement;
 
 #[derive(Debug, PartialEq)]
 pub struct Parse {
-    pub stmts: Vec<Stmt>,
+    pub stmts: Vec<Statement>,
 }
 
 pub fn parse(source: Source) -> Result<Parse, ParseError> {
@@ -30,7 +30,7 @@ mod tests {
         }
     }
 
-    fn check(expected: Vec<Stmt>, actual: &str) {
+    fn check(expected: Vec<Statement>, actual: &str) {
         let result = parse(actual.into()).unwrap().stmts;
         assert_eq!(expected, result);
     }

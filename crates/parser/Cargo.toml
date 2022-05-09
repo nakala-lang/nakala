@@ -9,5 +9,5 @@ edition = "2021"
 lexer = { path = "../lexer" }
 ast = { path = "../ast" }
 miette = { version = "4.7.0" }
-text-size = "1.1.0"
+meta = { path = "../meta" }
 thiserror = "1.0.31"

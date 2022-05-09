@@ -1,5 +1,6 @@
 use crate::{error::ParseError, source::Source};
-use ast::*;
+use ast::{expr::{Expression, Expr}, op::Operator, stmt::{Stmt, Statement}, ty::Type};
+use meta::Span;
 use lexer::{Token, TokenKind};
 use miette::Result;
 
@@ -39,12 +40,12 @@ impl<'input> Parser<'input> {
         } else {
             let actual = t.text.to_string();
             let span = t.span;
-            Err(ParseError::ExpectedToken(error_source, actual, kind, span))
+            Err(ParseError::ExpectedToken(error_source, actual, kind, span.into()))
         }
     }
 
-    pub(crate) fn program(&mut self) -> Result<Vec<Stmt>, ParseError> {
-        let mut stmts: Vec<Stmt> = Vec::new();
+    pub(crate) fn program(&mut self) -> Result<Vec<Statement>, ParseError> {
+        let mut stmts: Vec<Statement> = Vec::new();
         while !self.source.at_end() {
             stmts.push(self.decl()?);
         }
@@ -52,16 +53,17 @@ impl<'input> Parser<'input> {
         Ok(stmts)
     }
 
-    fn decl(&mut self) -> Result<Stmt, ParseError> {
+    fn decl(&mut self) -> Result<Statement, ParseError> {
         if self.at(TokenKind::Let) {
-            self.bump()?;
             self.var_decl()
         } else {
             self.stmt()
         }
     }
 
-    fn var_decl(&mut self) -> Result<Stmt, ParseError> {
+    fn var_decl(&mut self) -> Result<Statement, ParseError> {
+        let let_token_span = self.bump()?.span;
+
         let ident = self.expect(TokenKind::Ident)?;
         let name = ident.text.to_string();
 
@@ -71,42 +73,49 @@ impl<'input> Parser<'input> {
             expr = Some(self.expr()?);
         }
 
-        self.expect(TokenKind::Semicolon)?;
-        Ok(Stmt::Variable { name, expr })
+        let semi_token = self.expect(TokenKind::Semicolon)?;
+        Ok(Statement {
+            span: Span::combine(&[let_token_span, semi_token.span]),
+            stmt: Stmt::Variable { name, expr },
+        })
+            
     }
 
-    fn stmt(&mut self) -> Result<Stmt, ParseError> {
+    fn stmt(&mut self) -> Result<Statement, ParseError> {
         if self.at(TokenKind::Print) {
-            self.bump()?;
             self.print_stmt()
         } else if self.at(TokenKind::LeftBrace) {
-            self.bump()?;
             self.block()
         } else if self.at(TokenKind::If) {
-            self.bump()?;
             self.if_stmt()
         } else if self.at(TokenKind::Until) {
-            self.bump()?;
             self.until_stmt()
         } else {
             self.expr_stmt()
         }
     }
 
-    fn until_stmt(&mut self) -> Result<Stmt, ParseError> {
+    fn until_stmt(&mut self) -> Result<Statement, ParseError> {
+        let until_token_span = self.bump()?.span;
+
         self.expect(TokenKind::LeftParen)?;
         let cond = self.expr()?;
         self.expect(TokenKind::RightParen)?;
 
         let body = self.stmt()?;
 
-        Ok(Stmt::Until {
-            cond,
-            body: Box::new(body),
+        Ok(Statement {
+            span: Span::combine(&[until_token_span, body.span]),
+            stmt: Stmt::Until {
+                cond,
+                body: Box::new(body),
+            },
         })
     }
 
-    fn if_stmt(&mut self) -> Result<Stmt, ParseError> {
+    fn if_stmt(&mut self) -> Result<Statement, ParseError> {
+        let if_token_span = self.bump()?.span;
+
         self.expect(TokenKind::LeftParen)?;
         let cond = self.expr()?;
         self.expect(TokenKind::RightParen)?;
@@ -119,41 +128,56 @@ impl<'input> Parser<'input> {
             else_branch = Some(Box::new(self.stmt()?));
         }
 
-        Ok(Stmt::If {
-            cond,
-            body: Box::new(body),
-            else_branch,
+        Ok(Statement {
+            span: Span::combine(&[if_token_span, body.span]),
+            stmt: Stmt::If {
+                cond,
+                body: Box::new(body),
+                else_branch,
+            },
         })
     }
 
-    fn block(&mut self) -> Result<Stmt, ParseError> {
+    fn block(&mut self) -> Result<Statement, ParseError> {
+        let left_brace_span = self.bump()?.span;
+        
         let mut stmts = Vec::new();
-
         while !self.source.at_end() && !self.at(TokenKind::RightBrace) {
             stmts.push(self.decl()?);
         }
 
-        self.expect(TokenKind::RightBrace)?;
-        Ok(Stmt::Block(stmts))
+        let right_brace = self.expect(TokenKind::RightBrace)?;
+        Ok(Statement {
+            stmt: Stmt::Block(stmts),
+            span: Span::combine(&[left_brace_span, right_brace.span]),
+        })
     }
 
-    fn print_stmt(&mut self) -> Result<Stmt, ParseError> {
+    fn print_stmt(&mut self) -> Result<Statement, ParseError> {
+        let print_token_span = self.bump()?.span;
+
         let expr = self.expr()?;
-        self.expect(TokenKind::Semicolon)?;
-        Ok(Stmt::Print(expr))
+        let semi = self.expect(TokenKind::Semicolon)?;
+        Ok(Statement {
+            span: Span::combine(&[print_token_span, semi.span]),
+            stmt: Stmt::Print(expr),
+        })
     }
 
-    fn expr_stmt(&mut self) -> Result<Stmt, ParseError> {
+    fn expr_stmt(&mut self) -> Result<Statement, ParseError> {
         let expr = self.expr()?;
-        self.expect(TokenKind::Semicolon)?;
-        Ok(Stmt::Expr(expr))
+        let semi = self.expect(TokenKind::Semicolon)?;
+        Ok(Statement {
+            span: Span::combine(&[expr.span, semi.span]),
+            stmt: Stmt::Expr(expr),
+        })
     }
 
-    fn expr(&mut self) -> Result<Expr, ParseError> {
+    fn expr(&mut self) -> Result<Expression, ParseError> {
         self.assignment()
     }
 
-    fn assignment(&mut self) -> Result<Expr, ParseError> {
+    fn assignment(&mut self) -> Result<Expression, ParseError> {
         let expr = self.or()?;
 
         if self.at(TokenKind::Equal) {
@@ -162,69 +186,91 @@ impl<'input> Parser<'input> {
 
             let rhs = self.assignment()?;
 
-            return match expr {
-                Expr::Variable(name) => Ok(Expr::Assign {
-                    name,
-                    rhs: Box::new(rhs),
+            return match expr.expr {
+                Expr::Variable(name) => Ok(Expression {
+                    expr: Expr::Assign {
+                        name,
+                        rhs: Box::new(rhs),
+                    },
+                    span: expr.span,
+                    ty: Type::Null
                 }),
-                _ => Err(ParseError::InvalidAssignmentTarget(error_source, eq_span)),
+                _ => Err(ParseError::InvalidAssignmentTarget(error_source, eq_span.into())),
             };
         }
 
         Ok(expr)
     }
 
-    fn or(&mut self) -> Result<Expr, ParseError> {
+    fn or(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.and()?;
 
         while self.at(TokenKind::Or) {
-            let op = self.bump()?.kind.into();
+            let op: Operator = self.bump()?.into();
             let rhs = self.and()?;
 
-            expr = Expr::Logical {
-                lhs: Box::new(expr),
-                op,
-                rhs: Box::new(rhs),
+            // TODO type checking
+
+            expr = Expression {
+                span: Span::combine(&[op.span, rhs.span]),
+                ty: Type::Null,
+                expr: Expr::Logical {
+                    lhs: Box::new(expr),
+                    op,
+                    rhs: Box::new(rhs),
+                },
             }
         }
 
         Ok(expr)
     }
 
-    fn and(&mut self) -> Result<Expr, ParseError> {
+    fn and(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.equality()?;
 
         while self.at(TokenKind::And) {
-            let op = self.bump()?.kind.into();
+            let op: Operator = self.bump()?.into();
             let rhs = self.equality()?;
 
-            expr = Expr::Logical {
-                lhs: Box::new(expr),
-                op,
-                rhs: Box::new(rhs),
-            }
+            // TODO type checking
+
+            expr = Expression {
+                span: Span::combine(&[op.span, rhs.span]),
+                ty: Type::Null,
+                expr: Expr::Logical {
+                    lhs: Box::new(expr),
+                    op,
+                    rhs: Box::new(rhs),
+                },
+            };
         }
 
         Ok(expr)
     }
 
-    fn equality(&mut self) -> Result<Expr, ParseError> {
+    fn equality(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.comparison()?;
+        
         while self.at_set(&[TokenKind::BangEqual, TokenKind::EqualEqual]) {
-            let op = self.bump()?.kind.into();
+            let op: Operator = self.bump()?.into();
             let rhs = self.comparison()?;
 
-            expr = Expr::Binary {
-                lhs: Box::new(expr),
-                op,
-                rhs: Box::new(rhs),
-            }
+            // TODO type checking
+            expr = Expression {
+                span: Span::combine(&[op.span, rhs.span]),
+                ty: Type::Null,
+                expr: Expr::Binary {
+                    lhs: Box::new(expr),
+                    op,
+                    rhs: Box::new(rhs),
+                },
+            };
         }
 
         Ok(expr)
     }
 
-    fn comparison(&mut self) -> Result<Expr, ParseError> {
+    fn comparison(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.term()?;
 
         while self.at_set(&[
@@ -233,108 +279,132 @@ impl<'input> Parser<'input> {
             TokenKind::Less,
             TokenKind::LessEqual,
         ]) {
-            let op = self.bump()?.kind.into();
+            let op: Operator = self.bump()?.into();
             let rhs = self.term()?;
 
-            expr = Expr::Binary {
-                lhs: Box::new(expr),
-                op,
-                rhs: Box::new(rhs),
-            }
+            // TODO type checking
+
+            expr = Expression {
+                span: Span::combine(&[op.span, rhs.span]),
+                ty: Type::Null,
+                expr: Expr::Binary {
+                    lhs: Box::new(expr),
+                    op,
+                    rhs: Box::new(rhs),
+                },
+            };
         }
 
         Ok(expr)
     }
 
-    fn term(&mut self) -> Result<Expr, ParseError> {
+    fn term(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.factor()?;
 
         while self.at_set(&[TokenKind::Minus, TokenKind::Plus]) {
-            let op = self.bump()?.kind.into();
+            let op = self.bump()?.into();
             let rhs = self.factor()?;
 
-            expr = Expr::Binary {
-                lhs: Box::new(expr),
-                op,
-                rhs: Box::new(rhs),
-            }
+            // TODO type checking
+
+            expr = Expression {
+                span: Span::combine(&[expr.span, rhs.span]),
+                ty: Type::Null,
+                expr: Expr::Binary {
+                    lhs: Box::new(expr),
+                    op,
+                    rhs: Box::new(rhs),
+                },
+            };
         }
 
         Ok(expr)
     }
 
-    fn factor(&mut self) -> Result<Expr, ParseError> {
+    fn factor(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.unary()?;
 
         while self.at_set(&[TokenKind::Slash, TokenKind::Star]) {
-            let op = self.bump()?.kind.into();
+            let op = self.bump()?.into();
             let rhs = self.unary()?;
 
-            expr = Expr::Binary {
-                lhs: Box::new(expr),
-                op,
-                rhs: Box::new(rhs),
-            }
+            // TODO type checking
+
+            expr = Expression {
+                span: Span::combine(&[expr.span, rhs.span]),
+                expr: Expr::Binary {
+                    lhs: Box::new(expr),
+                    op,
+                    rhs: Box::new(rhs),
+                },
+                ty: Type::Null
+            };
         }
 
         Ok(expr)
     }
 
-    fn unary(&mut self) -> Result<Expr, ParseError> {
+    fn unary(&mut self) -> Result<Expression, ParseError> {
         if self.at_set(&[TokenKind::Bang, TokenKind::Minus]) {
-            let op = self.bump()?.kind.into();
+            let op: Operator = self.bump()?.into();
             let rhs = self.unary()?;
 
-            Ok(Expr::Unary {
-                op,
-                rhs: Box::new(rhs),
+            Ok(Expression {
+                span: Span::combine(&[op.span, rhs.span]),
+                ty: rhs.ty,
+                expr: Expr::Unary {
+                    op,
+                    rhs: Box::new(rhs),
+                },
             })
         } else {
             self.primary()
         }
     }
 
-    fn primary(&mut self) -> Result<Expr, ParseError> {
-        if self.at(TokenKind::False) {
-            self.bump()?;
-            Ok(Expr::Literal(Literal::False))
-        } else if self.at(TokenKind::True) {
-            self.bump()?;
-            Ok(Expr::Literal(Literal::True))
-        } else if self.at(TokenKind::Null) {
-            self.bump()?;
-            Ok(Expr::Literal(Literal::Null))
-        } else if self.at(TokenKind::LeftParen) {
-            // skip over LeftParen
-            let _ = self.bump();
+    fn primary(&mut self) -> Result<Expression, ParseError> {
+        let token = self.bump()?;
+        match token.kind {
+            TokenKind::False => Ok(Expression { expr: Expr::Bool(false), span: token.span, ty: Type::Bool }),
+            TokenKind::True => Ok(Expression { expr: Expr::Bool(true), span: token.span, ty: Type::Bool }),
+            TokenKind::Null => Ok(Expression { expr: Expr::Null, span: token.span, ty: Type::Null }),
+            TokenKind::LeftParen => {
+                let span = token.span;
+                let expr = self.expr()?;
+                
+                let right_paren = self.expect(TokenKind::RightParen)?;
+                Ok(Expression {
+                    expr: Expr::Grouping(Box::new(expr)),
+                    span: Span::combine(&[span, right_paren.span]),
 
-            let expr = self.expr()?;
-            self.expect(TokenKind::RightParen)?;
-            Ok(Expr::Grouping(Box::new(expr)))
-        } else if self.at(TokenKind::Ident) {
-            let name = self.bump()?.text.to_string();
-            Ok(Expr::Variable(name))
-        } else if self.at(TokenKind::Number) {
-            let token = self.bump()?;
-            Ok(Expr::Literal(Literal::Number(
-                token
-                    .text
-                    .parse::<f64>()
-                    .expect("ICE: Couldn't parse number"),
-            )))
-        } else if self.at(TokenKind::String) {
-            let token = self.bump()?;
+                    // TODO type of expr
+                    ty: Type::Null
+                })
+            }
 
-            // Trim the first and last char, as they are " characters
-            let mut token_text = token.text.to_string();
-            token_text.remove(0);
-            token_text.remove(token_text.len() - 1);
+            // TODO symtab to get type of ident
+            TokenKind::Ident => Ok(Expression { expr: Expr::Variable(token.text.to_string()), span: token.span, ty: Type::Null }),
+            TokenKind::Int => {
+                let val = token.text.parse::<i64>().expect("ICE: Couldn't parse int as int");
+                Ok(Expression { expr: Expr::Int(val), span: token.span, ty: Type::Int })
+            }
+            TokenKind::Float => {
+                let val = token.text.parse::<f64>().expect("ICE: Couldn't parse float as float");
+                Ok(Expression { expr: Expr::Float(val), span: token.span, ty: Type::Float })
+            }
+            TokenKind::String => {
+                 let token = self.bump()?;
 
-            Ok(Expr::Literal(Literal::String(token_text)))
-        } else {
-            Err(ParseError::ExpectedExpression(
+                // Trim the first and last char, as they are " characters
+                let mut token_text = token.text.to_string();
+                token_text.remove(0);
+                token_text.remove(token_text.len() - 1);
+
+                Ok(Expression { expr: Expr::String(token_text), span: token.span, ty: Type::String })
+            }
+            _ => Err(ParseError::ExpectedExpression(
                 (&self.source).into(),
-                self.bump()?.span,
+                self.bump()?.span.into(),
             ))
         }
     }
