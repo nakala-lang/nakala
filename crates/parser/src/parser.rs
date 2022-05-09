@@ -82,14 +82,53 @@ impl<'input> Parser<'input> {
         } else if self.at(TokenKind::LeftBrace) {
             self.bump()?;
             self.block()
+        } else if self.at(TokenKind::If) {
+            self.bump()?;
+            self.if_stmt()
+        } else if self.at(TokenKind::Until) {
+            self.bump()?;
+            self.until_stmt()
         } else {
             self.expr_stmt()
         }
     }
 
+    fn until_stmt(&mut self) -> Result<Stmt, ParseError> {
+        self.expect(TokenKind::LeftParen)?;
+        let cond = self.expr()?;
+        self.expect(TokenKind::RightParen)?;
+
+        let body = self.stmt()?;
+
+        Ok(Stmt::Until {
+            cond,
+            body: Box::new(body),
+        })
+    }
+
+    fn if_stmt(&mut self) -> Result<Stmt, ParseError> {
+        self.expect(TokenKind::LeftParen)?;
+        let cond = self.expr()?;
+        self.expect(TokenKind::RightParen)?;
+
+        let body = self.stmt()?;
+
+        let mut else_branch = None;
+        if self.at(TokenKind::Else) {
+            self.bump()?;
+            else_branch = Some(Box::new(self.stmt()?));
+        }
+
+        Ok(Stmt::If {
+            cond,
+            body: Box::new(body),
+            else_branch,
+        })
+    }
+
     fn block(&mut self) -> Result<Stmt, ParseError> {
         let mut stmts = Vec::new();
-     
+
         while !self.source.at_end() && !self.at(TokenKind::RightBrace) {
             stmts.push(self.decl()?);
         }
@@ -115,7 +154,7 @@ impl<'input> Parser<'input> {
     }
 
     fn assignment(&mut self) -> Result<Expr, ParseError> {
-        let expr = self.equality()?;
+        let expr = self.or()?;
 
         if self.at(TokenKind::Equal) {
             let error_source = (&self.source).into();
@@ -124,16 +163,45 @@ impl<'input> Parser<'input> {
             let rhs = self.assignment()?;
 
             return match expr {
-                Expr::Variable(name) => {
-                    Ok(Expr::Assign {
-                        name,
-                        rhs: Box::new(rhs)
-                    })
-                }
-                _ => Err(ParseError::InvalidAssignmentTarget(
-                    error_source,
-                    eq_span
-                )),
+                Expr::Variable(name) => Ok(Expr::Assign {
+                    name,
+                    rhs: Box::new(rhs),
+                }),
+                _ => Err(ParseError::InvalidAssignmentTarget(error_source, eq_span)),
+            };
+        }
+
+        Ok(expr)
+    }
+
+    fn or(&mut self) -> Result<Expr, ParseError> {
+        let mut expr = self.and()?;
+
+        while self.at(TokenKind::Or) {
+            let op = self.bump()?.kind.into();
+            let rhs = self.and()?;
+
+            expr = Expr::Logical {
+                lhs: Box::new(expr),
+                op,
+                rhs: Box::new(rhs),
+            }
+        }
+
+        Ok(expr)
+    }
+
+    fn and(&mut self) -> Result<Expr, ParseError> {
+        let mut expr = self.equality()?;
+
+        while self.at(TokenKind::And) {
+            let op = self.bump()?.kind.into();
+            let rhs = self.equality()?;
+
+            expr = Expr::Logical {
+                lhs: Box::new(expr),
+                op,
+                rhs: Box::new(rhs),
             }
         }
 

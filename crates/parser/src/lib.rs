@@ -282,4 +282,104 @@ mod tests {
             "{ let x = 5; { foo - bar; } }",
         )
     }
+
+    #[test]
+    fn parse_simple_if() {
+        check(
+            vec![Stmt::If {
+                cond: Expr::Binary {
+                    lhs: Box::new(Expr::Variable("x".to_string())),
+                    op: Op::Equals,
+                    rhs: Box::new(Expr::Literal(Literal::Number(1.0))),
+                },
+                body: Box::new(Stmt::Block(vec![Stmt::Print(Expr::Literal(
+                    Literal::String("x is 1".to_string()),
+                ))])),
+                else_branch: None,
+            }],
+            r#"if (x == 1) { print "x is 1"; }"#,
+        );
+    }
+
+    #[test]
+    fn parse_if_with_else() {
+        check(
+            vec![Stmt::If {
+                cond: Expr::Literal(Literal::False),
+                body: Box::new(Stmt::Block(vec![Stmt::Print(Expr::Literal(
+                    Literal::String("was false".to_string()),
+                ))])),
+                else_branch: Some(Box::new(Stmt::Block(vec![Stmt::Print(Expr::Literal(
+                    Literal::String("was true".to_string()),
+                ))]))),
+            }],
+            r#"if (false) { print "was false"; } else { print "was true"; }"#,
+        );
+    }
+
+    #[test]
+    fn parse_logical_and() {
+        check(
+            vec![Stmt::Expr(Expr::Logical {
+                lhs: Box::new(Expr::Literal(Literal::False)),
+                op: Op::And,
+                rhs: Box::new(Expr::Literal(Literal::True)),
+            })],
+            "false and true;",
+        );
+    }
+
+    #[test]
+    fn parse_logical_or() {
+        check(
+            vec![Stmt::Expr(Expr::Logical {
+                lhs: Box::new(Expr::Literal(Literal::True)),
+                op: Op::Or,
+                rhs: Box::new(Expr::Variable("x".to_string())),
+            })],
+            "true or x;",
+        );
+    }
+
+    #[test]
+    fn parse_until() {
+        check(
+            vec![Stmt::Until {
+                cond: Expr::Literal(Literal::True),
+                body: Box::new(Stmt::Block(vec![])),
+            }],
+            "until (true) { }",
+        )
+    }
+
+    #[test]
+    fn parse_until_with_body() {
+        check(
+            vec![
+                Stmt::Variable {
+                    name: "x".to_string(),
+                    expr: Some(Expr::Literal(Literal::Number(0.0))),
+                },
+                Stmt::Until {
+                    cond: Expr::Binary {
+                        lhs: Box::new(Expr::Variable("x".to_string())),
+                        op: Op::Equals,
+                        rhs: Box::new(Expr::Literal(Literal::Number(10.0))),
+                    },
+                    body: Box::new(Stmt::Block(vec![
+                        Stmt::Print(Expr::Literal(Literal::String("iter".to_string()))),
+                        Stmt::Expr(Expr::Assign {
+                            name: "x".to_string(),
+                            rhs: Box::new(Expr::Binary {
+                                lhs: Box::new(Expr::Variable("x".to_string())),
+                                op: Op::Add,
+                                rhs: Box::new(Expr::Literal(Literal::Number(1.0))),
+                            }),
+                        }),
+                    ])),
+                },
+            ],
+            r#"let x = 0; until (x == 10) { print "iter"; x = x + 1; }"#,
+        );
+    }
 }

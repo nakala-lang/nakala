@@ -12,6 +12,8 @@ pub enum Op {
     Sub,
     Mul,
     Div,
+    And,
+    Or
 }
 
 impl From<TokenKind> for Op {
@@ -27,6 +29,8 @@ impl From<TokenKind> for Op {
             TokenKind::Minus => Op::Sub,
             TokenKind::Star => Op::Mul,
             TokenKind::Slash => Op::Div,
+            TokenKind::And => Op::And,
+            TokenKind::Or => Op::Or,
             _ => unreachable!("ICE : Tried to convert non-op token into Op enum"),
         }
     }
@@ -49,6 +53,12 @@ pub enum Expr {
     Assign {
         name: String,
         rhs: Box<Expr>
+    },
+    // Logical expressions short circuit, unlike Binary
+    Logical {
+        lhs: Box<Expr>,
+        op: Op,
+        rhs: Box<Expr>
     }
 }
 
@@ -66,5 +76,14 @@ pub enum Stmt {
     Expr(Expr),
     Print(Expr),
     Variable { name: String, expr: Option<Expr> },
-    Block(Vec<Stmt>)
+    Block(Vec<Stmt>),
+    If {
+        cond: Expr,
+        body: Box<Stmt>,
+        else_branch: Option<Box<Stmt>>
+    },
+    Until {
+        cond: Expr,
+        body: Box<Stmt>
+    }
 }

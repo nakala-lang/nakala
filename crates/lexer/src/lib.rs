@@ -5,7 +5,7 @@ use std::ops::Range as StdRange;
 mod token_kind;
 pub use token_kind::TokenKind;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Token<'a> {
     pub kind: TokenKind,
     pub text: &'a str,
