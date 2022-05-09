@@ -1,5 +1,5 @@
 use logos::Logos;
-use miette::SourceSpan;
+use meta::Span;
 use std::ops::Range as StdRange;
 
 mod token_kind;
@@ -9,7 +9,7 @@ pub use token_kind::TokenKind;
 pub struct Token<'a> {
     pub kind: TokenKind,
     pub text: &'a str,
-    pub span: SourceSpan,
+    pub span: Span
 }
 
 pub struct Lexer<'a> {
@@ -34,7 +34,7 @@ impl<'a> Iterator for Lexer<'a> {
         let span = {
             let StdRange { start, end } = self.inner.span();
 
-            SourceSpan::new(start.into(), (end - start).into())
+            Span::new(start, end)
         };
 
         Some(Self::Item { kind, text, span })

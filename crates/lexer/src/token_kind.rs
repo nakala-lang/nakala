@@ -55,8 +55,10 @@ pub enum TokenKind {
     Ident,
     #[regex(r#""[^"]*""#)]
     String,
-    #[regex(r#"([0-9]+\.)?[0-9]+"#)]
-    Number,
+    #[regex("[0-9]+")]
+    Int,
+    #[regex(r#"[0-9]+\.[0-9]+"#)]
+    Float,
 
     // Keywords
     #[token("and")]
@@ -132,7 +134,8 @@ impl fmt::Display for TokenKind {
             // Literals
             Self::Ident => "ident",
             Self::String => "string",
-            Self::Number => "number",
+            Self::Int => "int",
+            Self::Float => "float",
 
             // Keywords
             Self::And => "and",
@@ -323,17 +326,17 @@ mod tests {
 
     #[test]
     fn lex_integer() {
-        check("1", TokenKind::Number);
+        check("1", TokenKind::Int);
     }
 
     #[test]
     fn lex_float() {
-        check("123.4", TokenKind::Number);
+        check("123.4", TokenKind::Float);
     }
 
     #[test]
     fn lex_zero_leading_float() {
-        check("0.123", TokenKind::Number);
+        check("0.123", TokenKind::Float);
     }
 
     #[test]
