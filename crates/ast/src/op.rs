@@ -14,7 +14,8 @@ pub enum Op {
     Mul,
     Div,
     And,
-    Or
+    Or,
+    Not
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -27,6 +28,7 @@ impl<'a> From<&Token<'a>> for Operator {
     fn from(token: &Token) -> Self {
         
         let op = match token.kind {
+            TokenKind::Bang => Op::Not,
             TokenKind::EqualEqual => Op::Equals,
             TokenKind::BangEqual => Op::NotEquals,
             TokenKind::Less => Op::LessThan,

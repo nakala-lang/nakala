@@ -12,7 +12,7 @@ fn main() -> Result<()> {
             Signal::Success(buffer) => {
                 let source = Source::new(&buffer, "stdin".to_string());
                 let parse = parse(source)?;
-                println!("{:#?}", parse.stmts);
+                println!("{:#?}", parse);
             }
             Signal::CtrlD | Signal::CtrlC => {
                 println!("\nAborted!");

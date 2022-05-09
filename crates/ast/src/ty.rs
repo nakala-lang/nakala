@@ -4,5 +4,19 @@ pub enum Type {
     Float,
     Bool,
     String,
-    Null
+    Null,
+    Any
+}
+
+impl std::fmt::Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Int => "int",
+            Self::Float => "float", 
+            Self::Bool => "bool",
+            Self::String => "string",
+            Self::Null => "null",
+            Self::Any => "any"
+        })
+    }
 }

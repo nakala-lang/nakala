@@ -1,16 +1,58 @@
-use crate::{error::ParseError, source::Source};
-use ast::{expr::{Expression, Expr}, op::Operator, stmt::{Stmt, Statement}, ty::Type};
-use meta::Span;
+use crate::{
+    error::ParseError,
+    source::Source,
+    symtab::{Symbol, SymbolTable},
+    type_check::{result_type, type_compatible},
+    Parse,
+};
+use ast::{
+    expr::{Expr, Expression},
+    op::{Op, Operator},
+    stmt::{Statement, Stmt},
+    ty::Type,
+};
 use lexer::{Token, TokenKind};
+use meta::Span;
 use miette::Result;
 
 pub struct Parser<'input> {
     source: Source<'input>,
+    symtab: SymbolTable,
 }
 
 impl<'input> Parser<'input> {
     pub fn new(source: Source<'input>) -> Self {
-        Self { source }
+        Self {
+            source,
+            symtab: SymbolTable::new(),
+        }
+    }
+
+    pub fn parse(mut self) -> Result<Parse, ParseError> {
+        Ok(Parse {
+            stmts: self.program()?,
+            symtab: self.symtab,
+        })
+    }
+
+    fn result_type(
+        &self,
+        lhs: &Expression,
+        op: &Operator,
+        rhs: &Expression,
+    ) -> Result<Type, ParseError> {
+        if let Some(ty) = result_type(lhs, op, rhs) {
+            Ok(ty)
+        } else {
+            Err(ParseError::UnsupportedOperation(
+                (&self.source).into(),
+                op.span.into(),
+                lhs.span.into(),
+                lhs.ty.clone(),
+                rhs.span.into(),
+                rhs.ty.clone(),
+            ))
+        }
     }
 
     fn bump(&mut self) -> Result<&Token, ParseError> {
@@ -40,11 +82,16 @@ impl<'input> Parser<'input> {
         } else {
             let actual = t.text.to_string();
             let span = t.span;
-            Err(ParseError::ExpectedToken(error_source, actual, kind, span.into()))
+            Err(ParseError::ExpectedToken(
+                error_source,
+                actual,
+                kind,
+                span.into(),
+            ))
         }
     }
 
-    pub(crate) fn program(&mut self) -> Result<Vec<Statement>, ParseError> {
+    fn program(&mut self) -> Result<Vec<Statement>, ParseError> {
         let mut stmts: Vec<Statement> = Vec::new();
         while !self.source.at_end() {
             stmts.push(self.decl()?);
@@ -67,18 +114,22 @@ impl<'input> Parser<'input> {
         let ident = self.expect(TokenKind::Ident)?;
         let name = ident.text.to_string();
 
+        let mut ty = Type::Null;
         let mut expr = None;
         if self.at(TokenKind::Equal) {
             self.bump()?;
-            expr = Some(self.expr()?);
+            let val = self.expr()?;
+            ty = val.ty;
+            expr = Some(val);
         }
+
+        self.symtab.insert(name.clone(), ty);
 
         let semi_token = self.expect(TokenKind::Semicolon)?;
         Ok(Statement {
             span: Span::combine(&[let_token_span, semi_token.span]),
             stmt: Stmt::Variable { name, expr },
         })
-            
     }
 
     fn stmt(&mut self) -> Result<Statement, ParseError> {
@@ -96,7 +147,7 @@ impl<'input> Parser<'input> {
     }
 
     fn until_stmt(&mut self) -> Result<Statement, ParseError> {
-        let until_token_span = self.bump()?.span;
+        let until_token_span = self.expect(TokenKind::Until)?.span;
 
         self.expect(TokenKind::LeftParen)?;
         let cond = self.expr()?;
@@ -114,7 +165,7 @@ impl<'input> Parser<'input> {
     }
 
     fn if_stmt(&mut self) -> Result<Statement, ParseError> {
-        let if_token_span = self.bump()?.span;
+        let if_token_span = self.expect(TokenKind::If)?.span;
 
         self.expect(TokenKind::LeftParen)?;
         let cond = self.expr()?;
@@ -139,22 +190,27 @@ impl<'input> Parser<'input> {
     }
 
     fn block(&mut self) -> Result<Statement, ParseError> {
-        let left_brace_span = self.bump()?.span;
-        
+        let left_brace_span = self.expect(TokenKind::LeftBrace)?.span;
+
+        self.symtab.level_up();
+
         let mut stmts = Vec::new();
         while !self.source.at_end() && !self.at(TokenKind::RightBrace) {
             stmts.push(self.decl()?);
         }
 
-        let right_brace = self.expect(TokenKind::RightBrace)?;
+        let right_brace_span = self.expect(TokenKind::RightBrace)?.span;
+
+        self.symtab.level_down();
+
         Ok(Statement {
             stmt: Stmt::Block(stmts),
-            span: Span::combine(&[left_brace_span, right_brace.span]),
+            span: Span::combine(&[left_brace_span, right_brace_span]),
         })
     }
 
     fn print_stmt(&mut self) -> Result<Statement, ParseError> {
-        let print_token_span = self.bump()?.span;
+        let print_token_span = self.expect(TokenKind::Print)?.span;
 
         let expr = self.expr()?;
         let semi = self.expect(TokenKind::Semicolon)?;
@@ -187,15 +243,41 @@ impl<'input> Parser<'input> {
             let rhs = self.assignment()?;
 
             return match expr.expr {
-                Expr::Variable(name) => Ok(Expression {
-                    expr: Expr::Assign {
-                        name,
-                        rhs: Box::new(rhs),
-                    },
-                    span: expr.span,
-                    ty: Type::Null
-                }),
-                _ => Err(ParseError::InvalidAssignmentTarget(error_source, eq_span.into())),
+                Expr::Variable(name) => {
+                    if let Some(entry) = self.symtab.lookup_mut(&name) {
+                        if type_compatible(&entry.ty, &rhs.ty) {
+
+                            (*entry).ty = rhs.ty.clone();
+
+                            Ok(Expression {
+                                ty: rhs.ty,
+                                expr: Expr::Assign {
+                                    name,
+                                    rhs: Box::new(rhs),
+                                },
+                                span: expr.span,
+                            })
+                        } else {
+                            Err(ParseError::IncompatibleTypes(
+                                (&self.source).into(),
+                                expr.span.into(),
+                                entry.ty.clone(),
+                                rhs.span.into(),
+                                rhs.ty.clone(),
+                            ))
+                        }
+                    } else {
+                        Err(ParseError::UndeclaredVariable(
+                            (&self.source).into(),
+                            expr.span.into(),
+                            name,
+                        ))
+                    }
+                }
+                _ => Err(ParseError::InvalidAssignmentTarget(
+                    error_source,
+                    eq_span.into(),
+                )),
             };
         }
 
@@ -209,11 +291,11 @@ impl<'input> Parser<'input> {
             let op: Operator = self.bump()?.into();
             let rhs = self.and()?;
 
-            // TODO type checking
+            let ty = self.result_type(&expr, &op, &rhs)?;
 
             expr = Expression {
                 span: Span::combine(&[op.span, rhs.span]),
-                ty: Type::Null,
+                ty,
                 expr: Expr::Logical {
                     lhs: Box::new(expr),
                     op,
@@ -232,11 +314,11 @@ impl<'input> Parser<'input> {
             let op: Operator = self.bump()?.into();
             let rhs = self.equality()?;
 
-            // TODO type checking
+            let ty = self.result_type(&expr, &op, &rhs)?;
 
             expr = Expression {
                 span: Span::combine(&[op.span, rhs.span]),
-                ty: Type::Null,
+                ty,
                 expr: Expr::Logical {
                     lhs: Box::new(expr),
                     op,
@@ -250,15 +332,16 @@ impl<'input> Parser<'input> {
 
     fn equality(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.comparison()?;
-        
+
         while self.at_set(&[TokenKind::BangEqual, TokenKind::EqualEqual]) {
             let op: Operator = self.bump()?.into();
             let rhs = self.comparison()?;
 
-            // TODO type checking
+            let ty = self.result_type(&expr, &op, &rhs)?;
+
             expr = Expression {
                 span: Span::combine(&[op.span, rhs.span]),
-                ty: Type::Null,
+                ty,
                 expr: Expr::Binary {
                     lhs: Box::new(expr),
                     op,
@@ -282,11 +365,11 @@ impl<'input> Parser<'input> {
             let op: Operator = self.bump()?.into();
             let rhs = self.term()?;
 
-            // TODO type checking
+            let ty = self.result_type(&expr, &op, &rhs)?;
 
             expr = Expression {
                 span: Span::combine(&[op.span, rhs.span]),
-                ty: Type::Null,
+                ty,
                 expr: Expr::Binary {
                     lhs: Box::new(expr),
                     op,
@@ -305,11 +388,11 @@ impl<'input> Parser<'input> {
             let op = self.bump()?.into();
             let rhs = self.factor()?;
 
-            // TODO type checking
+            let ty = self.result_type(&expr, &op, &rhs)?;
 
             expr = Expression {
                 span: Span::combine(&[expr.span, rhs.span]),
-                ty: Type::Null,
+                ty,
                 expr: Expr::Binary {
                     lhs: Box::new(expr),
                     op,
@@ -328,7 +411,7 @@ impl<'input> Parser<'input> {
             let op = self.bump()?.into();
             let rhs = self.unary()?;
 
-            // TODO type checking
+            let ty = self.result_type(&expr, &op, &rhs)?;
 
             expr = Expression {
                 span: Span::combine(&[expr.span, rhs.span]),
@@ -337,7 +420,7 @@ impl<'input> Parser<'input> {
                     op,
                     rhs: Box::new(rhs),
                 },
-                ty: Type::Null
+                ty,
             };
         }
 
@@ -348,6 +431,24 @@ impl<'input> Parser<'input> {
         if self.at_set(&[TokenKind::Bang, TokenKind::Minus]) {
             let op: Operator = self.bump()?.into();
             let rhs = self.unary()?;
+
+            if op.op == Op::Not && rhs.ty != Type::Bool {
+                return Err(ParseError::UnsupportedUnaryOperation(
+                    (&self.source).into(),
+                    op.span.into(),
+                    rhs.span.into(),
+                    rhs.ty.clone(),
+                ));
+            }
+
+            if op.op == Op::Sub && (rhs.ty != Type::Float && rhs.ty != Type::Int) {
+                return Err(ParseError::UnsupportedUnaryOperation(
+                    (&self.source).into(),
+                    op.span.into(),
+                    rhs.span.into(),
+                    rhs.ty.clone(),
+                ));
+            }
 
             Ok(Expression {
                 span: Span::combine(&[op.span, rhs.span]),
@@ -365,47 +466,89 @@ impl<'input> Parser<'input> {
     fn primary(&mut self) -> Result<Expression, ParseError> {
         let token = self.bump()?;
         match token.kind {
-            TokenKind::False => Ok(Expression { expr: Expr::Bool(false), span: token.span, ty: Type::Bool }),
-            TokenKind::True => Ok(Expression { expr: Expr::Bool(true), span: token.span, ty: Type::Bool }),
-            TokenKind::Null => Ok(Expression { expr: Expr::Null, span: token.span, ty: Type::Null }),
+            TokenKind::False => Ok(Expression {
+                expr: Expr::Bool(false),
+                span: token.span,
+                ty: Type::Bool,
+            }),
+            TokenKind::True => Ok(Expression {
+                expr: Expr::Bool(true),
+                span: token.span,
+                ty: Type::Bool,
+            }),
+            TokenKind::Null => Ok(Expression {
+                expr: Expr::Null,
+                span: token.span,
+                ty: Type::Null,
+            }),
             TokenKind::LeftParen => {
                 let span = token.span;
                 let expr = self.expr()?;
-                
+
                 let right_paren = self.expect(TokenKind::RightParen)?;
                 Ok(Expression {
+                    ty: expr.ty,
                     expr: Expr::Grouping(Box::new(expr)),
                     span: Span::combine(&[span, right_paren.span]),
-
-                    // TODO type of expr
-                    ty: Type::Null
                 })
             }
-
-            // TODO symtab to get type of ident
-            TokenKind::Ident => Ok(Expression { expr: Expr::Variable(token.text.to_string()), span: token.span, ty: Type::Null }),
+            TokenKind::Ident => {
+                let ident = token.text.to_string();
+                let span = token.span;
+                if let Some(symbol) = self.symtab.lookup(&ident) {
+                    Ok(Expression {
+                        expr: Expr::Variable(ident),
+                        span,
+                        ty: symbol.ty,
+                    })
+                } else {
+                    Err(ParseError::UndeclaredVariable(
+                        (&self.source).into(),
+                        span.into(),
+                        ident,
+                    ))
+                }
+            }
             TokenKind::Int => {
-                let val = token.text.parse::<i64>().expect("ICE: Couldn't parse int as int");
-                Ok(Expression { expr: Expr::Int(val), span: token.span, ty: Type::Int })
+                let val = token
+                    .text
+                    .parse::<i64>()
+                    .expect("ICE: Couldn't parse int as int");
+                Ok(Expression {
+                    expr: Expr::Int(val),
+                    span: token.span,
+                    ty: Type::Int,
+                })
             }
             TokenKind::Float => {
-                let val = token.text.parse::<f64>().expect("ICE: Couldn't parse float as float");
-                Ok(Expression { expr: Expr::Float(val), span: token.span, ty: Type::Float })
+                let val = token
+                    .text
+                    .parse::<f64>()
+                    .expect("ICE: Couldn't parse float as float");
+                Ok(Expression {
+                    expr: Expr::Float(val),
+                    span: token.span,
+                    ty: Type::Float,
+                })
             }
             TokenKind::String => {
-                 let token = self.bump()?;
+                println!("{:?}", token.text);
 
                 // Trim the first and last char, as they are " characters
                 let mut token_text = token.text.to_string();
                 token_text.remove(0);
                 token_text.remove(token_text.len() - 1);
 
-                Ok(Expression { expr: Expr::String(token_text), span: token.span, ty: Type::String })
+                Ok(Expression {
+                    expr: Expr::String(token_text),
+                    span: token.span,
+                    ty: Type::String,
+                })
             }
             _ => Err(ParseError::ExpectedExpression(
                 (&self.source).into(),
                 self.bump()?.span.into(),
-            ))
+            )),
         }
     }
 }

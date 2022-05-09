@@ -11,3 +11,6 @@ ast = { path = "../ast" }
 miette = { version = "4.7.0" }
 meta = { path = "../meta" }
 thiserror = "1.0.31"
+
+[dev-dependencies]
+expect-test = "1.2.2"
