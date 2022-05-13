@@ -1,4 +1,8 @@
-use ast::{expr::Expression, op::{Operator, Op}, ty::Type};
+use ast::{
+    expr::Expression,
+    op::{Op, Operator},
+    ty::Type,
+};
 
 pub fn type_compatible(lhs: &Type, rhs: &Type) -> bool {
     match (lhs, rhs) {
@@ -21,21 +25,27 @@ pub fn result_type(lhs: &Expression, op: &Operator, rhs: &Expression) -> Option<
             (Type::Float, Type::Float) => Some(Type::Float),
             (Type::String, Type::String) => Some(Type::String),
 
+            (Type::Null, _) => None,
+            (_, Type::Null) => None,
+
             (Type::Any, _) => Some(Type::Any),
             (_, Type::Any) => Some(Type::Any),
 
-            _ => None
-        }
+            _ => None,
+        },
         Op::Sub => match (&lhs.ty, &rhs.ty) {
             (Type::Int, Type::Int) => Some(Type::Int),
             (Type::Int, Type::Float) => Some(Type::Float),
             (Type::Float, Type::Int) => Some(Type::Float),
             (Type::Float, Type::Float) => Some(Type::Float),
 
+            (Type::Null, _) => None,
+            (_, Type::Null) => None,
+
             (Type::Any, _) => Some(Type::Any),
             (_, Type::Any) => Some(Type::Any),
-            
-            _ => None
+
+            _ => None,
         },
         Op::Mul => match (&lhs.ty, &rhs.ty) {
             (Type::Int, Type::Int) => Some(Type::Int),
@@ -43,10 +53,13 @@ pub fn result_type(lhs: &Expression, op: &Operator, rhs: &Expression) -> Option<
             (Type::Float, Type::Int) => Some(Type::Float),
             (Type::Float, Type::Float) => Some(Type::Float),
 
+            (Type::Null, _) => None,
+            (_, Type::Null) => None,
+
             (Type::Any, _) => Some(Type::Any),
             (_, Type::Any) => Some(Type::Any),
 
-            _ => None
+            _ => None,
         },
         Op::Div => match (&lhs.ty, &rhs.ty) {
             (Type::Int, Type::Int) => Some(Type::Int),
@@ -54,31 +67,42 @@ pub fn result_type(lhs: &Expression, op: &Operator, rhs: &Expression) -> Option<
             (Type::Float, Type::Int) => Some(Type::Float),
             (Type::Float, Type::Float) => Some(Type::Float),
 
+            (Type::Null, _) => None,
+            (_, Type::Null) => None,
+
             (Type::Any, _) => Some(Type::Any),
             (_, Type::Any) => Some(Type::Any),
 
-            _ => None
+            _ => None,
         },
         Op::And | Op::Or => match (&lhs.ty, &rhs.ty) {
             (Type::Bool, Type::Bool) => Some(Type::Bool),
 
-            (Type::Any, _) => Some(Type::Any),
-            (_, Type::Any) => Some(Type::Any),
-
-            _ => None
-        },
-        Op::LessThan | Op::LessThanEquals | Op::GreaterThan | Op::GreaterThanEquals => match(&lhs.ty, &rhs.ty) {
-            (Type::Int, Type::Int) => Some(Type::Int),
-            (Type::Int, Type::Float) => Some(Type::Float),
-            (Type::Float, Type::Int) => Some(Type::Float),
-            (Type::Float, Type::Float) => Some(Type::Float),
+            (Type::Null, _) => None,
+            (_, Type::Null) => None,
 
             (Type::Any, _) => Some(Type::Any),
             (_, Type::Any) => Some(Type::Any),
 
-            _ => None
+            _ => None,
         },
+        Op::LessThan | Op::LessThanEquals | Op::GreaterThan | Op::GreaterThanEquals => {
+            match (&lhs.ty, &rhs.ty) {
+                (Type::Int, Type::Int) => Some(Type::Int),
+                (Type::Int, Type::Float) => Some(Type::Float),
+                (Type::Float, Type::Int) => Some(Type::Float),
+                (Type::Float, Type::Float) => Some(Type::Float),
+
+                (Type::Null, _) => None,
+                (_, Type::Null) => None,
+
+                (Type::Any, _) => Some(Type::Any),
+                (_, Type::Any) => Some(Type::Any),
+
+                _ => None,
+            }
+        }
         Op::Equals | Op::NotEquals => Some(Type::Bool),
-        _ => None
+        _ => None,
     }
 }

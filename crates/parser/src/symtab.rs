@@ -1,10 +1,19 @@
 use ast::ty::Type;
-use std::collections::HashMap;
+use std::{collections::HashMap, usize};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Symbol {
     pub name: String,
+    pub sym: Sym,
     pub ty: Type,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Sym {
+    Variable,
+    Function {
+        arity: usize
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -35,9 +44,9 @@ impl SymbolTable {
         self.level = self.level - 1;
     }
 
-    pub fn insert(&mut self, name: String, ty: Type) {
+    pub fn insert(&mut self, sym: Symbol) {
         if let Some(map) = self.inner.get_mut(self.level) {
-            map.insert(name.clone(), Symbol { name, ty });
+            map.insert(sym.name.clone(), sym); 
         } else {
             panic!("ICE: symtab is out of sync. Trying to insert into level that doesn't exist.");
         }

@@ -21,19 +21,24 @@ pub enum Expr {
     Variable(String),
     Assign {
         name: String,
-        rhs: Box<Expression>
+        rhs: Box<Expression>,
     },
     // Logical expressions short circuit, unlike Binary
     Logical {
         lhs: Box<Expression>,
         op: Operator,
-        rhs: Box<Expression>
-    }
+        rhs: Box<Expression>,
+    },
+    Call {
+        callee: Box<Expression>,
+        paren: Span,
+        args: Vec<Expression>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub expr: Expr,
     pub span: Span,
-    pub ty: Type
+    pub ty: Type,
 }

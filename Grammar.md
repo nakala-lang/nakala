@@ -14,9 +14,11 @@ op -> "==" | "!=" | "<" | "<=" | ">" | ">=" | "+" | "-" | "*" | "/"
 ### Types
 ```
 bool
-number
+int
+float
 string
 null
+any
 ```
 
 ### Expressions
@@ -55,6 +57,10 @@ true or false // true
 let a = 123 // a is a number
 let b // b is null
 let c = 123.31 // c is a number
+
+let foobar: int;
+foobar = "a string"; // parse error - string is not of type int
+let something: float = 42.1;
 ```
 
 #### Blocks

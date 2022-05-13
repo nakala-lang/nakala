@@ -27,6 +27,8 @@ pub enum TokenKind {
     Plus,
     #[token(";")]
     Semicolon,
+    #[token(":")]
+    Colon,
     #[token("/")]
     Slash,
     #[token("*")]
@@ -92,6 +94,18 @@ pub enum TokenKind {
     #[token("until")]
     Until,
 
+    // Types
+    #[token("int")]
+    TypeInt,
+    #[token("float")]
+    TypeFloat,
+    #[token("bool")]
+    TypeBool,
+    #[token("string")]
+    TypeString,
+    #[token("any")]
+    TypeAny,
+
     #[error]
     Error,
 }
@@ -118,6 +132,7 @@ impl fmt::Display for TokenKind {
             Self::Minus => "-",
             Self::Plus => "+",
             Self::Semicolon => ";",
+            Self::Colon => ":",
             Self::Slash => "/",
             Self::Star => "*",
 
@@ -153,6 +168,13 @@ impl fmt::Display for TokenKind {
             Self::True => "true",
             Self::Let => "let",
             Self::Until => "until",
+
+            // Types
+            Self::TypeInt => "int",
+            Self::TypeFloat => "float",
+            Self::TypeBool => "bool",
+            Self::TypeString => "string",
+            Self::TypeAny => "any",
 
             Self::Error => "error",
         })
@@ -244,6 +266,11 @@ mod tests {
     #[test]
     fn lex_semicolon() {
         check(";", TokenKind::Semicolon);
+    }
+
+    #[test]
+    fn lex_colon() {
+        check(":", TokenKind::Colon);
     }
 
     #[test]
@@ -412,5 +439,30 @@ mod tests {
     #[test]
     fn lex_until() {
         check("until", TokenKind::Until);
+    }
+
+    #[test]
+    fn lex_type_int() {
+        check("int", TokenKind::TypeInt);
+    }
+
+    #[test]
+    fn lex_type_float() {
+        check("float", TokenKind::TypeFloat);
+    }
+
+    #[test]
+    fn lex_type_bool() {
+        check("bool", TokenKind::TypeBool);
+    }
+
+    #[test]
+    fn lex_type_string() {
+        check("string", TokenKind::TypeString);
+    }
+
+    #[test]
+    fn lex_type_any() {
+        check("any", TokenKind::TypeAny);
     }
 }

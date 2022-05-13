@@ -1,14 +1,14 @@
 use crate::{
     error::ParseError,
     source::Source,
-    symtab::{Symbol, SymbolTable},
+    symtab::{Sym, Symbol, SymbolTable},
     type_check::{result_type, type_compatible},
     Parse,
 };
 use ast::{
     expr::{Expr, Expression},
     op::{Op, Operator},
-    stmt::{Statement, Stmt},
+    stmt::{Binding, Statement, Stmt},
     ty::Type,
 };
 use lexer::{Token, TokenKind};
@@ -101,34 +101,107 @@ impl<'input> Parser<'input> {
     }
 
     fn decl(&mut self) -> Result<Statement, ParseError> {
-        if self.at(TokenKind::Let) {
+        if self.at(TokenKind::Func) {
+            self.func_decl()
+        } else if self.at(TokenKind::Let) {
             self.var_decl()
         } else {
             self.stmt()
         }
     }
 
+    fn func_decl(&mut self) -> Result<Statement, ParseError> {
+        let func_token_span = self.expect(TokenKind::Func)?.span;
+        let name = self.expect(TokenKind::Ident)?.text.to_string();
+
+        self.expect(TokenKind::LeftParen)?;
+
+        let mut params = Vec::new();
+        if !self.at(TokenKind::RightParen) {
+            loop {
+                let param = self.binding()?;
+                params.push(param);
+
+                if self.at(TokenKind::Comma) {
+                    self.bump()?;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let right_paren_span = self.expect(TokenKind::RightParen)?.span;
+
+        self.symtab.insert(Symbol {
+            name: name.clone(),
+            sym: Sym::Function {
+                arity: params.len(),
+            },
+            ty: Type::Any,
+        });
+
+        self.symtab.level_up();
+
+        params.iter().for_each(|param| {
+            self.symtab.insert(Symbol {
+                name: param.name.clone(),
+                sym: Sym::Variable,
+                ty: param.ty,
+            })
+        });
+
+        println!("{:#?}", self.symtab);
+        let body = self.block(true)?;
+
+        self.symtab.level_down();
+
+        Ok(Statement {
+            stmt: Stmt::Function {
+                name,
+                params,
+                body: Box::new(body),
+            },
+            span: Span::combine(&[func_token_span, right_paren_span]),
+        })
+    }
+
     fn var_decl(&mut self) -> Result<Statement, ParseError> {
         let let_token_span = self.bump()?.span;
 
-        let ident = self.expect(TokenKind::Ident)?;
-        let name = ident.text.to_string();
+        let binding = self.binding()?;
 
-        let mut ty = Type::Null;
+        let mut ty = binding.ty;
         let mut expr = None;
         if self.at(TokenKind::Equal) {
             self.bump()?;
             let val = self.expr()?;
+            if !type_compatible(&ty, &val.ty) {
+                return Err(ParseError::IncompatibleTypes(
+                    (&self.source).into(),
+                    binding.span.into(),
+                    binding.ty,
+                    val.span.into(),
+                    val.ty,
+                ));
+            }
+
             ty = val.ty;
             expr = Some(val);
         }
 
-        self.symtab.insert(name.clone(), ty);
+        self.symtab.insert(Symbol {
+            sym: Sym::Variable,
+            name: binding.name.clone(),
+            ty,
+        });
 
         let semi_token = self.expect(TokenKind::Semicolon)?;
         Ok(Statement {
             span: Span::combine(&[let_token_span, semi_token.span]),
-            stmt: Stmt::Variable { name, expr },
+            stmt: Stmt::Variable {
+                name: binding,
+                expr,
+            },
         })
     }
 
@@ -136,7 +209,7 @@ impl<'input> Parser<'input> {
         if self.at(TokenKind::Print) {
             self.print_stmt()
         } else if self.at(TokenKind::LeftBrace) {
-            self.block()
+            self.block(false)
         } else if self.at(TokenKind::If) {
             self.if_stmt()
         } else if self.at(TokenKind::Until) {
@@ -189,10 +262,12 @@ impl<'input> Parser<'input> {
         })
     }
 
-    fn block(&mut self) -> Result<Statement, ParseError> {
+    fn block(&mut self, from_func_decl: bool) -> Result<Statement, ParseError> {
         let left_brace_span = self.expect(TokenKind::LeftBrace)?.span;
 
-        self.symtab.level_up();
+        if !from_func_decl {
+            self.symtab.level_up();
+        }
 
         let mut stmts = Vec::new();
         while !self.source.at_end() && !self.at(TokenKind::RightBrace) {
@@ -201,7 +276,9 @@ impl<'input> Parser<'input> {
 
         let right_brace_span = self.expect(TokenKind::RightBrace)?.span;
 
-        self.symtab.level_down();
+        if !from_func_decl {
+            self.symtab.level_down();
+        }
 
         Ok(Statement {
             stmt: Stmt::Block(stmts),
@@ -246,7 +323,6 @@ impl<'input> Parser<'input> {
                 Expr::Variable(name) => {
                     if let Some(entry) = self.symtab.lookup_mut(&name) {
                         if type_compatible(&entry.ty, &rhs.ty) {
-
                             (*entry).ty = rhs.ty.clone();
 
                             Ok(Expression {
@@ -459,12 +535,91 @@ impl<'input> Parser<'input> {
                 },
             })
         } else {
-            self.primary()
+            self.call()
+        }
+    }
+
+    fn call(&mut self) -> Result<Expression, ParseError> {
+        let mut expr = self.primary()?;
+
+        loop {
+            if self.at(TokenKind::LeftParen) {
+                expr = self.finish_call(expr)?;
+            } else {
+                break;
+            }
+        }
+
+        Ok(expr)
+    }
+
+    fn finish_call(&mut self, callee: Expression) -> Result<Expression, ParseError> {
+        let mut args: Vec<Expression> = Vec::new();
+
+        // Check if we have args
+        if !self.at(TokenKind::RightParen) {
+            loop {
+                args.push(self.expr()?);
+
+                if self.at(TokenKind::Comma) {
+                    self.bump()?;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let paren = self.expect(TokenKind::RightParen)?.span;
+
+        Ok(Expression {
+            span: Span::combine(&[callee.span.clone(), paren]),
+            expr: Expr::Call {
+                callee: Box::new(callee),
+                paren,
+                args,
+            },
+            ty: Type::Any,
+        })
+    }
+
+    fn binding(&mut self) -> Result<Binding, ParseError> {
+        let ident = self.expect(TokenKind::Ident)?;
+
+        let name = ident.text.to_string();
+        let span = ident.span;
+
+        let mut ty = Type::Any;
+        if self.at(TokenKind::Colon) {
+            self.bump()?;
+
+            ty = self.ty()?;
+        }
+
+        Ok(Binding { name, span, ty })
+    }
+
+    fn ty(&mut self) -> Result<Type, ParseError> {
+        let token = self.bump()?;
+        let token_span = token.span;
+
+        match token.kind {
+            TokenKind::TypeInt => Ok(Type::Int),
+            TokenKind::TypeFloat => Ok(Type::Float),
+            TokenKind::TypeBool => Ok(Type::Bool),
+            TokenKind::TypeString => Ok(Type::String),
+            TokenKind::Null => Ok(Type::Null),
+            TokenKind::TypeAny => Ok(Type::Any),
+            _ => Err(ParseError::UnknownType(
+                (&self.source).into(),
+                token_span.into(),
+            )),
         }
     }
 
     fn primary(&mut self) -> Result<Expression, ParseError> {
         let token = self.bump()?;
+        let token_span = token.span;
+
         match token.kind {
             TokenKind::False => Ok(Expression {
                 expr: Expr::Bool(false),
@@ -532,8 +687,6 @@ impl<'input> Parser<'input> {
                 })
             }
             TokenKind::String => {
-                println!("{:?}", token.text);
-
                 // Trim the first and last char, as they are " characters
                 let mut token_text = token.text.to_string();
                 token_text.remove(0);
@@ -547,7 +700,7 @@ impl<'input> Parser<'input> {
             }
             _ => Err(ParseError::ExpectedExpression(
                 (&self.source).into(),
-                self.bump()?.span.into(),
+                token_span.into(),
             )),
         }
     }

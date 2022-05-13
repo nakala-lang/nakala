@@ -80,5 +80,15 @@ pub enum ParseError {
         Type,
         #[label("{4}")] SourceSpan,
         Type
+    ),
+
+    #[error("Unknown type")]
+    #[diagnostic(
+        code(nak::unknown_type),
+        help("Consider using 'int', 'float', 'bool', etc.")
+    )]
+    UnknownType(
+        #[source_code] NamedSource,
+        #[label("This type is unknown")] SourceSpan,
     )
 }
