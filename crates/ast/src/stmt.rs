@@ -1,4 +1,4 @@
-use crate::{expr::Expression, ty::Type};
+use crate::{expr::Expression, ty::{Type, TypeExpression}};
 use lexer::Token;
 use meta::Span;
 
@@ -26,7 +26,9 @@ pub enum Stmt {
         name: String,
         params: Vec<Binding>,
         body: Box<Statement>,
+        return_ty: TypeExpression
     },
+    Return(Option<Expression>),
     Print(Expression),
     Variable {
         name: Binding,

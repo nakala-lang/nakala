@@ -94,7 +94,7 @@ until (a == 10) {
 Functions are first class in Nakala
 
 ```
-func addTwoThings(a, b) {
+func addTwoThings(a: int, b: float) -> int {
   ret a + b;
 }
 

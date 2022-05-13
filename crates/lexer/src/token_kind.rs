@@ -51,6 +51,8 @@ pub enum TokenKind {
     Less,
     #[token("<=")]
     LessEqual,
+    #[token("->")]
+    Arrow,
 
     // Literals
     #[regex("[A-Za-z_][A-Za-z0-9_]*")]
@@ -145,6 +147,7 @@ impl fmt::Display for TokenKind {
             Self::GreaterEqual => ">=",
             Self::Less => "<",
             Self::LessEqual => "<=",
+            Self::Arrow => "->",
 
             // Literals
             Self::Ident => "ident",
@@ -464,5 +467,10 @@ mod tests {
     #[test]
     fn lex_type_any() {
         check("any", TokenKind::TypeAny);
+    }
+
+    #[test]
+    fn lex_arrow() {
+        check("->", TokenKind::Arrow);
     }
 }

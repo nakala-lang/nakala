@@ -9,7 +9,7 @@ use ast::{
     expr::{Expr, Expression},
     op::{Op, Operator},
     stmt::{Binding, Statement, Stmt},
-    ty::Type,
+    ty::{Type, TypeExpression},
 };
 use lexer::{Token, TokenKind};
 use meta::Span;
@@ -132,12 +132,23 @@ impl<'input> Parser<'input> {
 
         let right_paren_span = self.expect(TokenKind::RightParen)?.span;
 
+        // Check if type defined
+        let mut return_ty = TypeExpression {
+            span: Span::new(0, 0),
+            ty: Type::Any,
+        };
+
+        if self.at(TokenKind::Arrow) {
+            self.bump()?;
+            return_ty = self.ty()?;
+        }
+
         self.symtab.insert(Symbol {
             name: name.clone(),
             sym: Sym::Function {
                 arity: params.len(),
             },
-            ty: Type::Any,
+            ty: return_ty.ty,
         });
 
         self.symtab.level_up();
@@ -150,16 +161,49 @@ impl<'input> Parser<'input> {
             })
         });
 
-        println!("{:#?}", self.symtab);
         let body = self.block(true)?;
 
         self.symtab.level_down();
+
+        if let Stmt::Block(stmts) = &body.stmt {
+            // If the body has a return statement in it, make sure the types line up
+            if let Some(Statement {
+                stmt: Stmt::Return(ret),
+                ..
+            }) = stmts.last()
+            {
+                if let Some(ret_expr) = ret {
+                    if !type_compatible(&ret_expr.ty, &return_ty.ty) {
+                        return Err(ParseError::IncompatibleTypes(
+                            (&self.source).into(),
+                            return_ty.span.into(),
+                            return_ty.ty,
+                            ret_expr.span.into(),
+                            ret_expr.ty,
+                        ));
+                    }
+                }
+            } else {
+                // If the body has no return statement, make sure there is no return type
+                // annotation on the function
+                if return_ty.ty != Type::Any {
+                    return Err(ParseError::IncompatibleTypes(
+                        (&self.source).into(),
+                        return_ty.span.into(),
+                        return_ty.ty,
+                        body.span.into(),
+                        Type::Null,
+                    ));
+                }
+            }
+        }
 
         Ok(Statement {
             stmt: Stmt::Function {
                 name,
                 params,
                 body: Box::new(body),
+                return_ty,
             },
             span: Span::combine(&[func_token_span, right_paren_span]),
         })
@@ -214,9 +258,27 @@ impl<'input> Parser<'input> {
             self.if_stmt()
         } else if self.at(TokenKind::Until) {
             self.until_stmt()
+        } else if self.at(TokenKind::Ret) {
+            self.ret_stmt()
         } else {
             self.expr_stmt()
         }
+    }
+
+    fn ret_stmt(&mut self) -> Result<Statement, ParseError> {
+        let ret_span = self.expect(TokenKind::Ret)?.span;
+
+        let mut expr: Option<Expression> = None;
+        if !self.at(TokenKind::Semicolon) {
+            expr = Some(self.expr()?);
+        }
+
+        let semi_colon_span = self.bump()?.span;
+
+        Ok(Statement {
+            stmt: Stmt::Return(expr),
+            span: Span::combine(&[ret_span, semi_colon_span]),
+        })
     }
 
     fn until_stmt(&mut self) -> Result<Statement, ParseError> {
@@ -544,6 +606,7 @@ impl<'input> Parser<'input> {
 
         loop {
             if self.at(TokenKind::LeftParen) {
+                self.bump()?;
                 expr = self.finish_call(expr)?;
             } else {
                 break;
@@ -571,6 +634,13 @@ impl<'input> Parser<'input> {
 
         let paren = self.expect(TokenKind::RightParen)?.span;
 
+        if !matches!(callee.expr, Expr::Variable(..)) {
+            return Err(ParseError::UncallableExpression(
+                (&self.source).into(),
+                callee.span.into(),
+            ));
+        }
+
         Ok(Expression {
             span: Span::combine(&[callee.span.clone(), paren]),
             expr: Expr::Call {
@@ -592,28 +662,27 @@ impl<'input> Parser<'input> {
         if self.at(TokenKind::Colon) {
             self.bump()?;
 
-            ty = self.ty()?;
+            ty = self.ty()?.ty;
         }
 
         Ok(Binding { name, span, ty })
     }
 
-    fn ty(&mut self) -> Result<Type, ParseError> {
+    fn ty(&mut self) -> Result<TypeExpression, ParseError> {
         let token = self.bump()?;
-        let token_span = token.span;
+        let span = token.span;
 
-        match token.kind {
-            TokenKind::TypeInt => Ok(Type::Int),
-            TokenKind::TypeFloat => Ok(Type::Float),
-            TokenKind::TypeBool => Ok(Type::Bool),
-            TokenKind::TypeString => Ok(Type::String),
-            TokenKind::Null => Ok(Type::Null),
-            TokenKind::TypeAny => Ok(Type::Any),
-            _ => Err(ParseError::UnknownType(
-                (&self.source).into(),
-                token_span.into(),
-            )),
-        }
+        let ty = match token.kind {
+            TokenKind::TypeInt => Type::Int,
+            TokenKind::TypeFloat => Type::Float,
+            TokenKind::TypeBool => Type::Bool,
+            TokenKind::TypeString => Type::String,
+            TokenKind::Null => Type::Null,
+            TokenKind::TypeAny => Type::Any,
+            _ => return Err(ParseError::UnknownType((&self.source).into(), span.into())),
+        };
+
+        Ok(TypeExpression { ty, span })
     }
 
     fn primary(&mut self) -> Result<Expression, ParseError> {

@@ -1,3 +1,5 @@
+use meta::Span;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Type {
     Int,
@@ -6,6 +8,12 @@ pub enum Type {
     String,
     Null,
     Any
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TypeExpression {
+    pub ty: Type,
+    pub span: Span
 }
 
 impl std::fmt::Display for Type {

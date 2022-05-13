@@ -11,60 +11,52 @@ pub struct Symbol {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Sym {
     Variable,
-    Function {
-        arity: usize
-    }
+    Function { arity: usize },
 }
 
 #[derive(Debug, PartialEq)]
 pub struct SymbolTable {
     inner: Vec<HashMap<String, Symbol>>,
-    level: usize,
 }
 
 impl SymbolTable {
     pub fn new() -> Self {
         SymbolTable {
             inner: vec![HashMap::default()],
-            level: 0,
         }
     }
 
     pub fn level_up(&mut self) {
         self.inner.push(HashMap::default());
-        self.level = self.level + 1;
     }
 
     pub fn level_down(&mut self) {
-        if self.level == 0 {
-            unreachable!("ICE: symtab can't go below level 0!");
-        }
-
         self.inner.pop();
-        self.level = self.level - 1;
     }
 
     pub fn insert(&mut self, sym: Symbol) {
-        if let Some(map) = self.inner.get_mut(self.level) {
-            map.insert(sym.name.clone(), sym); 
-        } else {
-            panic!("ICE: symtab is out of sync. Trying to insert into level that doesn't exist.");
+        if let Some(map) = self.inner.last_mut() {
+            map.insert(sym.name.clone(), sym);
         }
     }
 
     pub fn lookup(&self, name: &String) -> Option<&Symbol> {
-        if let Some(map) = self.inner.get(self.level) {
-            map.get(name)
-        } else {
-            panic!("ICE: symtab is out of sync. Trying to lookup into level that doesn't exist.");
+        for map in self.inner.iter().rev() {
+            if let Some(entry) = map.get(name) {
+                return Some(entry);
+            }
         }
+
+        None
     }
-    
+
     pub fn lookup_mut(&mut self, name: &String) -> Option<&mut Symbol> {
-        if let Some(map) = self.inner.get_mut(self.level) {
-            map.get_mut(name)
-        } else {
-            panic!("ICE: symtab is out of sync. Trying to lookup into level that doesn't exist.");
+        for map in self.inner.iter_mut().rev() {
+            if let Some(entry) = map.get_mut(name) {
+                return Some(entry);
+            }
         }
+
+        None
     }
 }

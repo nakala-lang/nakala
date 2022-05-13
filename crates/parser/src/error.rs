@@ -36,27 +36,23 @@ pub enum ParseError {
     InvalidAssignmentTarget(#[source_code] NamedSource, #[label] SourceSpan),
 
     #[error("Unsupported operation")]
-    #[diagnostic(
-        code(nak::unsupported_operation)
-    )]
+    #[diagnostic(code(nak::unsupported_operation))]
     UnsupportedOperation(
         #[source_code] NamedSource,
         #[label("This operation doesn't support these types")] SourceSpan,
         #[label("{3}")] SourceSpan,
         Type,
         #[label("{5}")] SourceSpan,
-        Type
+        Type,
     ),
 
     #[error("Unsupported unary operation")]
-    #[diagnostic(
-        code(nak::unsupported_unary_operation)
-    )]
+    #[diagnostic(code(nak::unsupported_unary_operation))]
     UnsupportedUnaryOperation(
         #[source_code] NamedSource,
         #[label("This operation doesn't support this type")] SourceSpan,
         #[label("{3}")] SourceSpan,
-        Type
+        Type,
     ),
 
     #[error("Undeclared variable")]
@@ -71,15 +67,13 @@ pub enum ParseError {
     ),
 
     #[error("Incompatible types")]
-    #[diagnostic(
-        code(nak::incompatible_types)
-    )]
+    #[diagnostic(code(nak::incompatible_types))]
     IncompatibleTypes(
         #[source_code] NamedSource,
         #[label("Expects types compatible with {2}")] SourceSpan,
         Type,
         #[label("{4}")] SourceSpan,
-        Type
+        Type,
     ),
 
     #[error("Unknown type")]
@@ -90,5 +84,15 @@ pub enum ParseError {
     UnknownType(
         #[source_code] NamedSource,
         #[label("This type is unknown")] SourceSpan,
-    )
+    ),
+
+    #[error("Uncallable expression")]
+    #[diagnostic(
+        code(nak::uncallable_expr),
+        help("Only classes and functions are callable")
+    )]
+    UncallableExpression(
+        #[source_code] NamedSource,
+        #[label("This is uncallable")] SourceSpan,
+    ),
 }
