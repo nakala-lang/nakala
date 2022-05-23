@@ -1,5 +1,11 @@
 use miette::SourceSpan;
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct Spanned<T> where T: Clone + std::fmt::Debug {
+    pub item: T,
+    pub span: Span
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Span {
     pub start: usize,
@@ -15,6 +21,13 @@ impl From<Span> for SourceSpan {
 impl Span {
     pub fn new(start: usize, end: usize) -> Self {
         Span { start, end }
+    }
+
+    pub fn garbage() -> Self {
+        Self {
+            start: 0,
+            end: 0
+        }
     }
 
     pub fn combine(spans: &[Span]) -> Self {

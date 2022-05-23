@@ -1,5 +1,5 @@
-use meta::Span;
 use lexer::{Token, TokenKind};
+use meta::Span;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Op {
@@ -15,18 +15,17 @@ pub enum Op {
     Div,
     And,
     Or,
-    Not
+    Not,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Operator {
     pub op: Op,
-    pub span: Span
+    pub span: Span,
 }
 
 impl<'a> From<&Token<'a>> for Operator {
     fn from(token: &Token) -> Self {
-        
         let op = match token.kind {
             TokenKind::Bang => Op::Not,
             TokenKind::EqualEqual => Op::Equals,
@@ -46,7 +45,7 @@ impl<'a> From<&Token<'a>> for Operator {
 
         Self {
             op,
-            span: token.span
+            span: token.span,
         }
     }
 }

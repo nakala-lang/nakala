@@ -1,6 +1,6 @@
 use crate::{expr::Expression, ty::{Type, TypeExpression}};
 use lexer::Token;
-use meta::Span;
+use meta::{Span, Spanned};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Binding {
@@ -20,13 +20,20 @@ impl<'a> From<&Token<'a>> for Binding {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct Function {
+    pub name: String,
+    pub params: Vec<Binding>,
+    pub body: Box<Statement>,
+    pub return_ty: TypeExpression
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Stmt {
     Expr(Expression),
-    Function {
-        name: String,
-        params: Vec<Binding>,
-        body: Box<Statement>,
-        return_ty: TypeExpression
+    Function(Function),
+    Class {
+        name: Spanned<String>,
+        methods: Vec<Function>
     },
     Return(Option<Expression>),
     Print(Expression),

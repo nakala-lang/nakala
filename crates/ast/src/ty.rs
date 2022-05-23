@@ -1,16 +1,17 @@
 use meta::Span;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type {
     Int,
     Float,
     Bool,
     String,
+    Class(String),
     Null,
     Any
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TypeExpression {
     pub ty: Type,
     pub span: Span
@@ -23,6 +24,7 @@ impl std::fmt::Display for Type {
             Self::Float => "float", 
             Self::Bool => "bool",
             Self::String => "string",
+            Self::Class(name) => name,
             Self::Null => "null",
             Self::Any => "any"
         })

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     error::ParseError,
     source::Source,
@@ -8,11 +10,11 @@ use crate::{
 use ast::{
     expr::{Expr, Expression},
     op::{Op, Operator},
-    stmt::{Binding, Statement, Stmt},
+    stmt::{Binding, Function, Statement, Stmt},
     ty::{Type, TypeExpression},
 };
 use lexer::{Token, TokenKind};
-use meta::Span;
+use meta::{Span, Spanned};
 use miette::Result;
 
 pub struct Parser<'input> {
@@ -101,8 +103,10 @@ impl<'input> Parser<'input> {
     }
 
     fn decl(&mut self) -> Result<Statement, ParseError> {
-        if self.at(TokenKind::Func) {
-            self.func_decl()
+        if self.at(TokenKind::Class) {
+            self.class_decl()
+        } else if self.at(TokenKind::Func) {
+            self.func_decl(false)
         } else if self.at(TokenKind::Let) {
             self.var_decl()
         } else {
@@ -110,9 +114,72 @@ impl<'input> Parser<'input> {
         }
     }
 
-    fn func_decl(&mut self) -> Result<Statement, ParseError> {
-        let func_token_span = self.expect(TokenKind::Func)?.span;
-        let name = self.expect(TokenKind::Ident)?.text.to_string();
+    fn class_decl(&mut self) -> Result<Statement, ParseError> {
+        let class_token_span = self.expect(TokenKind::Class)?.span;
+        let name_token = self.expect(TokenKind::Ident)?;
+
+        let name = name_token.text.to_string();
+        let name_span = name_token.span;
+
+        self.expect(TokenKind::LeftBrace)?;
+
+        let mut methods = Vec::new();
+        let mut method_symbols = HashMap::default();
+
+        while !self.source.at_end() && !self.at(TokenKind::RightBrace) {
+            let stmt = self.func_decl(true)?;
+            match stmt.stmt {
+                Stmt::Function(func) => {
+                    methods.push(func.clone());
+                    method_symbols.insert(
+                        func.name.clone(),
+                        Symbol {
+                            name: func.name.clone(),
+                            sym: Sym::Function {
+                                arity: func.params.len(),
+                            },
+                            ty: func.return_ty.ty
+                        }
+                    );
+                }
+                _ => panic!("ICE: func_decl returned a stmt that wasnt a function"),
+            }
+        }
+
+        self.symtab.insert(Symbol {
+            name: name.clone(),
+            ty: Type::Class(name.clone()),
+            sym: Sym::Class {
+                methods: method_symbols,
+            },
+        });
+
+        let right_brace = self.expect(TokenKind::RightBrace)?;
+
+        Ok(Statement {
+            span: Span::combine(&[class_token_span, right_brace.span]),
+            stmt: Stmt::Class {
+                name: Spanned {
+                    item: name,
+                    span: name_span,
+                },
+                methods,
+            },
+        })
+    }
+
+    fn func_decl(&mut self, from_class_decl: bool) -> Result<Statement, ParseError> {
+        let mut start_span: Span = Span::garbage();
+        if !from_class_decl {
+            start_span = self.expect(TokenKind::Func)?.span;
+        }
+
+        let name_token = self.expect(TokenKind::Ident)?;
+        let name = name_token.text.to_string();
+
+        if from_class_decl {
+            start_span = name_token.span;
+        }
 
         self.expect(TokenKind::LeftParen)?;
 
@@ -143,27 +210,31 @@ impl<'input> Parser<'input> {
             return_ty = self.ty()?;
         }
 
-        self.symtab.insert(Symbol {
-            name: name.clone(),
-            sym: Sym::Function {
-                arity: params.len(),
-            },
-            ty: return_ty.ty,
-        });
-
-        self.symtab.level_up();
-
-        params.iter().for_each(|param| {
+        if !from_class_decl {
             self.symtab.insert(Symbol {
-                name: param.name.clone(),
-                sym: Sym::Variable,
-                ty: param.ty,
-            })
-        });
+                name: name.clone(),
+                sym: Sym::Function {
+                    arity: params.len(),
+                },
+                ty: return_ty.ty.clone(),
+            });
+
+            self.symtab.level_up();
+
+            params.iter().for_each(|param| {
+                self.symtab.insert(Symbol {
+                    name: param.name.clone(),
+                    sym: Sym::Variable,
+                    ty: param.ty.clone(),
+                })
+            });
+        }
 
         let body = self.block(true)?;
 
-        self.symtab.level_down();
+        if !from_class_decl {
+            self.symtab.level_down();
+        }
 
         if let Stmt::Block(stmts) = &body.stmt {
             // If the body has a return statement in it, make sure the types line up
@@ -179,8 +250,13 @@ impl<'input> Parser<'input> {
                             return_ty.span.into(),
                             return_ty.ty,
                             ret_expr.span.into(),
-                            ret_expr.ty,
+                            ret_expr.ty.clone(),
                         ));
+                    } else {
+                        // Update type to the type of the return stmt
+                        let sym = self.symtab.lookup_mut(&name).expect("ICE: couldn't find func symbol to update ret type");
+                        sym.ty = ret_expr.ty.clone();
+                        return_ty.ty = ret_expr.ty.clone();
                     }
                 }
             } else {
@@ -199,13 +275,13 @@ impl<'input> Parser<'input> {
         }
 
         Ok(Statement {
-            stmt: Stmt::Function {
+            stmt: Stmt::Function(Function {
                 name,
                 params,
                 body: Box::new(body),
                 return_ty,
-            },
-            span: Span::combine(&[func_token_span, right_paren_span]),
+            }),
+            span: Span::combine(&[start_span, right_paren_span]),
         })
     }
 
@@ -214,7 +290,7 @@ impl<'input> Parser<'input> {
 
         let binding = self.binding()?;
 
-        let mut ty = binding.ty;
+        let mut ty = binding.ty.clone();
         let mut expr = None;
         if self.at(TokenKind::Equal) {
             self.bump()?;
@@ -229,7 +305,7 @@ impl<'input> Parser<'input> {
                 ));
             }
 
-            ty = val.ty;
+            ty = val.ty.clone();
             expr = Some(val);
         }
 
@@ -388,7 +464,7 @@ impl<'input> Parser<'input> {
                             (*entry).ty = rhs.ty.clone();
 
                             Ok(Expression {
-                                ty: rhs.ty,
+                                ty: rhs.ty.clone(),
                                 expr: Expr::Assign {
                                     name,
                                     rhs: Box::new(rhs),
@@ -590,7 +666,7 @@ impl<'input> Parser<'input> {
 
             Ok(Expression {
                 span: Span::combine(&[op.span, rhs.span]),
-                ty: rhs.ty,
+                ty: rhs.ty.clone(),
                 expr: Expr::Unary {
                     op,
                     rhs: Box::new(rhs),
@@ -711,7 +787,7 @@ impl<'input> Parser<'input> {
 
                 let right_paren = self.expect(TokenKind::RightParen)?;
                 Ok(Expression {
-                    ty: expr.ty,
+                    ty: expr.ty.clone(),
                     expr: Expr::Grouping(Box::new(expr)),
                     span: Span::combine(&[span, right_paren.span]),
                 })
@@ -723,7 +799,7 @@ impl<'input> Parser<'input> {
                     Ok(Expression {
                         expr: Expr::Variable(ident),
                         span,
-                        ty: symbol.ty,
+                        ty: symbol.ty.clone(),
                     })
                 } else {
                     Err(ParseError::UndeclaredVariable(
