@@ -1,5 +1,5 @@
-use crate::{op::Operator, ty::Type};
-use meta::Span;
+use crate::{op::Operator, stmt::Class, ty::Type};
+use meta::{Span, Spanned};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
@@ -20,7 +20,7 @@ pub enum Expr {
     Grouping(Box<Expression>),
     Variable(String),
     Assign {
-        name: String,
+        name: Spanned<String>,
         rhs: Box<Expression>,
     },
     // Logical expressions short circuit, unlike Binary
@@ -34,6 +34,15 @@ pub enum Expr {
         paren: Span,
         args: Vec<Expression>,
     },
+    Get {
+        object: Box<Expression>,
+        name: Spanned<String>
+    },
+    Set {
+        object: Box<Expression>,
+        name: Spanned<String>,
+        rhs: Box<Expression>
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

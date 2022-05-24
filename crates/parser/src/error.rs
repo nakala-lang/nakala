@@ -95,4 +95,14 @@ pub enum ParseError {
         #[source_code] NamedSource,
         #[label("This is uncallable")] SourceSpan,
     ),
+
+    #[error("Only instances have properties")]
+    #[diagnostic(
+        code(nak::only_instances_have_properties),
+    )]
+    OnlyInstancesHaveProperties(
+        #[source_code] NamedSource,
+        #[label("Expected instance type, but got {2} instead")] SourceSpan,
+        Type
+    )
 }

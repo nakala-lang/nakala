@@ -28,13 +28,16 @@ pub struct Function {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct Class {
+    pub name: Spanned<String>,
+    pub methods: Vec<Function>
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Stmt {
     Expr(Expression),
     Function(Function),
-    Class {
-        name: Spanned<String>,
-        methods: Vec<Function>
-    },
+    Class(Class),
     Return(Option<Expression>),
     Print(Expression),
     Variable {

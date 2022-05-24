@@ -1,5 +1,5 @@
 use logos::Logos;
-use meta::Span;
+use meta::{Span, Spanned};
 use std::ops::Range as StdRange;
 
 mod token_kind;
@@ -10,6 +10,15 @@ pub struct Token<'a> {
     pub kind: TokenKind,
     pub text: &'a str,
     pub span: Span
+}
+
+impl Into<Spanned<String>> for &Token<'_> {
+    fn into(self) -> Spanned<String> {
+        Spanned {
+            item: String::from(self.text),
+            span: self.span
+        }
+    }
 }
 
 pub struct Lexer<'a> {

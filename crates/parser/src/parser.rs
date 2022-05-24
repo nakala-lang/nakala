@@ -10,7 +10,7 @@ use crate::{
 use ast::{
     expr::{Expr, Expression},
     op::{Op, Operator},
-    stmt::{Binding, Function, Statement, Stmt},
+    stmt::{Binding, Function, Statement, Stmt, Class},
     ty::{Type, TypeExpression},
 };
 use lexer::{Token, TokenKind};
@@ -158,13 +158,13 @@ impl<'input> Parser<'input> {
 
         Ok(Statement {
             span: Span::combine(&[class_token_span, right_brace.span]),
-            stmt: Stmt::Class {
+            stmt: Stmt::Class(Class {
                 name: Spanned {
                     item: name,
                     span: name_span,
                 },
                 methods,
-            },
+            }),
         })
     }
 
@@ -254,8 +254,10 @@ impl<'input> Parser<'input> {
                         ));
                     } else {
                         // Update type to the type of the return stmt
-                        let sym = self.symtab.lookup_mut(&name).expect("ICE: couldn't find func symbol to update ret type");
-                        sym.ty = ret_expr.ty.clone();
+                        if !from_class_decl {
+                            let sym = self.symtab.lookup_mut(&name).expect("ICE: couldn't find func symbol to update ret type");
+                            sym.ty = ret_expr.ty.clone();
+                        }
                         return_ty.ty = ret_expr.ty.clone();
                     }
                 }
@@ -466,7 +468,10 @@ impl<'input> Parser<'input> {
                             Ok(Expression {
                                 ty: rhs.ty.clone(),
                                 expr: Expr::Assign {
-                                    name,
+                                    name: Spanned {
+                                        item: name,
+                                        span: expr.span
+                                    },
                                     rhs: Box::new(rhs),
                                 },
                                 span: expr.span,
@@ -488,6 +493,17 @@ impl<'input> Parser<'input> {
                         ))
                     }
                 }
+                Expr::Get { object, name } => {
+                    Ok(Expression {
+                        span: Span::combine(&[expr.span, rhs.span]),
+                        expr: Expr::Set {
+                            object,
+                            name,
+                            rhs: Box::new(rhs)
+                        },
+                        ty: Type::Null
+                    })
+                },
                 _ => Err(ParseError::InvalidAssignmentTarget(
                     error_source,
                     eq_span.into(),
@@ -684,6 +700,27 @@ impl<'input> Parser<'input> {
             if self.at(TokenKind::LeftParen) {
                 self.bump()?;
                 expr = self.finish_call(expr)?;
+            } else if self.at(TokenKind::Dot) {
+                self.bump()?;
+                let name = self.expect(TokenKind::Ident)?;
+
+                // Can only use dot operator when left hand side is of type Instance
+                if ! matches!(expr.ty, Type::Any | Type::Instance(..)) {
+                    return Err(ParseError::OnlyInstancesHaveProperties(
+                        (&self.source).into(),
+                        expr.span.into(),
+                        expr.ty
+                    ));
+                }
+
+                expr = Expression {
+                    span: Span::combine(&[expr.span, name.span]),
+                    ty: Type::Any,
+                    expr: Expr::Get {
+                        name: name.into(),
+                        object: Box::new(expr),
+                    }
+                };
             } else {
                 break;
             }
@@ -717,14 +754,20 @@ impl<'input> Parser<'input> {
             ));
         }
 
+        let mut ty = callee.ty.clone();
+        if let Type::Class(class_name) = ty {
+            // It's now an instance
+            ty = Type::Instance(class_name);
+        }
+
         Ok(Expression {
             span: Span::combine(&[callee.span.clone(), paren]),
+            ty,
             expr: Expr::Call {
                 callee: Box::new(callee),
                 paren,
                 args,
             },
-            ty: Type::Any,
         })
     }
 
