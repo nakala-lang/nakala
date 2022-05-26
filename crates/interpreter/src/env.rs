@@ -14,6 +14,14 @@ impl Env {
         }
     }
 
+    pub fn begin_scope(&mut self) {
+        self.inner.push(HashMap::default());
+    }
+
+    pub fn end_scope(&mut self) {
+        self.inner.pop();
+    }
+
     pub fn get(&self, name: &String) -> Result<Value, RuntimeError> {
         for map in self.inner.iter().rev() {
             if let Some(entry) = map.get(name) {
