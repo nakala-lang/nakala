@@ -37,6 +37,7 @@ fn eval_stmt(stmt: Statement, env: &mut Env) -> Result<(), RuntimeError> {
                 eval_stmt(block_stmt, env)?;
             }
         }
+        Stmt::Function(..) => eval_func(stmt)?,
         _ => todo!("{:#?} nyi", stmt)   
     }
 
@@ -61,5 +62,13 @@ fn eval_variable(stmt: Statement, env: &mut Env) -> Result<(), RuntimeError> {
         Ok(())
     } else {
         panic!("ICE: eval_variable should only be called with Stmt::Variable");
+    }
+}
+
+fn eval_func(stmt: Statement, env: &mut Env) -> Result<(), RuntimeError> {
+    if let Stmt::Function(func) = stmt.stmt {
+        
+    } else {
+        panic!("ICE: eval_func should only be called with Stmt::Function");
     }
 }
