@@ -43,7 +43,13 @@ impl Env {
         todo!("undefined var");
     }
 
-    pub fn define(&mut self, name: String, val: Value) {
-        self.inner.last_mut().expect("env can never not have at least one map").insert(name, val);
+    pub fn define(&mut self, name: String, val: Value) -> Result<(), RuntimeError> {
+        let last = self.inner.last_mut().expect("env can never not have at least one map");
+        if last.contains_key(&name) {
+            todo!("can't define var that already exists");
+        } else {
+            last.insert(name, val);
+            Ok(())
+        }
     }
 }  

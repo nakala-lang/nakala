@@ -1,4 +1,4 @@
-use ast::expr::{Expr, Expression};
+use ast::{expr::{Expr, Expression}, stmt::Function};
 use meta::Span;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -8,6 +8,7 @@ pub enum Val {
     Float(f64),
     String(String),
     Null,
+    Function(Function)
 }
 
 impl std::fmt::Display for Val {
@@ -18,6 +19,7 @@ impl std::fmt::Display for Val {
             Self::Float(v) => v.to_string(),
             Self::String(v) => v.clone(),
             Self::Null => String::from("null"),
+            Self::Function(func) => func.name.item.clone()
         };
 
         f.write_str(format!("{}", msg).as_str())
@@ -28,6 +30,15 @@ impl std::fmt::Display for Val {
 pub struct Value {
     pub val: Val,
     pub span: Span
+}
+
+impl Value {
+    pub fn null() -> Self {
+        Self {
+            val: Val::Null,
+            span: Span::garbage()
+        }
+    }
 }
 
 impl std::fmt::Display for Value {

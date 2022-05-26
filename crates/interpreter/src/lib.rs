@@ -1,15 +1,15 @@
-pub mod error;
 pub mod env;
-pub mod val;
+pub mod error;
 mod expr;
+pub mod val;
 
-use ast::{stmt::*, expr::*, op::*, ty::*};
-use meta::Span;
-use parser::Parse;
-use val::{Val, Value};
 use crate::env::Env;
 use crate::error::RuntimeError;
 use crate::expr::eval_expr;
+use ast::{expr::*, op::*, stmt::*, ty::*};
+use meta::Span;
+use parser::Parse;
+use val::{Val, Value};
 
 pub fn interpret(parse: Parse, env: Option<&mut Env>) -> Result<(), RuntimeError> {
     let mut new_env = Env::new();
@@ -18,7 +18,7 @@ pub fn interpret(parse: Parse, env: Option<&mut Env>) -> Result<(), RuntimeError
     for _stmt in parse.stmts {
         eval_stmt(_stmt, env)?;
     }
-    Ok(())   
+    Ok(())
 }
 
 fn eval_stmt(stmt: Statement, env: &mut Env) -> Result<(), RuntimeError> {
@@ -30,34 +30,33 @@ fn eval_stmt(stmt: Statement, env: &mut Env) -> Result<(), RuntimeError> {
             eval_variable(stmt, env)?;
         }
         Stmt::Print(expr) => {
-            print!("{}", eval_expr(expr, env)?);
+            println!("{}", eval_expr(expr, env)?);
         }
-        Stmt::Block(stmts) => {
-            for block_stmt in stmts {
-                eval_stmt(block_stmt, env)?;
-            }
+        Stmt::Block(..) => {
+            eval_block(stmt, env)?;
         }
-        Stmt::Function(..) => eval_func(stmt)?,
-        _ => todo!("{:#?} nyi", stmt)   
+        Stmt::Function(..) => eval_func_decl(stmt, env)?,
+        _ => todo!("{:#?} nyi", stmt),
     }
 
     Ok(())
 }
 
 fn eval_variable(stmt: Statement, env: &mut Env) -> Result<(), RuntimeError> {
-    if let Stmt::Variable { name: binding, expr } = stmt.stmt {
+    if let Stmt::Variable {
+        name: binding,
+        expr,
+    } = stmt.stmt
+    {
         let var_name = binding.name.item;
 
-        let mut val = Value {
-            val: Val::Null,
-            span: Span::garbage()
-        };
+        let mut val = Value::null(); 
 
         if let Some(expr) = expr {
             val = eval_expr(expr, env)?;
         }
 
-        env.define(var_name, val);
+        env.define(var_name, val)?;
 
         Ok(())
     } else {
@@ -65,9 +64,40 @@ fn eval_variable(stmt: Statement, env: &mut Env) -> Result<(), RuntimeError> {
     }
 }
 
-fn eval_func(stmt: Statement, env: &mut Env) -> Result<(), RuntimeError> {
+fn eval_block(stmt: Statement, env: &mut Env) -> Result<Value, RuntimeError> {
+    let mut ret_val = Value::null();
+
+    if let Stmt::Block(stmts) = stmt.stmt {
+        for _stmt in stmts {
+            if let Stmt::Return(ret_expr) = _stmt.stmt {
+                if let Some(expr) = ret_expr {
+                    ret_val = eval_expr(expr, env)?;
+                }
+
+                return Ok(ret_val);
+            }
+
+            eval_stmt(_stmt, env)?;
+        }
+
+        Ok(ret_val)
+    } else {
+        panic!("ICE: eval_block should only be called with Stmt::Block");
+    }
+}
+
+fn eval_func_decl(stmt: Statement, env: &mut Env) -> Result<(), RuntimeError> {
     if let Stmt::Function(func) = stmt.stmt {
-        
+        let func_name = func.name.item.clone();
+        env.define(
+            func_name,
+            Value {
+                val: Val::Function(func),
+                span: stmt.span,
+            },
+        )?;
+
+        Ok(())
     } else {
         panic!("ICE: eval_func should only be called with Stmt::Function");
     }
