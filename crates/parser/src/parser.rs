@@ -10,7 +10,7 @@ use crate::{
 use ast::{
     expr::{Expr, Expression},
     op::{Op, Operator},
-    stmt::{Binding, Function, Statement, Stmt, Class},
+    stmt::{Binding, Class, Function, Statement, Stmt},
     ty::{Type, TypeExpression},
 };
 use lexer::{Token, TokenKind};
@@ -132,14 +132,14 @@ impl<'input> Parser<'input> {
                 Stmt::Function(func) => {
                     methods.push(func.clone());
                     method_symbols.insert(
-                        func.name.clone(),
+                        func.name.item.clone(),
                         Symbol {
-                            name: func.name.clone(),
+                            name: func.name.item.clone(),
                             sym: Sym::Function {
                                 arity: func.params.len(),
                             },
-                            ty: func.return_ty.ty
-                        }
+                            ty: func.return_ty.ty,
+                        },
                     );
                 }
                 _ => panic!("ICE: func_decl returned a stmt that wasnt a function"),
@@ -175,6 +175,10 @@ impl<'input> Parser<'input> {
         }
 
         let name_token = self.expect(TokenKind::Ident)?;
+        let spanned_name = Spanned {
+            item: name_token.text.to_string(),
+            span: name_token.span
+        };
         let name = name_token.text.to_string();
 
         if from_class_decl {
@@ -223,7 +227,7 @@ impl<'input> Parser<'input> {
 
             params.iter().for_each(|param| {
                 self.symtab.insert(Symbol {
-                    name: param.name.clone(),
+                    name: param.name.item.clone(),
                     sym: Sym::Variable,
                     ty: param.ty.clone(),
                 })
@@ -255,7 +259,10 @@ impl<'input> Parser<'input> {
                     } else {
                         // Update type to the type of the return stmt
                         if !from_class_decl {
-                            let sym = self.symtab.lookup_mut(&name).expect("ICE: couldn't find func symbol to update ret type");
+                            let sym = self
+                                .symtab
+                                .lookup_mut(&name)
+                                .expect("ICE: couldn't find func symbol to update ret type");
                             sym.ty = ret_expr.ty.clone();
                         }
                         return_ty.ty = ret_expr.ty.clone();
@@ -278,7 +285,7 @@ impl<'input> Parser<'input> {
 
         Ok(Statement {
             stmt: Stmt::Function(Function {
-                name,
+                name: spanned_name,
                 params,
                 body: Box::new(body),
                 return_ty,
@@ -300,7 +307,7 @@ impl<'input> Parser<'input> {
             if !type_compatible(&ty, &val.ty) {
                 return Err(ParseError::IncompatibleTypes(
                     (&self.source).into(),
-                    binding.span.into(),
+                    binding.name.span.into(),
                     binding.ty,
                     val.span.into(),
                     val.ty,
@@ -313,7 +320,7 @@ impl<'input> Parser<'input> {
 
         self.symtab.insert(Symbol {
             sym: Sym::Variable,
-            name: binding.name.clone(),
+            name: binding.name.item.clone(),
             ty,
         });
 
@@ -470,7 +477,7 @@ impl<'input> Parser<'input> {
                                 expr: Expr::Assign {
                                     name: Spanned {
                                         item: name,
-                                        span: expr.span
+                                        span: expr.span,
                                     },
                                     rhs: Box::new(rhs),
                                 },
@@ -493,17 +500,15 @@ impl<'input> Parser<'input> {
                         ))
                     }
                 }
-                Expr::Get { object, name } => {
-                    Ok(Expression {
-                        span: Span::combine(&[expr.span, rhs.span]),
-                        expr: Expr::Set {
-                            object,
-                            name,
-                            rhs: Box::new(rhs)
-                        },
-                        ty: Type::Null
-                    })
-                },
+                Expr::Get { object, name } => Ok(Expression {
+                    span: Span::combine(&[expr.span, rhs.span]),
+                    expr: Expr::Set {
+                        object,
+                        name,
+                        rhs: Box::new(rhs),
+                    },
+                    ty: Type::Null,
+                }),
                 _ => Err(ParseError::InvalidAssignmentTarget(
                     error_source,
                     eq_span.into(),
@@ -705,11 +710,11 @@ impl<'input> Parser<'input> {
                 let name = self.expect(TokenKind::Ident)?;
 
                 // Can only use dot operator when left hand side is of type Instance
-                if ! matches!(expr.ty, Type::Any | Type::Instance(..)) {
+                if !matches!(expr.ty, Type::Any | Type::Instance(..)) {
                     return Err(ParseError::OnlyInstancesHaveProperties(
                         (&self.source).into(),
                         expr.span.into(),
-                        expr.ty
+                        expr.ty,
                     ));
                 }
 
@@ -719,7 +724,7 @@ impl<'input> Parser<'input> {
                     expr: Expr::Get {
                         name: name.into(),
                         object: Box::new(expr),
-                    }
+                    },
                 };
             } else {
                 break;
@@ -784,7 +789,13 @@ impl<'input> Parser<'input> {
             ty = self.ty()?.ty;
         }
 
-        Ok(Binding { name, span, ty })
+        Ok(Binding {
+            name: Spanned {
+                item: name.clone(),
+                span,
+            },
+            ty,
+        })
     }
 
     fn ty(&mut self) -> Result<TypeExpression, ParseError> {

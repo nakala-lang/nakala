@@ -1,4 +1,4 @@
-use crate::{op::Operator, stmt::Class, ty::Type};
+use crate::{op::Operator, ty::Type};
 use meta::{Span, Spanned};
 
 #[derive(Debug, Clone, PartialEq)]

@@ -4,16 +4,17 @@ use meta::{Span, Spanned};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Binding {
-    pub name: String,
-    pub span: Span,
+    pub name: Spanned<String>,
     pub ty: Type,
 }
 
 impl<'a> From<&Token<'a>> for Binding {
     fn from(token: &Token<'a>) -> Self {
         Self {
-            name: token.text.to_string(),
-            span: token.span,
+            name: Spanned {
+                item: token.text.to_string(),
+                span: token.span,
+            },
             ty: Type::Any,
         }
     }
@@ -21,7 +22,7 @@ impl<'a> From<&Token<'a>> for Binding {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Function {
-    pub name: String,
+    pub name: Spanned<String>,
     pub params: Vec<Binding>,
     pub body: Box<Statement>,
     pub return_ty: TypeExpression
