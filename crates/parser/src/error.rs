@@ -105,5 +105,16 @@ pub enum ParseError {
         SourceId,
         #[label("Expected instance type, but got {2} instead")] SourceSpan,
         Type
-    )
+    ),
+
+    #[error("Function returns incompatible type")]
+    #[diagnostic(code(nak::incompatible_types))]
+    FunctionHasIncompatibleReturnType(
+        SourceId,
+        #[label("Expected a type that is compatible with {2}")] SourceSpan,
+        Type,
+        #[label("Found type {4} instead")] SourceSpan,
+        Type,
+    ),
+
 }
