@@ -1,7 +1,8 @@
 use interpreter::{env::Env, interpret};
 use miette::Result;
-use parser::{parse, source::Source,  SymbolTable};
+use parser::{parse, source::Source, SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};
+use std::{fs::read_to_string, path::Path};
 
 fn main() -> Result<()> {
     let args = parse_arguments();
@@ -9,7 +10,22 @@ fn main() -> Result<()> {
     if args.input_files.len() == 0 {
         repl(args)
     } else {
-        todo!("file support")
+        if args.input_files.len() > 1 {
+            todo!("multiple files are not supported yet.");
+        }
+
+        for source in args.input_files.into_iter() {
+            let parse =
+                parse(source.clone(), None).map_err(|error| error.with_source_code(source))?;
+
+            if args.show_parse {
+                println!("{:#?}", parse);
+            }
+
+            interpret(parse, None)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -30,7 +46,7 @@ fn repl(args: NakArguments) -> Result<()> {
                     .map_err(|error| error.with_source_code(source))?;
 
                 if args.show_parse {
-                    println!("{:#?}", parse.stmts);
+                    println!("{:#?}", parse);
                 }
 
                 symtab = Some(parse.symtab.clone());
@@ -58,8 +74,26 @@ fn parse_arguments() -> NakArguments {
 
     let show_parse = is_present(&["-p", "--show-parse"]);
 
+    let mut next_file_id = 0;
+    let input_files = args
+        .into_iter()
+        .filter(|arg| arg.ends_with(".nak"))
+        .filter_map(|filepath| {
+            let path = Path::new(&filepath);
+            if path.exists() {
+                if let Ok(contents) = read_to_string(path) {
+                    let t = Source::new(next_file_id, contents, filepath);
+                    next_file_id += 1;
+                    return Some(t);
+                }
+            }
+
+            None
+        })
+        .collect();
+
     NakArguments {
-        input_files: vec![],
+        input_files,
         show_parse,
     }
 }

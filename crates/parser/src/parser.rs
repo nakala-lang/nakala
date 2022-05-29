@@ -21,6 +21,15 @@ pub struct Parser {
     symtab: SymbolTable,
 }
 
+macro_rules! trace {
+    ($x: expr) => {
+        #[cfg(feature = "trace")]
+        {
+            println!("{}", $x)
+        }
+    };
+}
+
 impl Parser {
     pub fn new(source: Source, symtab: Option<SymbolTable>) -> Self {
         Self {
@@ -93,6 +102,7 @@ impl Parser {
     }
 
     fn program(&mut self) -> Result<Vec<Statement>, ParseError> {
+        trace!("parse_program");
         let mut stmts: Vec<Statement> = Vec::new();
         while !self.source.at_end() {
             stmts.push(self.decl()?);
@@ -102,6 +112,7 @@ impl Parser {
     }
 
     fn decl(&mut self) -> Result<Statement, ParseError> {
+        trace!("parse_decl");
         if self.at(TokenKind::Class) {
             self.class_decl()
         } else if self.at(TokenKind::Func) {
@@ -114,6 +125,7 @@ impl Parser {
     }
 
     fn class_decl(&mut self) -> Result<Statement, ParseError> {
+        trace!("parse_class_decl");
         let class_token_span = self.expect(TokenKind::Class)?.span;
         let name_token = self.expect(TokenKind::Ident)?;
 
@@ -168,6 +180,7 @@ impl Parser {
     }
 
     fn func_decl(&mut self, from_class_decl: bool) -> Result<Statement, ParseError> {
+        trace!("parse_func_decl");
         let mut start_span: Span = Span::garbage();
         if !from_class_decl {
             start_span = self.expect(TokenKind::Func)?.span;
@@ -294,6 +307,7 @@ impl Parser {
     }
 
     fn var_decl(&mut self) -> Result<Statement, ParseError> {
+        trace!("parse_var_decl");
         let let_token_span = self.bump()?.span;
 
         let binding = self.binding()?;
@@ -334,6 +348,7 @@ impl Parser {
     }
 
     fn stmt(&mut self) -> Result<Statement, ParseError> {
+        trace!("parse_stmt");
         if self.at(TokenKind::Print) {
             self.print_stmt()
         } else if self.at(TokenKind::LeftBrace) {
@@ -350,6 +365,7 @@ impl Parser {
     }
 
     fn ret_stmt(&mut self) -> Result<Statement, ParseError> {
+        trace!("parse_ret_stmt");
         let ret_span = self.expect(TokenKind::Ret)?.span;
 
         let mut expr: Option<Expression> = None;
@@ -366,6 +382,7 @@ impl Parser {
     }
 
     fn until_stmt(&mut self) -> Result<Statement, ParseError> {
+        trace!("parse_until_stmt");
         let until_token_span = self.expect(TokenKind::Until)?.span;
 
         self.expect(TokenKind::LeftParen)?;
@@ -384,6 +401,7 @@ impl Parser {
     }
 
     fn if_stmt(&mut self) -> Result<Statement, ParseError> {
+        trace!("parse_if_stmt");
         let if_token_span = self.expect(TokenKind::If)?.span;
 
         self.expect(TokenKind::LeftParen)?;
@@ -409,6 +427,7 @@ impl Parser {
     }
 
     fn block(&mut self, from_func_decl: bool) -> Result<Statement, ParseError> {
+        trace!("parse_block");
         let left_brace_span = self.expect(TokenKind::LeftBrace)?.span;
 
         if !from_func_decl {
@@ -433,6 +452,7 @@ impl Parser {
     }
 
     fn print_stmt(&mut self) -> Result<Statement, ParseError> {
+        trace!("parse_print_stmt");
         let print_token_span = self.expect(TokenKind::Print)?.span;
 
         let expr = self.expr()?;
@@ -444,6 +464,7 @@ impl Parser {
     }
 
     fn expr_stmt(&mut self) -> Result<Statement, ParseError> {
+        trace!("parse_expr_stmt");
         let expr = self.expr()?;
         let semi = self.expect(TokenKind::Semicolon)?;
         Ok(Statement {
@@ -453,10 +474,12 @@ impl Parser {
     }
 
     fn expr(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_expr");
         self.assignment()
     }
 
     fn assignment(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_assignment");
         let expr = self.or()?;
 
         if self.at(TokenKind::Equal) {
@@ -519,6 +542,7 @@ impl Parser {
     }
 
     fn or(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_or");
         let mut expr = self.and()?;
 
         while self.at(TokenKind::Or) {
@@ -542,6 +566,7 @@ impl Parser {
     }
 
     fn and(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_and");
         let mut expr = self.equality()?;
 
         while self.at(TokenKind::And) {
@@ -565,6 +590,7 @@ impl Parser {
     }
 
     fn equality(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_equality");
         let mut expr = self.comparison()?;
 
         while self.at_set(&[TokenKind::BangEqual, TokenKind::EqualEqual]) {
@@ -588,6 +614,7 @@ impl Parser {
     }
 
     fn comparison(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_comparison");
         let mut expr = self.term()?;
 
         while self.at_set(&[
@@ -616,6 +643,7 @@ impl Parser {
     }
 
     fn term(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_term");
         let mut expr = self.factor()?;
 
         while self.at_set(&[TokenKind::Minus, TokenKind::Plus]) {
@@ -639,6 +667,7 @@ impl Parser {
     }
 
     fn factor(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_factor");
         let mut expr = self.unary()?;
 
         while self.at_set(&[TokenKind::Slash, TokenKind::Star]) {
@@ -662,6 +691,7 @@ impl Parser {
     }
 
     fn unary(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_unary");
         if self.at_set(&[TokenKind::Bang, TokenKind::Minus]) {
             let op: Operator = self.bump()?.into();
             let rhs = self.unary()?;
@@ -698,6 +728,7 @@ impl Parser {
     }
 
     fn call(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_call");
         let mut expr = self.primary()?;
 
         loop {
@@ -734,6 +765,7 @@ impl Parser {
     }
 
     fn finish_call(&mut self, callee: Expression) -> Result<Expression, ParseError> {
+        trace!("parse_finish_call");
         let mut args: Vec<Expression> = Vec::new();
 
         // Check if we have args
@@ -776,6 +808,7 @@ impl Parser {
     }
 
     fn binding(&mut self) -> Result<Binding, ParseError> {
+        trace!("parse_binding");
         let ident = self.expect(TokenKind::Ident)?;
 
         let name = ident.text.to_string();
@@ -798,6 +831,7 @@ impl Parser {
     }
 
     fn ty(&mut self) -> Result<TypeExpression, ParseError> {
+        trace!("parse_ty");
         let token = self.bump()?;
         let span = token.span;
 
@@ -815,6 +849,7 @@ impl Parser {
     }
 
     fn primary(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_primary");
         let token = self.bump()?;
         let token_span = token.span;
 
