@@ -41,7 +41,8 @@ impl Source {
         (self.raw.len() - 1, 0).into()
     }
 
-    pub fn at_end(&self) -> bool {
+    pub fn at_end(&mut self) -> bool {
+        self.eat_trivia();
         self.peek_token_raw().is_none()
     }
 
