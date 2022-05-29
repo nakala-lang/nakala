@@ -1,6 +1,6 @@
 use interpreter::{env::Env, interpret};
 use miette::Result;
-use parser::{parse, source::Source, Parse, SymbolTable};
+use parser::{parse, source::Source,  SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};
 
 fn main() -> Result<()> {

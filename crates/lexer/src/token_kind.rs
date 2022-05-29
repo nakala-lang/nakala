@@ -190,7 +190,7 @@ mod tests {
     use crate::Lexer;
 
     fn check(input: &str, kind: TokenKind) {
-        let mut lexer = Lexer::new(input);
+        let mut lexer = Lexer::new(0, input);
 
         let token = lexer.next().unwrap();
         assert_eq!(token.kind, kind);
@@ -217,6 +217,7 @@ mod tests {
     #[test]
     fn lex_comment_excluding_next_line() {
         let mut lexer = Lexer::new(
+            0,
             r"//this is a comment
 +",
         );

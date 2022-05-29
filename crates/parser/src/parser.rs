@@ -46,7 +46,7 @@ impl Parser {
             Ok(ty)
         } else {
             Err(ParseError::UnsupportedOperation(
-                (&self.source).into(),
+                self.source.id,
                 op.span.into(),
                 lhs.span.into(),
                 lhs.ty.clone(),
@@ -58,7 +58,7 @@ impl Parser {
 
     fn bump(&mut self) -> Result<&Token, ParseError> {
         let eof = self.source.eof();
-        let eof_err = Err(ParseError::UnexpectedEof((&self.source).into(), eof));
+        let eof_err = Err(ParseError::UnexpectedEof(self.source.id, eof));
 
         match self.source.next_token() {
             Some(t) => Ok(t),
@@ -75,7 +75,7 @@ impl Parser {
     }
 
     fn expect(&mut self, kind: TokenKind) -> Result<&Token, ParseError> {
-        let error_source = (&self.source).into();
+        let error_source = self.source.id;
 
         let t = self.bump()?;
         if t.kind == kind {
@@ -204,7 +204,7 @@ impl Parser {
 
         // Check if type defined
         let mut return_ty = TypeExpression {
-            span: Span::new(0, 0),
+            span: Span::garbage(),
             ty: Type::Any,
         };
 
@@ -249,7 +249,7 @@ impl Parser {
                 if let Some(ret_expr) = ret {
                     if !type_compatible(&ret_expr.ty, &return_ty.ty) {
                         return Err(ParseError::IncompatibleTypes(
-                            (&self.source).into(),
+                            self.source.id,
                             return_ty.span.into(),
                             return_ty.ty,
                             ret_expr.span.into(),
@@ -272,7 +272,7 @@ impl Parser {
                 // annotation on the function
                 if return_ty.ty != Type::Any {
                     return Err(ParseError::IncompatibleTypes(
-                        (&self.source).into(),
+                        self.source.id,
                         return_ty.span.into(),
                         return_ty.ty,
                         body.span.into(),
@@ -305,7 +305,7 @@ impl Parser {
             let val = self.expr()?;
             if !type_compatible(&ty, &val.ty) {
                 return Err(ParseError::IncompatibleTypes(
-                    (&self.source).into(),
+                    self.source.id,
                     binding.name.span.into(),
                     binding.ty,
                     val.span.into(),
@@ -460,7 +460,7 @@ impl Parser {
         let expr = self.or()?;
 
         if self.at(TokenKind::Equal) {
-            let error_source = (&self.source).into();
+            let error_source = self.source.id;
             let eq_span = self.bump()?.span;
 
             let rhs = self.assignment()?;
@@ -484,7 +484,7 @@ impl Parser {
                             })
                         } else {
                             Err(ParseError::IncompatibleTypes(
-                                (&self.source).into(),
+                                self.source.id,
                                 expr.span.into(),
                                 entry.ty.clone(),
                                 rhs.span.into(),
@@ -493,7 +493,7 @@ impl Parser {
                         }
                     } else {
                         Err(ParseError::UndeclaredVariable(
-                            (&self.source).into(),
+                            self.source.id,
                             expr.span.into(),
                             name,
                         ))
@@ -668,7 +668,7 @@ impl Parser {
 
             if op.op == Op::Not && rhs.ty != Type::Bool {
                 return Err(ParseError::UnsupportedUnaryOperation(
-                    (&self.source).into(),
+                    self.source.id,
                     op.span.into(),
                     rhs.span.into(),
                     rhs.ty.clone(),
@@ -677,7 +677,7 @@ impl Parser {
 
             if op.op == Op::Sub && (rhs.ty != Type::Float && rhs.ty != Type::Int) {
                 return Err(ParseError::UnsupportedUnaryOperation(
-                    (&self.source).into(),
+                    self.source.id,
                     op.span.into(),
                     rhs.span.into(),
                     rhs.ty.clone(),
@@ -711,7 +711,7 @@ impl Parser {
                 // Can only use dot operator when left hand side is of type Instance
                 if !matches!(expr.ty, Type::Any | Type::Instance(..)) {
                     return Err(ParseError::OnlyInstancesHaveProperties(
-                        (&self.source).into(),
+                        self.source.id,
                         expr.span.into(),
                         expr.ty,
                     ));
@@ -753,7 +753,7 @@ impl Parser {
 
         if !matches!(callee.expr, Expr::Variable(..)) {
             return Err(ParseError::UncallableExpression(
-                (&self.source).into(),
+                self.source.id,
                 callee.span.into(),
             ));
         }
@@ -808,7 +808,7 @@ impl Parser {
             TokenKind::TypeString => Type::String,
             TokenKind::Null => Type::Null,
             TokenKind::TypeAny => Type::Any,
-            _ => return Err(ParseError::UnknownType((&self.source).into(), span.into())),
+            _ => return Err(ParseError::UnknownType(self.source.id, span.into())),
         };
 
         Ok(TypeExpression { ty, span })
@@ -856,7 +856,7 @@ impl Parser {
                     })
                 } else {
                     Err(ParseError::UndeclaredVariable(
-                        (&self.source).into(),
+                        self.source.id,
                         span.into(),
                         ident,
                     ))
@@ -897,7 +897,7 @@ impl Parser {
                 })
             }
             _ => Err(ParseError::ExpectedExpression(
-                (&self.source).into(),
+                self.source.id,
                 token_span.into(),
             )),
         }

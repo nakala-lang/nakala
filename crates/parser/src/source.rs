@@ -1,9 +1,10 @@
 use lexer::{Lexer, Token, TokenKind};
+use meta::SourceId;
 use miette::{MietteSpanContents, NamedSource, SourceCode, SourceSpan};
 
 #[derive(Debug, Clone)]
 pub struct Source {
-    id: usize,
+    pub id: SourceId,
     raw: String,
     name: String,
     tokens: Vec<Token>,
@@ -11,8 +12,8 @@ pub struct Source {
 }
 
 impl Source {
-    pub fn new(id: usize, raw: String, name: String) -> Self {
-        let tokens: Vec<_> = Lexer::new(&raw).collect();
+    pub fn new(id: SourceId, raw: String, name: String) -> Self {
+        let tokens: Vec<_> = Lexer::new(id, &raw).collect();
         Self {
             id,
             raw,

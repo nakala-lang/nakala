@@ -1,5 +1,5 @@
 use logos::Logos;
-use meta::{Span, Spanned};
+use meta::{SourceId, Span, Spanned};
 use std::ops::Range as StdRange;
 
 mod token_kind;
@@ -22,12 +22,14 @@ impl Into<Spanned<String>> for &Token {
 }
 
 pub struct Lexer<'a> {
+    source_id: SourceId,
     inner: logos::Lexer<'a, TokenKind>,
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(input: &'a str) -> Self {
+    pub fn new(source_id: SourceId, input: &'a str) -> Self {
         Self {
+            source_id,
             inner: TokenKind::lexer(input),
         }
     }
@@ -43,7 +45,7 @@ impl<'a> Iterator for Lexer<'a> {
         let span = {
             let StdRange { start, end } = self.inner.span();
 
-            Span::new(start, end)
+            Span::new(self.source_id, start, end)
         };
 
         Some(Self::Item {
