@@ -6,17 +6,17 @@ mod token_kind;
 pub use token_kind::TokenKind;
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Token<'a> {
+pub struct Token {
     pub kind: TokenKind,
-    pub text: &'a str,
-    pub span: Span
+    pub text: String,
+    pub span: Span,
 }
 
-impl Into<Spanned<String>> for &Token<'_> {
+impl Into<Spanned<String>> for &Token {
     fn into(self) -> Spanned<String> {
         Spanned {
-            item: String::from(self.text),
-            span: self.span
+            item: self.text.clone(),
+            span: self.span,
         }
     }
 }
@@ -34,7 +34,7 @@ impl<'a> Lexer<'a> {
 }
 
 impl<'a> Iterator for Lexer<'a> {
-    type Item = Token<'a>;
+    type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
         let kind = self.inner.next()?;
@@ -46,6 +46,10 @@ impl<'a> Iterator for Lexer<'a> {
             Span::new(start, end)
         };
 
-        Some(Self::Item { kind, text, span })
+        Some(Self::Item {
+            kind,
+            text: text.into(),
+            span,
+        })
     }
 }

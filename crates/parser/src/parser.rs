@@ -15,22 +15,21 @@ use ast::{
 };
 use lexer::{Token, TokenKind};
 use meta::{Span, Spanned};
-use miette::Result;
 
-pub struct Parser<'input> {
-    source: Source<'input>,
+pub struct Parser {
+    source: Source,
     symtab: SymbolTable,
 }
 
-impl<'input> Parser<'input> {
-    pub fn new(source: Source<'input>, symtab: Option<SymbolTable>) -> Self {
+impl Parser {
+    pub fn new(source: Source, symtab: Option<SymbolTable>) -> Self {
         Self {
             source,
             symtab: symtab.unwrap_or(SymbolTable::new()),
         }
     }
 
-    pub fn parse(mut self) -> Result<Parse, ParseError> {
+    pub fn parse(mut self) -> miette::Result<Parse> {
         Ok(Parse {
             stmts: self.program()?,
             symtab: self.symtab,

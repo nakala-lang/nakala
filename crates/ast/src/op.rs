@@ -24,7 +24,7 @@ pub struct Operator {
     pub span: Span,
 }
 
-impl<'a> From<&Token<'a>> for Operator {
+impl<'a> From<&Token> for Operator {
     fn from(token: &Token) -> Self {
         let op = match token.kind {
             TokenKind::Bang => Op::Not,

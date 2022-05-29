@@ -1,18 +1,20 @@
 use lexer::{Lexer, Token, TokenKind};
 use miette::{MietteSpanContents, NamedSource, SourceCode, SourceSpan};
 
-#[derive(Debug)]
-pub struct Source<'input> {
-    raw: &'input str,
+#[derive(Debug, Clone)]
+pub struct Source {
+    id: usize,
+    raw: String,
     name: String,
-    tokens: Vec<Token<'input>>,
+    tokens: Vec<Token>,
     cursor: usize,
 }
 
-impl<'input> Source<'input> {
-    pub fn new(raw: &'input str, name: String) -> Self {
+impl Source {
+    pub fn new(id: usize, raw: String, name: String) -> Self {
         let tokens: Vec<_> = Lexer::new(&raw).collect();
         Self {
+            id,
             raw,
             name,
             tokens,
@@ -20,7 +22,7 @@ impl<'input> Source<'input> {
         }
     }
 
-    pub fn next_token(&mut self) -> Option<&Token<'input>> {
+    pub fn next_token(&mut self) -> Option<&Token> {
         self.eat_trivia();
 
         let token = self.tokens.get(self.cursor)?;
@@ -61,7 +63,7 @@ impl<'input> Source<'input> {
     }
 }
 
-impl SourceCode for Source<'_> {
+impl SourceCode for Source {
     fn read_span<'a>(
         &'a self,
         span: &miette::SourceSpan,
@@ -82,7 +84,7 @@ impl SourceCode for Source<'_> {
     }
 }
 
-impl Into<NamedSource> for &Source<'_> {
+impl Into<NamedSource> for &Source {
     fn into(self) -> NamedSource {
         let name = self.name.clone();
         let input = self.raw.clone().to_string();

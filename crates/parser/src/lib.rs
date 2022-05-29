@@ -4,7 +4,6 @@ mod symtab;
 pub mod type_check;
 pub mod source;
 
-use crate::error::ParseError;
 use crate::parser::Parser;
 use crate::source::Source;
 use ast::stmt::Statement;
@@ -16,7 +15,7 @@ pub struct Parse {
     pub symtab: SymbolTable
 }
 
-pub fn parse(source: Source, symtab: Option<SymbolTable>) -> Result<Parse, ParseError> {
+pub fn parse(source: Source, symtab: Option<SymbolTable>) -> miette::Result<Parse> {
     Parser::new(source, symtab).parse()
 }
 
@@ -25,14 +24,14 @@ mod tests {
     use super::*;
     use expect_test::{expect, Expect};
 
-    impl<'a> Into<Source<'a>> for &'a str {
-        fn into(self) -> Source<'a> {
-            Source::new(self.clone(), "".into())
+    impl<'a> Into<Source> for &'a str {
+        fn into(self) -> Source {
+            Source::new(0, self.clone(), "".into())
         }
     }
 
     fn check(actual: &str, expected: Expect) {
-        let result = format!("{:#?}", parse(actual.into()).unwrap());
+        let result = format!("{:#?}", parse(actual.into(), None).unwrap());
         expected.assert_eq(result.as_str())
     }
 
@@ -63,7 +62,9 @@ mod tests {
                         },
                     ],
                     symtab: SymbolTable {
-                        inner: {},
+                        inner: [
+                            {},
+                        ],
                     },
                 }"#]]
         );
@@ -94,7 +95,9 @@ mod tests {
                     },
                 ],
                 symtab: SymbolTable {
-                    inner: {},
+                    inner: [
+                        {},
+                    ],
                 },
             }"#]]);
     }
@@ -124,7 +127,9 @@ mod tests {
                     },
                 ],
                 symtab: SymbolTable {
-                    inner: {},
+                    inner: [
+                        {},
+                    ],
                 },
             }"#]]);
     }
@@ -152,7 +157,9 @@ mod tests {
                     },
                 ],
                 symtab: SymbolTable {
-                    inner: {},
+                    inner: [
+                        {},
+                    ],
                 },
             }"#]]);
     }
@@ -182,7 +189,9 @@ mod tests {
                     },
                 ],
                 symtab: SymbolTable {
-                    inner: {},
+                    inner: [
+                        {},
+                    ],
                 },
             }"#]]);
     }
@@ -213,7 +222,9 @@ mod tests {
                         },
                     ],
                     symtab: SymbolTable {
-                        inner: {},
+                        inner: [
+                            {},
+                        ],
                     },
                 }"#]]
         );

@@ -8,8 +8,8 @@ pub struct Binding {
     pub ty: Type,
 }
 
-impl<'a> From<&Token<'a>> for Binding {
-    fn from(token: &Token<'a>) -> Self {
+impl From<&Token> for Binding {
+    fn from(token: &Token) -> Self {
         Self {
             name: Spanned {
                 item: token.text.to_string(),
