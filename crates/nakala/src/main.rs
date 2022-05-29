@@ -1,6 +1,6 @@
+use interpreter::{env::Env, interpret};
 use miette::Result;
-use parser::{parse, source::Source};
-use interpreter::{interpret, env::Env};
+use parser::{parse, source::Source, SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};
 
 fn main() -> Result<()> {
@@ -10,26 +10,22 @@ fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
     let show_parse = args.contains(&String::from("-p"));
 
-    let mut total_buffer = String::new();
+    let mut symtab: Option<SymbolTable> = None;
+    let mut env = Env::new();
 
     loop {
         let sig = line_editor.read_line(&prompt).unwrap();
         match sig {
             Signal::Success(buffer) => {
-                let mut env = Env::new();
+                let source = Source::new(&buffer, "stdin".to_string());
 
-                if total_buffer.len() != 0 {
-                    total_buffer = format!("{}\n{}", total_buffer, buffer);
-                } else {
-                    total_buffer = buffer;
-                }
-                let source = Source::new(&total_buffer, "stdin".to_string());
-
-                let parse = parse(source)?;
+                let parse = parse(source, symtab)?;
 
                 if show_parse {
-                    println!("{:#?}", parse);
+                    println!("{:#?}", parse.stmts);
                 }
+
+                symtab = Some(parse.symtab.clone());
 
                 interpret(parse, Some(&mut env))?;
             }

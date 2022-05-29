@@ -23,10 +23,10 @@ pub struct Parser<'input> {
 }
 
 impl<'input> Parser<'input> {
-    pub fn new(source: Source<'input>) -> Self {
+    pub fn new(source: Source<'input>, symtab: Option<SymbolTable>) -> Self {
         Self {
             source,
-            symtab: SymbolTable::new(),
+            symtab: symtab.unwrap_or(SymbolTable::new()),
         }
     }
 

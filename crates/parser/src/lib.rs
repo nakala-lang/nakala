@@ -8,7 +8,7 @@ use crate::error::ParseError;
 use crate::parser::Parser;
 use crate::source::Source;
 use ast::stmt::Statement;
-use symtab::SymbolTable;
+pub use symtab::SymbolTable;
 
 #[derive(Debug, PartialEq)]
 pub struct Parse {
@@ -16,8 +16,8 @@ pub struct Parse {
     pub symtab: SymbolTable
 }
 
-pub fn parse(source: Source) -> Result<Parse, ParseError> {
-    Parser::new(source).parse()
+pub fn parse(source: Source, symtab: Option<SymbolTable>) -> Result<Parse, ParseError> {
+    Parser::new(source, symtab).parse()
 }
 
 #[cfg(test)]

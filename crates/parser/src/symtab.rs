@@ -12,12 +12,10 @@ pub struct Symbol {
 pub enum Sym {
     Variable,
     Function { arity: usize },
-    Class {
-        methods: HashMap<String, Symbol>
-    }
+    Class { methods: HashMap<String, Symbol> },
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SymbolTable {
     inner: Vec<HashMap<String, Symbol>>,
 }
@@ -27,6 +25,22 @@ impl SymbolTable {
         SymbolTable {
             inner: vec![HashMap::default()],
         }
+    }
+
+    pub fn merge_with(&mut self, other: SymbolTable) {
+        //FIXME I'm pretty sure we only need to merge the first level of each since we use this
+        //function for the REPL and never in a nested scope
+        let self_map = self
+            .inner
+            .get_mut(0)
+            .expect("symtabs must have at least one level");
+        self_map.extend(
+            other
+                .inner
+                .into_iter()
+                .nth(0)
+                .expect("symtabs must have atleast one level"),
+        );
     }
 
     pub fn level_up(&mut self) {
