@@ -1,4 +1,4 @@
-use interpreter::{env::Env, interpret};
+use interpreter::{env::Environment, interpret};
 use miette::Result;
 use parser::{parse, source::Source, SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};
@@ -34,7 +34,7 @@ fn repl(args: NakArguments) -> Result<()> {
     let prompt = DefaultPrompt::default();
 
     let mut symtab: Option<SymbolTable> = None;
-    let mut env = Env::new();
+    let mut env = Environment::new();
 
     loop {
         let sig = line_editor.read_line(&prompt).unwrap();

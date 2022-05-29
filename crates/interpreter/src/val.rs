@@ -1,5 +1,7 @@
-use ast::{expr::{Expr, Expression}, stmt::Function};
+use ast::{expr::{Expr, Expression}, op::Operator, stmt::Function};
 use meta::Span;
+
+use crate::{env::EnvId, error::RuntimeError};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Val {
@@ -8,7 +10,10 @@ pub enum Val {
     Float(f64),
     String(String),
     Null,
-    Function(Function)
+    Function {
+        func: Function,
+        closure: EnvId,
+    }
 }
 
 impl std::fmt::Display for Val {
@@ -19,7 +24,7 @@ impl std::fmt::Display for Val {
             Self::Float(v) => v.to_string(),
             Self::String(v) => v.clone(),
             Self::Null => String::from("null"),
-            Self::Function(func) => func.name.item.clone()
+            Self::Function { func, .. } => func.name.item.clone(),
         };
 
         f.write_str(format!("{}", msg).as_str())
@@ -29,16 +34,7 @@ impl std::fmt::Display for Val {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Value {
     pub val: Val,
-    pub span: Span
-}
-
-impl Value {
-    pub fn null() -> Self {
-        Self {
-            val: Val::Null,
-            span: Span::garbage()
-        }
-    }
+    pub span: Span,
 }
 
 impl std::fmt::Display for Value {
@@ -56,13 +52,39 @@ impl From<Expression> for Value {
             Expr::String(v) => Val::String(v),
             Expr::Null => Val::Null,
             _ => {
-                panic!("ICE: attempted to turn non simple expression {:?} into a Value", expr);
+                panic!(
+                    "ICE: attempted to turn non simple expression {:?} into a Value",
+                    expr
+                );
             }
         };
 
         Self {
             val,
-            span: expr.span
+            span: expr.span,
+        }
+    }
+}
+
+impl Value {
+    pub fn null() -> Self {
+        Self {
+            val: Val::Null,
+            span: Span::garbage(),
+        }
+    }
+
+    pub fn add(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        match (&self.val, &rhs.val) {
+            (Val::Int(lhs), Val::Int(rhs)) => {
+                Ok(Value {
+                    val: Val::Int(lhs + rhs),
+                    span
+                })
+            },
+            _ => todo!("unsupported add variant")
         }
     }
 }

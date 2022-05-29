@@ -1,0 +1,35 @@
+// Functions don't have to return things
+func foo() {
+  print "inside foo!";
+}
+
+// This function returns stuff
+func bar() {
+  ret 10;
+}
+
+// Functions can be passed to other functions
+func identity(a: int) -> int {
+  ret a;
+}
+
+func computeClosure(x, myArg) -> int {
+  ret x(myArg);
+}
+
+print "The next value should be 5:";
+print computeClosure(identity, 5);
+
+// Functions can be declared inside functions
+func outside() -> string {
+  let x = "the meaning of life";
+
+  func inner() -> string {
+    ret x;
+  }
+
+  ret inner();
+}
+
+print "The next value should be the meaning of life";
+print outside();  
