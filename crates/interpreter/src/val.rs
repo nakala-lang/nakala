@@ -1,7 +1,7 @@
 use ast::{expr::{Expr, Expression}, op::Operator, stmt::Function};
 use meta::Span;
 
-use crate::{env::EnvId, error::RuntimeError};
+use crate::{env::ScopeId, error::RuntimeError};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Val {
@@ -12,7 +12,7 @@ pub enum Val {
     Null,
     Function {
         func: Function,
-        closure: EnvId,
+        closure: ScopeId,
     }
 }
 
@@ -24,7 +24,7 @@ impl std::fmt::Display for Val {
             Self::Float(v) => v.to_string(),
             Self::String(v) => v.clone(),
             Self::Null => String::from("null"),
-            Self::Function { func, .. } => func.name.item.clone(),
+            Self::Function { func, closure } => format!("{} - closure {}", func.name.item.clone(), closure)
         };
 
         f.write_str(format!("{}", msg).as_str())

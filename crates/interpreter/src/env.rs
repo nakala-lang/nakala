@@ -1,42 +1,49 @@
+use meta::trace;
+
 use crate::{error::RuntimeError, val::Value};
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Debug};
 
-pub type EnvId = usize;
+pub type ScopeId = usize;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Environment {
-    inner: Vec<Env>,
+    scopes: Vec<Scope>,
     next_id: usize
 }
 
 impl Environment {
     pub fn new() -> Self {
         Self {
-            inner: vec![Env::new(0, None)],
+            scopes: vec![Scope::new(0, None)],
             next_id: 1
         }
     }
 
-    pub fn begin_scope(&mut self, closure: Option<EnvId>) -> EnvId {
+    pub fn begin_scope(&mut self, closure: Option<ScopeId>) -> ScopeId {
         let id = self.next_id;
+        self.next_id = self.next_id + 1;
+
         let enclosing_id = closure.unwrap_or_else(|| {
-            self.next_id = self.next_id + 1;
             id.checked_sub(1).expect("ICE: called begin scope without on the root scope")
         });
 
-        self.inner.push(Env::new(id, Some(enclosing_id)));
+        self.scopes.push(Scope::new(id, Some(enclosing_id)));
+
+        trace!(format!("created scope {:?}", self.scopes.last().unwrap()));
 
         id
     }
 
-    pub fn get(&self, env: EnvId, name: &String) -> Result<Value, RuntimeError> {
-        let env = self.inner.get(env).expect("ICE: no matching Env for EnvId");
+    pub fn get(&self, scope_id: ScopeId, name: &String) -> Result<Value, RuntimeError> {
+        trace!(format!("trying to get {} in scope {}", name, scope_id));
+        let env = self.scopes.get(scope_id).expect("ICE: no matching Scope for ScopeId");
         
         match env.get(name) {
             Ok(v) => Ok(v),
             Err(e) => {
-                if let Some(enclosing_env_id) = env.enclosing {
-                    self.get(enclosing_env_id, name)
+                trace!(format!("didnt find - checking enclosing scope {:?}", env.enclosing));
+                if let Some(enclosing_id) = env.enclosing {
+                    self.get(enclosing_id, name)
                 } else {
                     Err(e)
                 }
@@ -44,13 +51,13 @@ impl Environment {
         }
     }
 
-    pub fn assign(&mut self, env: EnvId, name: String, val: Value) -> Result<(), RuntimeError> {
-        let env = self.inner.get_mut(env).expect("ICE: no matching Env for EnvId");
+    pub fn assign(&mut self, scope_id: ScopeId, name: String, val: Value) -> Result<(), RuntimeError> {
+        let env = self.scopes.get_mut(scope_id).expect("ICE: no matching Scope for ScopeId");
 
         match env.assign(name.clone(), val.clone()) {
             Err(e) => {
-                if let Some(enclosing_env_id) = env.enclosing {
-                    self.assign(enclosing_env_id, name, val)
+                if let Some(enclosing_id) = env.enclosing {
+                    self.assign(enclosing_id, name, val)
                 } else {
                     Err(e)
                 }
@@ -59,13 +66,13 @@ impl Environment {
         }
     }
 
-    pub fn define(&mut self, env: EnvId, name: String, val: Value) -> Result<(), RuntimeError> {
-        let env = self.inner.get_mut(env).expect("ICE: no matching Env for EnvId");
+    pub fn define(&mut self, scope_id: ScopeId, name: String, val: Value) -> Result<(), RuntimeError> {
+        let env = self.scopes.get_mut(scope_id).expect("ICE: no matching Scope for ScopeId");
 
         match env.define(name.clone(), val.clone()) {
             Err(e) => {
-                if let Some(enclosing_env_id) = env.enclosing {
-                    self.define(enclosing_env_id, name, val)
+                if let Some(enclosing_id) = env.enclosing {
+                    self.define(enclosing_id, name, val)
                 } else {
                     Err(e)
                 }
@@ -73,28 +80,34 @@ impl Environment {
             _ => Ok(())
         }
     }
+}
 
-    pub fn debug(&self) {
-        println!("Total of {} envs", self.inner.len());
-        for env in self.inner.iter() {
-            println!("env {}", env.id);
-            for (key, value) in env.values.iter() {
-                println!("{} = {}", key, value);
+impl std::fmt::Debug for Environment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Environment has {} Scopes", self.scopes.len())?;
+
+        for scope in self.scopes.iter() {
+            writeln!(f, "Scope {}", scope.id)?;
+            writeln!(f, "\t- Enclosing: {:?}", scope.enclosing)?;
+            writeln!(f, "\t- Values:")?;
+            for (key, value) in scope.values.iter() {
+                writeln!(f, "\t\t- {} = {}", key, value)?;
             }
-            println!("-----------");
         }
+        
+        Ok(())
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-struct Env {
-    pub id: EnvId,
+struct Scope {
+    pub id: ScopeId,
     pub values: HashMap<String, Value>,
-    pub enclosing: Option<EnvId>,
+    pub enclosing: Option<ScopeId>,
 }
 
-impl Env {
-    pub fn new(id: EnvId, enclosing: Option<EnvId>) -> Self {
+impl Scope {
+    pub fn new(id: ScopeId, enclosing: Option<ScopeId>) -> Self {
         Self {
             id,
             values: HashMap::default(),
@@ -107,7 +120,7 @@ impl Env {
             return Ok(entry.clone());
         }
 
-        todo!("undefined var");
+        Err(RuntimeError::UndefinedVariable)
     }
 
     pub fn assign(&mut self, name: String, val: Value) -> Result<(), RuntimeError> {
@@ -116,7 +129,7 @@ impl Env {
             return Ok(());
         }
 
-        todo!("undefined var");
+        Err(RuntimeError::UndefinedVariable)
     }
 
     pub fn define(&mut self, name: String, val: Value) -> Result<(), RuntimeError> {
