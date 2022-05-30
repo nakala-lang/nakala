@@ -14,20 +14,11 @@ use ast::{
     ty::{Type, TypeExpression},
 };
 use lexer::{Token, TokenKind};
-use meta::{Span, Spanned};
+use meta::{Span, Spanned, trace};
 
 pub struct Parser {
     source: Source,
     symtab: SymbolTable,
-}
-
-macro_rules! trace {
-    ($x: expr) => {
-        #[cfg(feature = "trace")]
-        {
-            println!("{}", $x)
-        }
-    };
 }
 
 impl Parser {
