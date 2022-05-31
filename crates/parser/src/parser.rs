@@ -14,7 +14,7 @@ use ast::{
     ty::{Type, TypeExpression},
 };
 use lexer::{Token, TokenKind};
-use meta::{Span, Spanned, trace};
+use meta::{trace, Span, Spanned};
 
 pub struct Parser {
     source: Source,
@@ -34,6 +34,43 @@ impl Parser {
             stmts: self.program()?,
             symtab: self.symtab,
         })
+    }
+
+    fn is_callable(&self, callee: &Expression) -> Result<(), ParseError> {
+        let err = Err(ParseError::UncallableExpression(
+            self.source.id,
+            callee.span.into(),
+        ));
+
+        match &callee.expr {
+            Expr::Variable(name) => {
+                if let Some(entry) = self.symtab.lookup(&name) {
+                    if matches!(entry.sym, Sym::Function { .. } | Sym::Class { .. }) {
+                        return Ok(())
+                    } 
+                } 
+
+                err
+            }
+
+            // TODO nested get exprs
+            Expr::Get { object, name } => {
+                if let Type::Instance(class_name) = &object.ty {
+                    if let Some(entry) = self.symtab.lookup(&class_name) {
+                        if let Sym::Class { methods } = &entry.sym {
+                            if methods.contains_key(&name.item) {
+                                return Ok(())
+                            } else {
+                                todo!("class doesn't have method {}", name.item);
+                            }
+                        }
+                    }
+                }
+
+                err
+            }
+            _ => err,
+        }
     }
 
     fn result_type(
@@ -180,7 +217,7 @@ impl Parser {
         let name_token = self.expect(TokenKind::Ident)?;
         let spanned_name = Spanned {
             item: name_token.text.to_string(),
-            span: name_token.span
+            span: name_token.span,
         };
         let name = name_token.text.to_string();
 
@@ -225,23 +262,23 @@ impl Parser {
                 },
                 ty: return_ty.ty.clone(),
             });
-
-            self.symtab.level_up();
-
-            params.iter().for_each(|param| {
-                self.symtab.insert(Symbol {
-                    name: param.name.item.clone(),
-                    sym: Sym::Variable,
-                    ty: param.ty.clone(),
-                })
-            });
         }
+
+        self.symtab.level_up();
+
+        params.iter().for_each(|param| {
+            self.symtab.insert(Symbol {
+                name: param.name.item.clone(),
+                sym: Sym::Variable,
+                ty: param.ty.clone(),
+            })
+        });
 
         let body = self.block(true)?;
 
-        if !from_class_decl {
-            self.symtab.level_down();
-        }
+        //if !from_class_decl {
+        self.symtab.level_down();
+        //}
 
         if let Stmt::Block(stmts) = &body.stmt {
             // If the body has a return statement in it, make sure the types line up
@@ -774,12 +811,18 @@ impl Parser {
 
         let paren = self.expect(TokenKind::RightParen)?.span;
 
-        if !matches!(callee.expr, Expr::Variable(..)) {
-            return Err(ParseError::UncallableExpression(
-                self.source.id,
-                callee.span.into(),
-            ));
-        }
+        trace!(format!("{:#?}", callee.expr));
+
+        // TODO: type checking on get expr's for instances
+        // Example: someInstance.foo()
+
+        self.is_callable(&callee)?;
+        //if !matches!(callee.expr, Expr::Variable(..) | Expr::Get { .. }) {
+        //    return Err(ParseError::UncallableExpression(
+        //        self.source.id,
+        //        callee.span.into(),
+        //    ));
+        //}
 
         let mut ty = callee.ty.clone();
         if let Type::Class(class_name) = ty {
@@ -841,6 +884,7 @@ impl Parser {
 
     fn primary(&mut self) -> Result<Expression, ParseError> {
         trace!("parse_primary");
+        trace!(format!("symtab before lookup: {:#?}", self.symtab.clone()));
         let token = self.bump()?;
         let token_span = token.span;
 

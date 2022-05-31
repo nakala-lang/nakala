@@ -1,0 +1,17 @@
+class Calculator {
+  addTwoThings(a: int, b: int) -> int {
+    ret a + b;
+  }
+}
+
+func addTwoThings(a: int, b: int) -> int {
+  print "WRONG ONE!";
+  ret a + b;
+}
+
+let calculator = Calculator();
+print calculator;
+calculator.x = 10;
+print calculator.x;
+//let result = calculator.addTwoThings(1,2);
+//print result;

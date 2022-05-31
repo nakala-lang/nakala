@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use crate::{env::{Environment, ScopeId}, error::RuntimeError, eval_block, val::{Val, Value}};
-use ast::{expr::*, op::{Op, Operator}, stmt::Function};
+use ast::{expr::*, op::{Op, Operator}, stmt::{Class, Function}};
 use meta::Span;
 
 pub(crate) fn eval_expr(expr: Expression, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError> {
@@ -11,6 +13,8 @@ pub(crate) fn eval_expr(expr: Expression, env: &mut Environment, scope: ScopeId)
         Expr::Assign { .. } => eval_assign_expr(expr, env, scope),
         Expr::Call { .. } => eval_call_expr(expr, env, scope),
         Expr::Binary {.. } => eval_binary_expr(expr, env, scope),
+        Expr::Get { .. } => eval_get_expr(expr, env, scope),
+        Expr::Set { .. } => eval_set_expr(expr, env, scope),
         _ => todo!("{:#?} nyi", expr),
     }
 }
@@ -42,15 +46,12 @@ fn eval_call_expr(expr: Expression, env: &mut Environment, scope: ScopeId) -> Re
         args,
     } = expr.expr
     {
-        match callee.expr {
-            Expr::Variable(name) => {
-                let entry = env.get(scope, &name)?;
-                match entry.val {
-                    Val::Function { func, closure } => eval_func_call(func, paren, args, env, closure),
-                    _ => panic!("ICE: can only call functions"),
-                }
-            }
-            _ => panic!("ICE: parser gave non callable expr for Expr::Call"),
+        let val = eval_expr(*callee, env, scope)?;
+
+        match val.val {
+            Val::Function { func, closure } => eval_func_call(func, paren, args, env, closure),
+            Val::Class(class) => eval_class_instantiation(class, env, scope),
+            _ => panic!("ICE: can only call functions"),
         }
     } else {
         panic!("ICE: eval_call expr should only be called with Expr::Call");
@@ -74,6 +75,18 @@ fn eval_func_call(func: Function, paren: Span, args: Vec<Expression>, env: &mut 
     Ok(ret_val)
 }
 
+fn eval_class_instantiation(class: Class, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError> {
+    let ret_val = Value {
+        span: class.name.span,
+        val: Val::Instance {
+            class,
+            fields: HashMap::default(),
+        }
+    };
+
+    Ok(ret_val)
+}
+
 fn eval_binary_expr(expr: Expression, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError> {
     if let Expr::Binary { lhs, op, rhs } = expr.expr {
         let lhs = eval_expr(*lhs, env, scope)?;
@@ -85,5 +98,27 @@ fn eval_binary_expr(expr: Expression, env: &mut Environment, scope: ScopeId) -> 
         }
     } else {
         panic!("ICE: eval_binary_expr should only be called with Expr::Binary");
+    }
+}
+
+fn eval_get_expr(expr: Expression, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError> {
+    if let Expr::Get { object, name } = expr.expr {
+        let instance = eval_expr(*object, env, scope)?;
+        instance.get_property(&name.item)
+    } else {
+        panic!("ICE: eval_get_expr should only be called with Expr::Get");
+    }
+}
+
+fn eval_set_expr(expr: Expression, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError> {
+    if let Expr::Set { object, name, rhs } = expr.expr {
+        let mut instance = eval_expr(*object, env, scope)?;
+        let val = eval_expr(*rhs, env, scope)?;
+
+        println!("set_expr: setting {:?} to {:?}", name.item.clone(), val.clone());
+
+        instance.set_property(name.item, val)
+    } else {
+        panic!("ICE: eval_set_expr should only be called with Expr::Set");
     }
 }

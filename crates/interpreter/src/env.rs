@@ -8,7 +8,7 @@ pub type ScopeId = usize;
 #[derive(Clone, PartialEq)]
 pub struct Environment {
     scopes: Vec<Scope>,
-    next_id: usize
+    next_id: usize,
 }
 
 impl Environment {

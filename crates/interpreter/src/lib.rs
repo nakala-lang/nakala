@@ -39,6 +39,7 @@ fn eval_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(
             eval_block(stmt, env, scope)?;
         }
         Stmt::Function(..) => eval_func_decl(stmt, env, scope)?,
+        Stmt::Class(..) => eval_class_decl(stmt, env, scope)?,
         _ => todo!("{:#?} nyi", stmt),
     }
 
@@ -107,5 +108,24 @@ fn eval_func_decl(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Res
         Ok(())
     } else {
         panic!("ICE: eval_func should only be called with Stmt::Function");
+    }
+}
+
+fn eval_class_decl(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
+    if let Stmt::Class(class) = stmt.stmt {
+        let class_name = class.name.item.clone();
+
+        env.define(
+            scope,
+            class_name,
+            Value {
+                val: Val::Class(class),
+                span: stmt.span
+            }
+        )?;
+
+        Ok(())
+    } else {
+        panic!("ICE: eval_class_decl should only be called with Stmt::Class");
     }
 }

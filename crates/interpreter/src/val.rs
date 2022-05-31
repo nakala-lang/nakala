@@ -1,4 +1,6 @@
-use ast::{expr::{Expr, Expression}, op::Operator, stmt::Function};
+use std::collections::HashMap;
+
+use ast::{expr::{Expr, Expression}, op::Operator, stmt::{Class, Function}};
 use meta::Span;
 
 use crate::{env::ScopeId, error::RuntimeError};
@@ -10,6 +12,11 @@ pub enum Val {
     Float(f64),
     String(String),
     Null,
+    Class(Class),
+    Instance {
+        class: Class,
+        fields: HashMap<String, Value>
+    },
     Function {
         func: Function,
         closure: ScopeId,
@@ -24,7 +31,9 @@ impl std::fmt::Display for Val {
             Self::Float(v) => v.to_string(),
             Self::String(v) => v.clone(),
             Self::Null => String::from("null"),
-            Self::Function { func, closure } => format!("{} - closure {}", func.name.item.clone(), closure)
+            Self::Function { func, closure } => format!("{} (closure {})", func.name.item.clone(), closure),
+            Self::Class(v) => format!("{}", v.name.item),
+            Self::Instance { class, .. } => format!("{} instance", class.name.item)
         };
 
         f.write_str(format!("{}", msg).as_str())
@@ -85,6 +94,29 @@ impl Value {
                 })
             },
             _ => todo!("unsupported add variant")
+        }
+    }
+
+    pub fn get_property(&self, name: &String) -> Result<Value, RuntimeError> {
+        if let Val::Instance { fields, .. } = &self.val {
+            println!("fields: {:#?}", fields.clone());
+            if let Some(entry) = fields.get(name) {
+                return Ok(entry.clone());
+            } else {
+                todo!("undefined property on instance");
+            }
+        }
+
+        todo!("Only instances have properties");
+    }
+
+    pub fn set_property(&mut self, name: String, val: Value) -> Result<Value, RuntimeError> {
+        if let Val::Instance { ref mut fields, .. } = self.val {
+            fields.insert(name, val);
+
+            Ok(Value::null())
+        } else {
+            todo!("Only instances have properties");
         }
     }
 }

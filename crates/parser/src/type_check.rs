@@ -4,6 +4,8 @@ use ast::{
     ty::Type,
 };
 
+use crate::SymbolTable;
+
 pub fn type_compatible(lhs: &Type, rhs: &Type) -> bool {
     match (lhs, rhs) {
         (Type::Int, Type::Float) => true,
