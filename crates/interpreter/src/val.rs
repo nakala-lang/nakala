@@ -1,11 +1,25 @@
+use std::collections::HashMap;
+
 use ast::{
     expr::{Expr, Expression},
     op::Operator,
-    stmt::{Class, Function},
+    stmt::{Class as AstClass, Function as AstFunction, Statement, Stmt},
 };
 use meta::Span;
 
 use crate::{env::ScopeId, error::RuntimeError, instance::InstanceId};
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Function {
+    pub func: AstFunction,
+    pub closure: ScopeId,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Class {
+    pub class: AstClass,
+    pub methods: HashMap<String, Value>,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Val {
@@ -14,9 +28,9 @@ pub enum Val {
     Float(f64),
     String(String),
     Null,
+    Function(Function),
     Class(Class),
     Instance { id: InstanceId, name: String },
-    Function { func: Function, closure: ScopeId },
 }
 
 impl std::fmt::Display for Val {
@@ -27,10 +41,10 @@ impl std::fmt::Display for Val {
             Self::Float(v) => v.to_string(),
             Self::String(v) => v.clone(),
             Self::Null => String::from("null"),
-            Self::Function { func, closure } => {
-                format!("{} (closure {})", func.name.item.clone(), closure)
+            Self::Function(func) => {
+                format!("{} (closure {})", func.func.name.item.clone(), func.closure)
             }
-            Self::Class(v) => format!("{}", v.name.item),
+            Self::Class(class) => format!("{}", class.class.name.item),
             Self::Instance { id, name } => format!("{} instance (id {})", name.clone(), id),
         };
 
@@ -78,6 +92,40 @@ impl Value {
         Self {
             val: Val::Null,
             span: Span::garbage(),
+        }
+    }
+
+    pub fn from_function(stmt: Statement, closure: ScopeId) -> Self {
+        if let Stmt::Function(func) = stmt.stmt {
+            Value {
+                val: Val::Function(Function { func, closure }),
+                span: stmt.span,
+            }
+        } else {
+            panic!("ICE: from_function should only be called with Stmt::Function")
+        }
+    }
+
+    pub fn from_class(stmt: Statement, scope: ScopeId) -> Self {
+        if let Stmt::Class(class) = stmt.stmt {
+            let mut methods: HashMap<String, Value> = HashMap::default();
+            for method_stmt in class.methods.clone() {
+                if let Stmt::Function(func) = &method_stmt.stmt {
+                    let name = func.name.item.clone();
+                    let runtime_function = Value::from_function(method_stmt, scope);
+
+                    methods.insert(name, runtime_function);
+                } else {
+                    panic!("ICE: class methods must be Stmt::Function");
+                }
+            }
+
+            Value {
+                val: Val::Class(Class { class, methods }),
+                span: stmt.span,
+            }
+        } else {
+            panic!("ICE: from_class should onyl be called with Stmt::Class");
         }
     }
 

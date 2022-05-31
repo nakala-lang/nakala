@@ -45,7 +45,9 @@ impl Parser {
         match &callee.expr {
             Expr::Variable(name) => {
                 if let Some(entry) = self.symtab.lookup(&name) {
-                    if matches!(entry.sym, Sym::Function { .. } | Sym::Class { .. }) {
+                    if matches!(entry.ty, Type::Any) {
+                        return Ok(())
+                    } else if matches!(entry.sym, Sym::Function { .. } | Sym::Class { .. }) {
                         return Ok(())
                     } 
                 } 
@@ -167,9 +169,9 @@ impl Parser {
 
         while !self.source.at_end() && !self.at(TokenKind::RightBrace) {
             let stmt = self.func_decl(true)?;
-            match stmt.stmt {
+            match stmt.clone().stmt {
                 Stmt::Function(func) => {
-                    methods.push(func.clone());
+                    methods.push(stmt);
                     method_symbols.insert(
                         func.name.item.clone(),
                         Symbol {

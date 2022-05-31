@@ -1,5 +1,4 @@
-use crate::{error::RuntimeError, val::Value};
-use ast::stmt::Class;
+use crate::{error::RuntimeError, val::{Value, Class}};
 use std::collections::HashMap;
 
 pub type InstanceId = usize;
@@ -13,10 +12,16 @@ pub struct Instance {
 
 impl Instance {
     pub fn new(id: InstanceId, class: Class) -> Self {
+        // add all the methods to the fields
+        let mut fields = HashMap::default();
+        for (key, value) in class.methods.clone() {
+            fields.insert(key, value);
+        }
+
         Self {
             id,
             class,
-            fields: HashMap::default(),
+            fields
         }
     }
 

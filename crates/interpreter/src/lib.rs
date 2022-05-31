@@ -4,6 +4,8 @@ mod expr;
 mod instance;
 pub mod val;
 
+use std::collections::HashMap;
+
 use crate::env::{Environment, ScopeId};
 use crate::error::RuntimeError;
 use crate::expr::eval_expr;
@@ -47,7 +49,11 @@ fn eval_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(
     Ok(())
 }
 
-fn eval_variable(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
+fn eval_variable(
+    stmt: Statement,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<(), RuntimeError> {
     if let Stmt::Variable {
         name: binding,
         expr,
@@ -55,7 +61,7 @@ fn eval_variable(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Resu
     {
         let var_name = binding.name.item;
 
-        let mut val = Value::null(); 
+        let mut val = Value::null();
 
         if let Some(expr) = expr {
             val = eval_expr(expr, env, scope)?;
@@ -69,7 +75,11 @@ fn eval_variable(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Resu
     }
 }
 
-fn eval_block(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError> {
+fn eval_block(
+    stmt: Statement,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<Value, RuntimeError> {
     let mut ret_val = Value::null();
 
     if let Stmt::Block(stmts) = stmt.stmt {
@@ -91,20 +101,14 @@ fn eval_block(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<
     }
 }
 
-fn eval_func_decl(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
-    if let Stmt::Function(func) = stmt.stmt {
+fn eval_func_decl(
+    stmt: Statement,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<(), RuntimeError> {
+    if let Stmt::Function(func) = &stmt.stmt {
         let func_name = func.name.item.clone();
-        env.define(
-            scope,
-            func_name,
-            Value {
-                val: Val::Function {
-                    func,
-                    closure: scope
-                },
-                span: stmt.span,
-            },
-        )?;
+        env.define(scope, func_name, Value::from_function(stmt, scope))?;
 
         Ok(())
     } else {
@@ -112,18 +116,20 @@ fn eval_func_decl(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Res
     }
 }
 
-fn eval_class_decl(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
-    if let Stmt::Class(class) = stmt.stmt {
+fn eval_class_decl(
+    stmt: Statement,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<(), RuntimeError> {
+    if let Stmt::Class(class) = &stmt.stmt {
         let class_name = class.name.item.clone();
 
-        env.define(
-            scope,
-            class_name,
-            Value {
-                val: Val::Class(class),
-                span: stmt.span
-            }
-        )?;
+        // make sure we don't define anything that collides with the class name
+        env.define(scope, class_name.clone(), Value::null())?;
+
+        let val = Value::from_class(stmt, scope);
+
+        env.assign(scope, class_name, val)?;
 
         Ok(())
     } else {

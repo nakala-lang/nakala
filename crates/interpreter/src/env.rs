@@ -1,11 +1,7 @@
 use ast::stmt::Class;
 use meta::{trace, Span};
 
-use crate::{
-    error::RuntimeError,
-    instance::{Instance, InstanceId},
-    val::{Val, Value},
-};
+use crate::{error::RuntimeError, instance::{Instance, InstanceId}, val::{self, Val, Value}};
 use std::{collections::HashMap, fmt::Debug};
 
 pub type ScopeId = usize;
@@ -28,11 +24,11 @@ impl Environment {
         }
     }
 
-    pub fn new_instance(&mut self, class: Class, span: Span) -> Value {
+    pub fn new_instance(&mut self, class: val::Class, span: Span) -> Value {
         let id = self.next_instance_id;
         self.next_instance_id = self.next_instance_id + 1;
 
-        let name = class.name.item.clone();
+        let name = class.class.name.item.clone();
 
         self.instances.push(Instance::new(id, class));
 

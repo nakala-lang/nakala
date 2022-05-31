@@ -31,7 +31,7 @@ pub struct Function {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Class {
     pub name: Spanned<String>,
-    pub methods: Vec<Function>
+    pub methods: Vec<Statement>
 }
 
 #[derive(Debug, Clone, PartialEq)]

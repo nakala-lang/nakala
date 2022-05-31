@@ -1,15 +1,10 @@
 use std::collections::HashMap;
 
-use crate::{
-    env::{Environment, ScopeId},
-    error::RuntimeError,
-    eval_block,
-    val::{Val, Value},
-};
+use crate::{env::{Environment, ScopeId}, error::RuntimeError, eval_block, val::{Function, Val, Value}};
 use ast::{
     expr::*,
     op::{Op, Operator},
-    stmt::{Class, Function},
+    stmt::{Class, },
 };
 use meta::Span;
 
@@ -74,8 +69,8 @@ fn eval_call_expr(
         let val = eval_expr(*callee, env, scope)?;
 
         match val.val {
-            Val::Function { func, closure } => eval_func_call(func, paren, args, env, closure),
-            Val::Class(..) => eval_class_instantiation(val, env, scope),
+            Val::Function(func) => eval_func_call(func, paren, args, env),
+            Val::Class { .. } => eval_class_instantiation(val, env),
             _ => panic!("ICE: can only call functions"),
         }
     } else {
@@ -84,32 +79,31 @@ fn eval_call_expr(
 }
 
 fn eval_func_call(
-    func: Function,
+    function: Function,
     paren: Span,
     args: Vec<Expression>,
     env: &mut Environment,
-    closure: ScopeId,
 ) -> Result<Value, RuntimeError> {
-    if func.params.len() != args.len() {
+    let params = function.func.params;
+    if params.len() != args.len() {
         todo!("parity mismatch");
     }
 
-    let new_scope = env.begin_scope(Some(closure));
+    let new_scope = env.begin_scope(Some(function.closure));
 
-    for (param, arg) in func.params.into_iter().zip(args.into_iter()) {
+    for (param, arg) in params.into_iter().zip(args.into_iter()) {
         let val = eval_expr(arg, env, new_scope)?;
         env.define(new_scope, param.name.item.clone(), val)?;
     }
 
-    let ret_val = eval_block(*func.body, env, new_scope)?;
+    let ret_val = eval_block(*function.func.body, env, new_scope)?;
 
     Ok(ret_val)
 }
 
 fn eval_class_instantiation(
     val: Value,
-    env: &mut Environment,
-    scope: ScopeId,
+    env: &mut Environment
 ) -> Result<Value, RuntimeError> {
     if let Val::Class(class) = val.val {
         Ok(env.new_instance(class, val.span))
