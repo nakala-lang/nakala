@@ -1,9 +1,11 @@
-use std::collections::HashMap;
-
-use ast::{expr::{Expr, Expression}, op::Operator, stmt::{Class, Function}};
+use ast::{
+    expr::{Expr, Expression},
+    op::Operator,
+    stmt::{Class, Function},
+};
 use meta::Span;
 
-use crate::{env::ScopeId, error::RuntimeError};
+use crate::{env::ScopeId, error::RuntimeError, instance::InstanceId};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Val {
@@ -13,14 +15,8 @@ pub enum Val {
     String(String),
     Null,
     Class(Class),
-    Instance {
-        class: Class,
-        fields: HashMap<String, Value>
-    },
-    Function {
-        func: Function,
-        closure: ScopeId,
-    }
+    Instance { id: InstanceId, name: String },
+    Function { func: Function, closure: ScopeId },
 }
 
 impl std::fmt::Display for Val {
@@ -31,9 +27,11 @@ impl std::fmt::Display for Val {
             Self::Float(v) => v.to_string(),
             Self::String(v) => v.clone(),
             Self::Null => String::from("null"),
-            Self::Function { func, closure } => format!("{} (closure {})", func.name.item.clone(), closure),
+            Self::Function { func, closure } => {
+                format!("{} (closure {})", func.name.item.clone(), closure)
+            }
             Self::Class(v) => format!("{}", v.name.item),
-            Self::Instance { class, .. } => format!("{} instance", class.name.item)
+            Self::Instance { id, name } => format!("{} instance (id {})", name.clone(), id),
         };
 
         f.write_str(format!("{}", msg).as_str())
@@ -87,36 +85,21 @@ impl Value {
         let span = Span::combine(&[self.span, rhs.span]);
 
         match (&self.val, &rhs.val) {
-            (Val::Int(lhs), Val::Int(rhs)) => {
-                Ok(Value {
-                    val: Val::Int(lhs + rhs),
-                    span
-                })
-            },
-            _ => todo!("unsupported add variant")
+            (Val::Int(lhs), Val::Int(rhs)) => Ok(Value {
+                val: Val::Int(lhs + rhs),
+                span,
+            }),
+            _ => todo!("unsupported add variant"),
         }
     }
 
-    pub fn get_property(&self, name: &String) -> Result<Value, RuntimeError> {
-        if let Val::Instance { fields, .. } = &self.val {
-            println!("fields: {:#?}", fields.clone());
-            if let Some(entry) = fields.get(name) {
-                return Ok(entry.clone());
-            } else {
-                todo!("undefined property on instance");
-            }
-        }
-
-        todo!("Only instances have properties");
-    }
-
-    pub fn set_property(&mut self, name: String, val: Value) -> Result<Value, RuntimeError> {
-        if let Val::Instance { ref mut fields, .. } = self.val {
-            fields.insert(name, val);
-
-            Ok(Value::null())
-        } else {
-            todo!("Only instances have properties");
+    pub fn as_instance(&self) -> Result<InstanceId, RuntimeError> {
+        match &self.val {
+            Val::Instance { id, .. } => Ok(*id),
+            _ => Err(RuntimeError::ExpectedInstance(
+                self.span.source_id,
+                self.span.into(),
+            )),
         }
     }
 }

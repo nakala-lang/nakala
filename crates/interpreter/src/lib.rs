@@ -1,6 +1,7 @@
 pub mod env;
 pub mod error;
 mod expr;
+mod instance;
 pub mod val;
 
 use crate::env::{Environment, ScopeId};

@@ -1,6 +1,11 @@
-use meta::trace;
+use ast::stmt::Class;
+use meta::{trace, Span};
 
-use crate::{error::RuntimeError, val::Value};
+use crate::{
+    error::RuntimeError,
+    instance::{Instance, InstanceId},
+    val::{Val, Value},
+};
 use std::{collections::HashMap, fmt::Debug};
 
 pub type ScopeId = usize;
@@ -8,23 +13,49 @@ pub type ScopeId = usize;
 #[derive(Clone, PartialEq)]
 pub struct Environment {
     scopes: Vec<Scope>,
-    next_id: usize,
+    next_scope_id: ScopeId,
+    instances: Vec<Instance>,
+    next_instance_id: InstanceId,
 }
 
 impl Environment {
     pub fn new() -> Self {
         Self {
             scopes: vec![Scope::new(0, None)],
-            next_id: 1
+            next_scope_id: 1,
+            instances: vec![],
+            next_instance_id: 0,
         }
     }
 
+    pub fn new_instance(&mut self, class: Class, span: Span) -> Value {
+        let id = self.next_instance_id;
+        self.next_instance_id = self.next_instance_id + 1;
+
+        let name = class.name.item.clone();
+
+        self.instances.push(Instance::new(id, class));
+
+        Value {
+            val: Val::Instance { id, name },
+            span,
+        }
+    }
+
+    pub fn get_instance(&mut self, instance_id: InstanceId) -> Result<&mut Instance, RuntimeError> {
+        Ok(self
+            .instances
+            .get_mut(instance_id)
+            .expect("ICE: Called get instance on instance that doesn't exist"))
+    }
+
     pub fn begin_scope(&mut self, closure: Option<ScopeId>) -> ScopeId {
-        let id = self.next_id;
-        self.next_id = self.next_id + 1;
+        let id = self.next_scope_id;
+        self.next_scope_id = self.next_scope_id + 1;
 
         let enclosing_id = closure.unwrap_or_else(|| {
-            id.checked_sub(1).expect("ICE: called begin scope without on the root scope")
+            id.checked_sub(1)
+                .expect("ICE: called begin scope without on the root scope")
         });
 
         self.scopes.push(Scope::new(id, Some(enclosing_id)));
@@ -36,12 +67,18 @@ impl Environment {
 
     pub fn get(&self, scope_id: ScopeId, name: &String) -> Result<Value, RuntimeError> {
         trace!(format!("trying to get {} in scope {}", name, scope_id));
-        let env = self.scopes.get(scope_id).expect("ICE: no matching Scope for ScopeId");
-        
+        let env = self
+            .scopes
+            .get(scope_id)
+            .expect("ICE: no matching Scope for ScopeId");
+
         match env.get(name) {
             Ok(v) => Ok(v),
             Err(e) => {
-                trace!(format!("didnt find - checking enclosing scope {:?}", env.enclosing));
+                trace!(format!(
+                    "didnt find - checking enclosing scope {:?}",
+                    env.enclosing
+                ));
                 if let Some(enclosing_id) = env.enclosing {
                     self.get(enclosing_id, name)
                 } else {
@@ -51,8 +88,16 @@ impl Environment {
         }
     }
 
-    pub fn assign(&mut self, scope_id: ScopeId, name: String, val: Value) -> Result<(), RuntimeError> {
-        let env = self.scopes.get_mut(scope_id).expect("ICE: no matching Scope for ScopeId");
+    pub fn assign(
+        &mut self,
+        scope_id: ScopeId,
+        name: String,
+        val: Value,
+    ) -> Result<(), RuntimeError> {
+        let env = self
+            .scopes
+            .get_mut(scope_id)
+            .expect("ICE: no matching Scope for ScopeId");
 
         match env.assign(name.clone(), val.clone()) {
             Err(e) => {
@@ -61,13 +106,21 @@ impl Environment {
                 } else {
                     Err(e)
                 }
-            },
-            _ => Ok(())
+            }
+            _ => Ok(()),
         }
     }
 
-    pub fn define(&mut self, scope_id: ScopeId, name: String, val: Value) -> Result<(), RuntimeError> {
-        let env = self.scopes.get_mut(scope_id).expect("ICE: no matching Scope for ScopeId");
+    pub fn define(
+        &mut self,
+        scope_id: ScopeId,
+        name: String,
+        val: Value,
+    ) -> Result<(), RuntimeError> {
+        let env = self
+            .scopes
+            .get_mut(scope_id)
+            .expect("ICE: no matching Scope for ScopeId");
 
         match env.define(name.clone(), val.clone()) {
             Err(e) => {
@@ -76,8 +129,8 @@ impl Environment {
                 } else {
                     Err(e)
                 }
-            },
-            _ => Ok(())
+            }
+            _ => Ok(()),
         }
     }
 }
@@ -94,7 +147,7 @@ impl std::fmt::Debug for Environment {
                 writeln!(f, "\t\t- {} = {}", key, value)?;
             }
         }
-        
+
         Ok(())
     }
 }
