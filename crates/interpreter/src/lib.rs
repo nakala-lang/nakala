@@ -42,12 +42,13 @@ fn eval_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(
         Stmt::Block(..) => {
             eval_block(stmt, env, scope)?;
         }
+        Stmt::Return(expr) => {
+            let expr = expr.map_or(Ok(Value::null()), |expr| eval_expr(expr, env, scope))?;
+            return Err(RuntimeError::EarlyReturn(expr));
+        }
         Stmt::Function(..) => eval_func_decl(stmt, env, scope)?,
         Stmt::Class(..) => eval_class_decl(stmt, env, scope)?,
         Stmt::If { .. } => eval_if_stmt(stmt, env, scope)?,
-        Stmt::Return(expr) => unreachable!(
-            "ICE: parser should have already prevented returns from non function scopes"
-        ),
         _ => todo!("{:#?} nyi", stmt),
     }
 
@@ -84,23 +85,13 @@ fn eval_block(
     stmt: Statement,
     env: &mut Environment,
     scope: ScopeId,
-) -> Result<Value, RuntimeError> {
-    let mut ret_val = Value::null();
-
+) -> Result<(), RuntimeError> {
     if let Stmt::Block(stmts) = stmt.stmt {
         for _stmt in stmts {
-            if let Stmt::Return(ret_expr) = _stmt.stmt {
-                if let Some(expr) = ret_expr {
-                    ret_val = eval_expr(expr, env, scope)?;
-                }
-
-                return Ok(ret_val);
-            }
-
             eval_stmt(_stmt, env, scope)?;
         }
 
-        Ok(ret_val)
+        Ok(())
     } else {
         panic!("ICE: eval_block should only be called with Stmt::Block");
     }
@@ -127,10 +118,10 @@ fn eval_class_decl(
     scope: ScopeId,
 ) -> Result<(), RuntimeError> {
     if let Stmt::Class(class) = &stmt.stmt {
-        let class_name = class.name.item.clone();
+        let class_name = class.name.clone();
 
         // make sure we don't define anything that collides with the class name
-        env.define(scope, class_name.clone(), Value::null())?;
+        env.define(scope, class_name.item.clone(), Value::null())?;
 
         let val = Value::from_class(stmt, scope);
 

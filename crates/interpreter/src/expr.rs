@@ -5,7 +5,7 @@ use crate::{
     val::{Function, Val, Value},
 };
 use ast::{expr::*, op::Op, ty::Type};
-use meta::Span;
+use meta::{Span, Spanned};
 
 pub(crate) fn eval_expr(
     expr: Expression,
@@ -33,7 +33,13 @@ fn eval_variable_expr(
     scope: ScopeId,
 ) -> Result<Value, RuntimeError> {
     if let Expr::Variable(name) = expr.expr {
-        env.get(scope, &name)
+        env.get(
+            scope,
+            &Spanned {
+                item: name,
+                span: expr.span,
+            },
+        )
     } else {
         panic!("ICE: eval_variable_expr should only be called with Expr::Variable");
     }
@@ -47,7 +53,7 @@ fn eval_assign_expr(
     if let Expr::Assign { name, rhs } = expr.expr {
         let val = eval_expr(*rhs, env, scope)?;
 
-        env.assign(scope, name.item, val)?;
+        env.assign(scope, name, val)?;
 
         Ok(Value::null())
     } else {
@@ -69,7 +75,7 @@ fn eval_call_expr(
         let val = eval_expr(*callee, env, scope)?;
 
         match val.val {
-            Val::Function(func) => eval_func_call(func, paren, args, env),
+            Val::Function(func) => eval_func_call(func, paren, args, env, scope),
             Val::Class { .. } => eval_class_instantiation(val, env),
             _ => panic!("ICE: can only call functions"),
         }
@@ -83,22 +89,27 @@ fn eval_func_call(
     paren: Span,
     args: Vec<Expression>,
     env: &mut Environment,
+    scope: ScopeId
 ) -> Result<Value, RuntimeError> {
     let params = function.func.params;
     if params.len() != args.len() {
         todo!("parity mismatch");
     }
-
+    
     let new_scope = env.begin_scope_with_closure(function.closure);
 
     for (param, arg) in params.into_iter().zip(args.into_iter()) {
-        let val = eval_expr(arg, env, new_scope)?;
+        let val = eval_expr(arg, env, scope)?;
         env.define(new_scope, param.name.item.clone(), val)?;
     }
 
-    let ret_val = eval_block(*function.func.body, env, new_scope)?;
 
-    Ok(ret_val)
+    match eval_block(*function.func.body, env, new_scope) {
+        Ok(()) => Ok(Value::null()),
+        Err(RuntimeError::EarlyReturn(val)) => Ok(val),
+
+        Err(other) => Err(other)
+    }
 }
 
 fn eval_class_instantiation(val: Value, env: &mut Environment) -> Result<Value, RuntimeError> {
@@ -120,6 +131,9 @@ fn eval_binary_expr(
 
         match op.op {
             Op::Add => lhs.add(op, &rhs),
+            Op::Sub => lhs.sub(op, &rhs),
+            Op::LessThanEquals => lhs.lte(op, &rhs),
+            Op::GreaterThan => lhs.gt(op, &rhs),
             Op::Or | Op::And => {
                 unreachable!("ICE: logical binary expressions should be parsed as such")
             }
@@ -175,7 +189,7 @@ fn eval_logical_expr(
             Op::And => {
                 // Short circuit if false
                 if !lhs.as_bool()? {
-                    return Ok(Value::false_(span));
+                    return Ok((false, span).into());
                 }
 
                 let rhs = eval_expr(*rhs, env, scope)?;
@@ -184,7 +198,7 @@ fn eval_logical_expr(
             Op::Or => {
                 // Short circuit if true
                 if lhs.as_bool()? {
-                    return Ok(Value::true_(span));
+                    return Ok((true, span).into());
                 }
 
                 let rhs = eval_expr(*rhs, env, scope)?;

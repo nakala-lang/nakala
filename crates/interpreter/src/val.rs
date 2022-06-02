@@ -90,28 +90,25 @@ impl From<Expression> for Value {
     }
 }
 
+impl From<(bool, Span)> for Value {
+    fn from(pair: (bool, Span)) -> Self {
+        let val = Val::Bool(pair.0);
+        let span = pair.1;
+
+        Self {
+            val,
+            span,
+            ty: Type::Bool,
+        }
+    }
+}
+
 impl Value {
     pub fn null() -> Self {
         Self {
             val: Val::Null,
             span: Span::garbage(),
             ty: Type::Null,
-        }
-    }
-
-    pub fn true_(span: Span) -> Self {
-        Self {
-            val: Val::Bool(true),
-            span,
-            ty: Type::Bool,
-        }
-    }
-
-    pub fn false_(span: Span) -> Self {
-        Self {
-            val: Val::Bool(false),
-            span,
-            ty: Type::Bool,
         }
     }
 
@@ -160,7 +157,66 @@ impl Value {
                 span,
                 ty: Type::Int,
             }),
-            _ => todo!("unsupported add variant"),
+            _ => Err(RuntimeError::UnsupportedOperation(
+                self.span.source_id,
+                op.span.into(),
+                self.span.into(),
+                self.ty.clone(),
+                rhs.span.into(),
+                rhs.ty.clone(),
+            )),
+        }
+    }
+
+    pub fn sub(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        match (&self.val, &rhs.val) {
+            (Val::Int(lhs), Val::Int(rhs)) => Ok(Value {
+                val: Val::Int(lhs - rhs),
+                span,
+                ty: Type::Int,
+            }),
+            _ => Err(RuntimeError::UnsupportedOperation(
+                self.span.source_id,
+                op.span.into(),
+                self.span.into(),
+                self.ty.clone(),
+                rhs.span.into(),
+                rhs.ty.clone(),
+            )),
+        }
+    }
+
+    pub fn lte(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        match (&self.val, &rhs.val) {
+            (Val::Int(lhs), Val::Int(rhs)) => Ok((lhs <= rhs, span).into()),
+            _ => Err(RuntimeError::UnsupportedOperation(
+                self.span.source_id,
+                op.span.into(),
+                self.span.into(),
+                self.ty.clone(),
+                rhs.span.into(),
+                rhs.ty.clone(),
+            )),
+        }
+    }
+
+    pub fn gt(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        match (&self.val, &rhs.val) {
+            (Val::Int(lhs), Val::Int(rhs)) => Ok((lhs > rhs, span).into()),
+            _ => Err(RuntimeError::UnsupportedOperation(
+                self.span.source_id,
+                op.span.into(),
+                self.span.into(),
+                self.ty.clone(),
+                rhs.span.into(),
+                rhs.ty.clone(),
+            )),
         }
     }
 

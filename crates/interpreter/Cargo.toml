@@ -11,3 +11,7 @@ ast = { path = "../ast" }
 meta = { path = "../meta" }
 miette = { version = "4.7.0" }
 thiserror = "1.0.31"
+
+[features]
+default = []
+trace = []
