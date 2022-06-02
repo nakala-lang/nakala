@@ -11,8 +11,8 @@ use crate::error::RuntimeError;
 use crate::expr::eval_expr;
 use ast::{expr::*, op::*, stmt::*, ty::*};
 use meta::trace;
-use parser::Parse;
 use parser::type_check::type_compatible;
+use parser::Parse;
 use val::{Val, Value};
 
 pub fn interpret(parse: Parse, env: Option<&mut Environment>) -> miette::Result<()> {
@@ -45,6 +45,9 @@ fn eval_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(
         Stmt::Function(..) => eval_func_decl(stmt, env, scope)?,
         Stmt::Class(..) => eval_class_decl(stmt, env, scope)?,
         Stmt::If { .. } => eval_if_stmt(stmt, env, scope)?,
+        Stmt::Return(expr) => unreachable!(
+            "ICE: parser should have already prevented returns from non function scopes"
+        ),
         _ => todo!("{:#?} nyi", stmt),
     }
 
@@ -139,8 +142,17 @@ fn eval_class_decl(
     }
 }
 
-fn eval_if_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
-    if let Stmt::If { cond, body, else_branch } = stmt.stmt {
+fn eval_if_stmt(
+    stmt: Statement,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<(), RuntimeError> {
+    if let Stmt::If {
+        cond,
+        body,
+        else_branch,
+    } = stmt.stmt
+    {
         let cond = eval_expr(cond, env, scope)?;
 
         let new_scope = env.begin_scope();

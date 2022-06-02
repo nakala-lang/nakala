@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
-use crate::{env::{Environment, ScopeId}, error::RuntimeError, eval_block, val::{Function, Val, Value}};
-use ast::{
-    expr::*,
-    op::{Op, Operator},
-    stmt::{Class, },
+use crate::{
+    env::{Environment, ScopeId},
+    error::RuntimeError,
+    eval_block,
+    val::{Function, Val, Value},
 };
+use ast::{expr::*, op::Op, ty::Type};
 use meta::Span;
 
 pub(crate) fn eval_expr(
@@ -21,6 +20,7 @@ pub(crate) fn eval_expr(
         Expr::Assign { .. } => eval_assign_expr(expr, env, scope),
         Expr::Call { .. } => eval_call_expr(expr, env, scope),
         Expr::Binary { .. } => eval_binary_expr(expr, env, scope),
+        Expr::Logical { .. } => eval_logical_expr(expr, env, scope),
         Expr::Get { .. } => eval_get_expr(expr, env, scope),
         Expr::Set { .. } => eval_set_expr(expr, env, scope),
         _ => todo!("{:#?} nyi", expr),
@@ -101,10 +101,7 @@ fn eval_func_call(
     Ok(ret_val)
 }
 
-fn eval_class_instantiation(
-    val: Value,
-    env: &mut Environment
-) -> Result<Value, RuntimeError> {
+fn eval_class_instantiation(val: Value, env: &mut Environment) -> Result<Value, RuntimeError> {
     if let Val::Class(class) = val.val {
         Ok(env.new_instance(class, val.span))
     } else {
@@ -123,6 +120,9 @@ fn eval_binary_expr(
 
         match op.op {
             Op::Add => lhs.add(op, &rhs),
+            Op::Or | Op::And => {
+                unreachable!("ICE: logical binary expressions should be parsed as such")
+            }
             _ => todo!("unsupported operation {:#?}", op),
         }
     } else {
@@ -158,5 +158,44 @@ fn eval_set_expr(
         instance.set_property(name.item, val)
     } else {
         panic!("ICE: eval_set_expr should only be called with Expr::Set");
+    }
+}
+
+fn eval_logical_expr(
+    expr: Expression,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<Value, RuntimeError> {
+    if let Expr::Logical { lhs, op, rhs } = expr.expr {
+        let span = Span::combine(&[lhs.span, rhs.span]);
+
+        let lhs = eval_expr(*lhs, env, scope)?;
+
+        match op.op {
+            Op::And => {
+                // Short circuit if false
+                if !lhs.as_bool()? {
+                    return Ok(Value::false_(span));
+                }
+
+                let rhs = eval_expr(*rhs, env, scope)?;
+                lhs.and(op, &rhs)
+            }
+            Op::Or => {
+                // Short circuit if true
+                if lhs.as_bool()? {
+                    return Ok(Value::true_(span));
+                }
+
+                let rhs = eval_expr(*rhs, env, scope)?;
+                lhs.or(op, &rhs)
+            }
+            _ => unreachable!(
+                "ICE: logical expressions was given non logical operator {:?}",
+                op.op
+            ),
+        }
+    } else {
+        panic!("ICE: eval_logical_expr should only be called with Expr::Logical");
     }
 }

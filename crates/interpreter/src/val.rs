@@ -1,6 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, iter::from_fn};
 
-use ast::{expr::{Expr, Expression}, op::Operator, stmt::{Class as AstClass, Function as AstFunction, Statement, Stmt}, ty::Type};
+use ast::{
+    expr::{Expr, Expression},
+    op::Operator,
+    stmt::{Class as AstClass, Function as AstFunction, Statement, Stmt},
+    ty::Type,
+};
 use meta::Span;
 
 use crate::{env::ScopeId, error::RuntimeError, instance::InstanceId};
@@ -52,7 +57,7 @@ impl std::fmt::Display for Val {
 pub struct Value {
     pub val: Val,
     pub span: Span,
-    pub ty: Type
+    pub ty: Type,
 }
 
 impl std::fmt::Display for Value {
@@ -80,7 +85,7 @@ impl From<Expression> for Value {
         Self {
             val,
             span: expr.span,
-            ty: expr.ty
+            ty: expr.ty,
         }
     }
 }
@@ -90,7 +95,23 @@ impl Value {
         Self {
             val: Val::Null,
             span: Span::garbage(),
-            ty: Type::Null
+            ty: Type::Null,
+        }
+    }
+
+    pub fn true_(span: Span) -> Self {
+        Self {
+            val: Val::Bool(true),
+            span,
+            ty: Type::Bool,
+        }
+    }
+
+    pub fn false_(span: Span) -> Self {
+        Self {
+            val: Val::Bool(false),
+            span,
+            ty: Type::Bool,
         }
     }
 
@@ -99,7 +120,7 @@ impl Value {
             Value {
                 val: Val::Function(Function { func, closure }),
                 span: stmt.span,
-                ty: Type::Any // TODO: function types
+                ty: Type::Any, // TODO: function types
             }
         } else {
             panic!("ICE: from_function should only be called with Stmt::Function")
@@ -137,10 +158,36 @@ impl Value {
             (Val::Int(lhs), Val::Int(rhs)) => Ok(Value {
                 val: Val::Int(lhs + rhs),
                 span,
-                ty: Type::Int
+                ty: Type::Int,
             }),
             _ => todo!("unsupported add variant"),
         }
+    }
+
+    pub fn and(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        let lhs = self.as_bool()?;
+        let rhs = rhs.as_bool()?;
+
+        Ok(Value {
+            val: Val::Bool(lhs && rhs),
+            span,
+            ty: Type::Bool,
+        })
+    }
+
+    pub fn or(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        let lhs = self.as_bool()?;
+        let rhs = rhs.as_bool()?;
+
+        Ok(Value {
+            val: Val::Bool(lhs || rhs),
+            span,
+            ty: Type::Bool,
+        })
     }
 
     pub fn as_bool(&self) -> Result<bool, RuntimeError> {
@@ -149,8 +196,8 @@ impl Value {
             _ => Err(RuntimeError::UnexpectedValueType(
                 self.span.source_id,
                 Type::Bool,
-                self.span.into()
-            ))
+                self.span.into(),
+            )),
         }
     }
 
