@@ -16,13 +16,13 @@ fn main() -> Result<()> {
 
         for source in args.input_files.into_iter() {
             let parse =
-                parse(source.clone(), None).map_err(|error| error.with_source_code(source))?;
+                parse(source.clone(), None).map_err(|error| error.with_source_code(source.clone()))?;
 
             if args.show_parse {
                 println!("{:#?}", parse);
             }
 
-            interpret(parse, None)?;
+            interpret(parse, None).map_err(|error| error.with_source_code(source))?;
         }
 
         Ok(())

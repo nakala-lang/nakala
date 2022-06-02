@@ -46,7 +46,15 @@ impl Environment {
             .expect("ICE: Called get instance on instance that doesn't exist"))
     }
 
-    pub fn begin_scope(&mut self, closure: Option<ScopeId>) -> ScopeId {
+    pub fn begin_scope(&mut self) -> ScopeId {
+        self._begin_scope(None)
+    }
+
+    pub fn begin_scope_with_closure(&mut self, closure: ScopeId) -> ScopeId {
+        self._begin_scope(Some(closure))
+    }
+
+    fn _begin_scope(&mut self, closure: Option<ScopeId>) -> ScopeId {
         let id = self.next_scope_id;
         self.next_scope_id = self.next_scope_id + 1;
 
@@ -60,6 +68,13 @@ impl Environment {
         trace!(format!("created scope {:?}", self.scopes.last().unwrap()));
 
         id
+    }
+
+    pub fn delete_scope(&mut self, _scope_id: ScopeId) {
+        // TODO - handle cleaning up non closure scopes that we don't need to stick around
+        // for example, after evaluating an if statement block
+
+        //todo!("delete scope")
     }
 
     pub fn get(&self, scope_id: ScopeId, name: &String) -> Result<Value, RuntimeError> {

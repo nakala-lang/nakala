@@ -89,7 +89,7 @@ fn eval_func_call(
         todo!("parity mismatch");
     }
 
-    let new_scope = env.begin_scope(Some(function.closure));
+    let new_scope = env.begin_scope_with_closure(function.closure);
 
     for (param, arg) in params.into_iter().zip(args.into_iter()) {
         let val = eval_expr(arg, env, new_scope)?;

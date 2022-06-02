@@ -12,9 +12,10 @@ use crate::expr::eval_expr;
 use ast::{expr::*, op::*, stmt::*, ty::*};
 use meta::trace;
 use parser::Parse;
+use parser::type_check::type_compatible;
 use val::{Val, Value};
 
-pub fn interpret(parse: Parse, env: Option<&mut Environment>) -> Result<(), RuntimeError> {
+pub fn interpret(parse: Parse, env: Option<&mut Environment>) -> miette::Result<()> {
     let mut new_env = Environment::new();
     let env = env.unwrap_or(&mut new_env);
 
@@ -43,7 +44,7 @@ fn eval_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(
         }
         Stmt::Function(..) => eval_func_decl(stmt, env, scope)?,
         Stmt::Class(..) => eval_class_decl(stmt, env, scope)?,
-        //Stmt::If(..) => eval_if_stmt(stmt, env, scope)?,
+        Stmt::If { .. } => eval_if_stmt(stmt, env, scope)?,
         _ => todo!("{:#?} nyi", stmt),
     }
 
@@ -138,14 +139,24 @@ fn eval_class_decl(
     }
 }
 
-//fn eval_if_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
-//    if let Stmt::If { cond, body, else_branch } = stmt.stmt {
-//        let cond = eval_expr(cond, env, scope)?;
-//
-//        if cond
-//        
-//        
-//    } else {
-//        panic!("ICE: eval_if_stmt should only be called with Stmt::If");
-//    }
-//}
+fn eval_if_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
+    if let Stmt::If { cond, body, else_branch } = stmt.stmt {
+        let cond = eval_expr(cond, env, scope)?;
+
+        let new_scope = env.begin_scope();
+
+        if cond.as_bool()? {
+            eval_block(*body, env, scope)?;
+        } else {
+            if let Some(else_branch) = else_branch {
+                eval_stmt(*else_branch, env, new_scope)?;
+            }
+        }
+
+        env.delete_scope(new_scope);
+
+        Ok(())
+    } else {
+        panic!("ICE: eval_if_stmt should only be called with Stmt::If");
+    }
+}

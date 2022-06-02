@@ -434,9 +434,9 @@ impl Parser {
         trace!("parse_if_stmt");
         let if_token_span = self.expect(TokenKind::If)?.span;
 
-        self.expect(TokenKind::LeftParen)?;
+        //self.expect(TokenKind::LeftParen)?;
         let cond = self.expr()?;
-        self.expect(TokenKind::RightParen)?;
+        //self.expect(TokenKind::RightParen)?;
 
         let body = self.stmt()?;
 

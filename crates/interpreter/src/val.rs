@@ -143,15 +143,23 @@ impl Value {
         }
     }
 
-    pub fn is_truthy(&self) -> bool {
-        true
+    pub fn as_bool(&self) -> Result<bool, RuntimeError> {
+        match &self.val {
+            Val::Bool(v) => Ok(*v),
+            _ => Err(RuntimeError::UnexpectedValueType(
+                self.span.source_id,
+                Type::Bool,
+                self.span.into()
+            ))
+        }
     }
 
     pub fn as_instance(&self) -> Result<InstanceId, RuntimeError> {
         match &self.val {
             Val::Instance { id, .. } => Ok(*id),
-            _ => Err(RuntimeError::ExpectedInstance(
+            _ => Err(RuntimeError::UnexpectedValueType(
                 self.span.source_id,
+                Type::Instance(String::from("any")),
                 self.span.into(),
             )),
         }

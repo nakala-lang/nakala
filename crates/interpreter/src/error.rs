@@ -1,3 +1,4 @@
+use ast::ty::Type;
 use meta::SourceId;
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
@@ -7,10 +8,11 @@ pub enum RuntimeError {
     #[error("Undefined variable")]
     UndefinedVariable,
 
-    #[error("Expected instance, got non instance value instead")]
+    #[error("Expected {1}, got non {1} value instead")]
     #[diagnostic(code(nak::unexpected_value))]
-    ExpectedInstance(
+    UnexpectedValueType(
         SourceId,
-        #[label("This value is not an instance")] SourceSpan,
+        Type,
+        #[label("This value is not of type {1}")] SourceSpan,
     ),
 }

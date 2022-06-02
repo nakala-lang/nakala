@@ -1,0 +1,21 @@
+if true {
+  print "inside if";
+}
+
+if false {
+  print "SHOULDNT BE HERE";
+} else {
+  print "inside else";
+}
+
+if false {
+   print "SHOULDNT BE HERE";
+} else if false {
+  print "SHOULDNT BE HERE";
+} else if true {
+  print "inside chained else if";
+}
+
+if 10 {
+
+}
