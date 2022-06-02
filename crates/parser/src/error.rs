@@ -117,4 +117,13 @@ pub enum ParseError {
         Type,
     ),
 
+    #[error("Can't return from global scope")]
+    #[diagnostic(
+        code(nak::cannot_return_from_global_scope),
+        help("Can only return from within function scopes")
+    )]
+    CantReturnFromGlobalScope(
+        SourceId,
+        #[label("Cannot return from this scope")] SourceSpan
+    )
 }

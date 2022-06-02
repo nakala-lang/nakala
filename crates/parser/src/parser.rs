@@ -278,9 +278,7 @@ impl Parser {
 
         let body = self.block(true)?;
 
-        //if !from_class_decl {
         self.symtab.level_down();
-        //}
 
         if let Stmt::Block(stmts) = &body.stmt {
             // If the body has a return statement in it, make sure the types line up
@@ -397,6 +395,13 @@ impl Parser {
     fn ret_stmt(&mut self) -> Result<Statement, ParseError> {
         trace!("parse_ret_stmt");
         let ret_span = self.expect(TokenKind::Ret)?.span;
+
+        if self.symtab.at_global_scope() {
+            return Err(ParseError::CantReturnFromGlobalScope(
+                 self.source.id,
+                 ret_span.into()
+            ));
+        }
 
         let mut expr: Option<Expression> = None;
         if !self.at(TokenKind::Semicolon) {

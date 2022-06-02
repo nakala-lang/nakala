@@ -43,6 +43,10 @@ impl SymbolTable {
         );
     }
 
+    pub fn at_global_scope(&self) -> bool {
+        self.inner.len() == 1
+    }
+
     pub fn level_up(&mut self) {
         self.inner.push(HashMap::default());
     }
