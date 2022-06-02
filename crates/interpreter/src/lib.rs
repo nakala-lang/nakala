@@ -43,6 +43,7 @@ fn eval_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(
         }
         Stmt::Function(..) => eval_func_decl(stmt, env, scope)?,
         Stmt::Class(..) => eval_class_decl(stmt, env, scope)?,
+        //Stmt::If(..) => eval_if_stmt(stmt, env, scope)?,
         _ => todo!("{:#?} nyi", stmt),
     }
 
@@ -136,3 +137,15 @@ fn eval_class_decl(
         panic!("ICE: eval_class_decl should only be called with Stmt::Class");
     }
 }
+
+//fn eval_if_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
+//    if let Stmt::If { cond, body, else_branch } = stmt.stmt {
+//        let cond = eval_expr(cond, env, scope)?;
+//
+//        if cond
+//        
+//        
+//    } else {
+//        panic!("ICE: eval_if_stmt should only be called with Stmt::If");
+//    }
+//}

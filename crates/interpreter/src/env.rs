@@ -1,4 +1,4 @@
-use ast::stmt::Class;
+use ast::{stmt::Class, ty::Type};
 use meta::{trace, Span};
 
 use crate::{error::RuntimeError, instance::{Instance, InstanceId}, val::{self, Val, Value}};
@@ -33,6 +33,7 @@ impl Environment {
         self.instances.push(Instance::new(id, class));
 
         Value {
+            ty: Type::Instance(name.clone()),
             val: Val::Instance { id, name },
             span,
         }

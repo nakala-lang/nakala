@@ -26,7 +26,7 @@ mod tests {
 
     impl<'a> Into<Source> for &'a str {
         fn into(self) -> Source {
-            Source::new(0, self.clone(), "".into())
+            Source::new(0, String::from(self), "".into())
         }
     }
 

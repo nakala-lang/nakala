@@ -1,10 +1,6 @@
 use std::collections::HashMap;
 
-use ast::{
-    expr::{Expr, Expression},
-    op::Operator,
-    stmt::{Class as AstClass, Function as AstFunction, Statement, Stmt},
-};
+use ast::{expr::{Expr, Expression}, op::Operator, stmt::{Class as AstClass, Function as AstFunction, Statement, Stmt}, ty::Type};
 use meta::Span;
 
 use crate::{env::ScopeId, error::RuntimeError, instance::InstanceId};
@@ -56,6 +52,7 @@ impl std::fmt::Display for Val {
 pub struct Value {
     pub val: Val,
     pub span: Span,
+    pub ty: Type
 }
 
 impl std::fmt::Display for Value {
@@ -83,6 +80,7 @@ impl From<Expression> for Value {
         Self {
             val,
             span: expr.span,
+            ty: expr.ty
         }
     }
 }
@@ -92,6 +90,7 @@ impl Value {
         Self {
             val: Val::Null,
             span: Span::garbage(),
+            ty: Type::Null
         }
     }
 
@@ -100,6 +99,7 @@ impl Value {
             Value {
                 val: Val::Function(Function { func, closure }),
                 span: stmt.span,
+                ty: Type::Any // TODO: function types
             }
         } else {
             panic!("ICE: from_function should only be called with Stmt::Function")
@@ -121,6 +121,7 @@ impl Value {
             }
 
             Value {
+                ty: Type::Class(class.name.item.clone()),
                 val: Val::Class(Class { class, methods }),
                 span: stmt.span,
             }
@@ -136,9 +137,14 @@ impl Value {
             (Val::Int(lhs), Val::Int(rhs)) => Ok(Value {
                 val: Val::Int(lhs + rhs),
                 span,
+                ty: Type::Int
             }),
             _ => todo!("unsupported add variant"),
         }
+    }
+
+    pub fn is_truthy(&self) -> bool {
+        true
     }
 
     pub fn as_instance(&self) -> Result<InstanceId, RuntimeError> {
