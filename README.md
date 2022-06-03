@@ -1,9 +1,5 @@
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Righteous&display=swap');
-</style>
-
 <p align="center">
-  <span style="font-size: 6em; font-family: 'Righteous', cursive;">nakala</span>
+  <img src="./assets/logo.png" width="500px"/>
 </p>
 
 [![CI](https://github.com/nakala-lang/nakala/actions/workflows/CI.yml/badge.svg)](https://github.com/nakala-lang/nakala/actions/workflows/CI.yml)
