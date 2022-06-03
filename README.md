@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/logo.png" width="500px"/>
+  <img src="./assets/new_logo.png" width="500px"/>
 </p>
 
 [![CI](https://github.com/nakala-lang/nakala/actions/workflows/CI.yml/badge.svg)](https://github.com/nakala-lang/nakala/actions/workflows/CI.yml)
