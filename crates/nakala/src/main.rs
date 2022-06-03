@@ -15,8 +15,8 @@ fn main() -> Result<()> {
         }
 
         for source in args.input_files.into_iter() {
-            let parse =
-                parse(source.clone(), None).map_err(|error| error.with_source_code(source.clone()))?;
+            let parse = parse(source.clone(), None)
+                .map_err(|error| error.with_source_code(source.clone()))?;
 
             if args.show_parse {
                 println!("{:#?}", parse);
@@ -43,7 +43,7 @@ fn repl(args: NakArguments) -> Result<()> {
                 let source = Source::new(0, buffer, "stdin".to_string());
 
                 let parse = parse(source.clone(), symtab)
-                    .map_err(|error| error.with_source_code(source))?;
+                    .map_err(|error| error.with_source_code(source.clone()))?;
 
                 if args.show_parse {
                     println!("{:#?}", parse);
@@ -51,7 +51,7 @@ fn repl(args: NakArguments) -> Result<()> {
 
                 symtab = Some(parse.symtab.clone());
 
-                interpret(parse, Some(&mut env))?;
+                interpret(parse, Some(&mut env)).map_err(|error| error.with_source_code(source))?;
             }
             Signal::CtrlD | Signal::CtrlC => {
                 println!("\nAborted!");
