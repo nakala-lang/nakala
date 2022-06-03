@@ -36,13 +36,13 @@ pub enum Expr {
     },
     Get {
         object: Box<Expression>,
-        name: Spanned<String>
+        name: Spanned<String>,
     },
     Set {
         object: Box<Expression>,
         name: Spanned<String>,
-        rhs: Box<Expression>
-    }
+        rhs: Box<Expression>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]

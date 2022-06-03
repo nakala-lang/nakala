@@ -82,29 +82,21 @@ pub enum ParseError {
         code(nak::unknown_type),
         help("Consider using 'int', 'float', 'bool', etc.")
     )]
-    UnknownType(
-        SourceId,
-        #[label("This type is unknown")] SourceSpan,
-    ),
+    UnknownType(SourceId, #[label("This type is unknown")] SourceSpan),
 
     #[error("Uncallable expression")]
     #[diagnostic(
         code(nak::uncallable_expr),
         help("Only classes and functions are callable")
     )]
-    UncallableExpression(
-        SourceId,
-        #[label("This is uncallable")] SourceSpan,
-    ),
+    UncallableExpression(SourceId, #[label("This is uncallable")] SourceSpan),
 
     #[error("Only instances have properties")]
-    #[diagnostic(
-        code(nak::only_instances_have_properties),
-    )]
+    #[diagnostic(code(nak::only_instances_have_properties))]
     OnlyInstancesHaveProperties(
         SourceId,
         #[label("Expected instance type, but got {2} instead")] SourceSpan,
-        Type
+        Type,
     ),
 
     #[error("Function returns incompatible type")]
@@ -124,6 +116,6 @@ pub enum ParseError {
     )]
     CantReturnFromGlobalScope(
         SourceId,
-        #[label("Cannot return from this scope")] SourceSpan
-    )
+        #[label("Cannot return from this scope")] SourceSpan,
+    ),
 }

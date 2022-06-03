@@ -89,13 +89,13 @@ fn eval_func_call(
     paren: Span,
     args: Vec<Expression>,
     env: &mut Environment,
-    scope: ScopeId
+    scope: ScopeId,
 ) -> Result<Value, RuntimeError> {
     let params = function.func.params;
     if params.len() != args.len() {
         todo!("parity mismatch");
     }
-    
+
     let new_scope = env.begin_scope_with_closure(function.closure);
 
     for (param, arg) in params.into_iter().zip(args.into_iter()) {
@@ -103,12 +103,11 @@ fn eval_func_call(
         env.define(new_scope, param.name.item.clone(), val)?;
     }
 
-
     match eval_block(*function.func.body, env, new_scope) {
         Ok(()) => Ok(Value::null()),
         Err(RuntimeError::EarlyReturn(val)) => Ok(val),
 
-        Err(other) => Err(other)
+        Err(other) => Err(other),
     }
 }
 

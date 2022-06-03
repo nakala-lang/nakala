@@ -1,4 +1,7 @@
-use crate::{expr::Expression, ty::{Type, TypeExpression}};
+use crate::{
+    expr::Expression,
+    ty::{Type, TypeExpression},
+};
 use lexer::Token;
 use meta::{Span, Spanned};
 
@@ -25,13 +28,13 @@ pub struct Function {
     pub name: Spanned<String>,
     pub params: Vec<Binding>,
     pub body: Box<Statement>,
-    pub return_ty: TypeExpression
+    pub return_ty: TypeExpression,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Class {
     pub name: Spanned<String>,
-    pub methods: Vec<Statement>
+    pub methods: Vec<Statement>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

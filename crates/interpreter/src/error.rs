@@ -11,13 +11,10 @@ pub enum RuntimeError {
     // return in non function contexts
     #[error("Early Return")]
     EarlyReturn(Value),
-    
+
     #[error("Undefined variable")]
     #[diagnostic(code(nak_runtime::unknown_variable))]
-    UndefinedVariable(
-        SourceId,
-        #[label("Undefined variable")] SourceSpan
-    ),
+    UndefinedVariable(SourceId, #[label("Undefined variable")] SourceSpan),
 
     #[error("Expected {1}, got non {1} value instead")]
     #[diagnostic(code(nak_runtime::unexpected_value))]
@@ -28,15 +25,13 @@ pub enum RuntimeError {
     ),
 
     #[error("Unsupported operation")]
-    #[diagnostic(
-        code(nak_runtime::unexpected_operation)
-    )]
+    #[diagnostic(code(nak_runtime::unexpected_operation))]
     UnsupportedOperation(
         SourceId,
         #[label("This operation doesn't support these types")] SourceSpan,
         #[label("{3}")] SourceSpan,
         Type,
         #[label("{5}")] SourceSpan,
-        Type
-    )
+        Type,
+    ),
 }

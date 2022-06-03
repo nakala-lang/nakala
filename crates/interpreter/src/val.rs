@@ -180,12 +180,12 @@ impl Value {
             (Val::Int(lhs), Val::Float(rhs)) => Ok(Value {
                 val: Val::Float(*lhs as f64 - *rhs),
                 span,
-                ty: Type::Float
+                ty: Type::Float,
             }),
             (Val::Float(lhs), Val::Int(rhs)) => Ok(Value {
                 val: Val::Float(*lhs - *rhs as f64),
                 span,
-                ty: Type::Float
+                ty: Type::Float,
             }),
             _ => Err(RuntimeError::UnsupportedOperation(
                 self.span.source_id,

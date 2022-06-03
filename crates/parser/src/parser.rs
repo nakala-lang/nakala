@@ -46,11 +46,11 @@ impl Parser {
             Expr::Variable(name) => {
                 if let Some(entry) = self.symtab.lookup(&name) {
                     if matches!(entry.ty, Type::Any) {
-                        return Ok(())
+                        return Ok(());
                     } else if matches!(entry.sym, Sym::Function { .. } | Sym::Class { .. }) {
-                        return Ok(())
-                    } 
-                } 
+                        return Ok(());
+                    }
+                }
 
                 err
             }
@@ -61,7 +61,7 @@ impl Parser {
                     if let Some(entry) = self.symtab.lookup(&class_name) {
                         if let Sym::Class { methods } = &entry.sym {
                             if methods.contains_key(&name.item) {
-                                return Ok(())
+                                return Ok(());
                             } else {
                                 todo!("class doesn't have method {}", name.item);
                             }
@@ -398,8 +398,8 @@ impl Parser {
 
         if self.symtab.at_global_scope() {
             return Err(ParseError::CantReturnFromGlobalScope(
-                 self.source.id,
-                 ret_span.into()
+                self.source.id,
+                ret_span.into(),
             ));
         }
 

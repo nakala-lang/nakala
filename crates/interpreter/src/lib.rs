@@ -81,11 +81,7 @@ fn eval_variable(
     }
 }
 
-fn eval_block(
-    stmt: Statement,
-    env: &mut Environment,
-    scope: ScopeId,
-) -> Result<(), RuntimeError> {
+fn eval_block(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
     if let Stmt::Block(stmts) = stmt.stmt {
         for _stmt in stmts {
             eval_stmt(_stmt, env, scope)?;

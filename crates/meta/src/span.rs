@@ -3,16 +3,19 @@ use miette::SourceSpan;
 use crate::SourceId;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Spanned<T> where T: Clone + std::fmt::Debug {
+pub struct Spanned<T>
+where
+    T: Clone + std::fmt::Debug,
+{
     pub item: T,
-    pub span: Span
+    pub span: Span,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Span {
     pub source_id: SourceId,
     pub start: usize,
-    pub end: usize
+    pub end: usize,
 }
 
 impl From<Span> for SourceSpan {
@@ -23,14 +26,18 @@ impl From<Span> for SourceSpan {
 
 impl Span {
     pub fn new(source_id: SourceId, start: usize, end: usize) -> Self {
-        Span { source_id, start, end }
+        Span {
+            source_id,
+            start,
+            end,
+        }
     }
 
     pub fn garbage() -> Self {
         Self {
             source_id: 0,
             start: 0,
-            end: 0
+            end: 0,
         }
     }
 
@@ -45,7 +52,7 @@ impl Span {
             Self {
                 source_id: spans[0].source_id,
                 start: spans[0].start,
-                end: spans[length - 1].end
+                end: spans[length - 1].end,
             }
         }
     }
@@ -54,7 +61,7 @@ impl Span {
         Span {
             source_id: self.source_id,
             start: self.start - offset,
-            end: self.end - offset
+            end: self.end - offset,
         }
     }
 
@@ -66,7 +73,7 @@ impl Span {
         Span {
             source_id: self.source_id,
             start: self.end,
-            end: self.end
+            end: self.end,
         }
     }
 }

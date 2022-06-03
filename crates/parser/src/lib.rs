@@ -1,8 +1,8 @@
 pub mod error;
 mod parser;
+pub mod source;
 mod symtab;
 pub mod type_check;
-pub mod source;
 
 use crate::parser::Parser;
 use crate::source::Source;
@@ -12,7 +12,7 @@ pub use symtab::SymbolTable;
 #[derive(Debug, PartialEq)]
 pub struct Parse {
     pub stmts: Vec<Statement>,
-    pub symtab: SymbolTable
+    pub symtab: SymbolTable,
 }
 
 pub fn parse(source: Source, symtab: Option<SymbolTable>) -> miette::Result<Parse> {
@@ -66,13 +66,15 @@ mod tests {
                             {},
                         ],
                     },
-                }"#]]
+                }"#]],
         );
     }
 
     #[test]
     fn parse_true() {
-        check("true;", expect![[r#"
+        check(
+            "true;",
+            expect![[r#"
             Parse {
                 stmts: [
                     Statement {
@@ -99,12 +101,15 @@ mod tests {
                         {},
                     ],
                 },
-            }"#]]);
+            }"#]],
+        );
     }
 
     #[test]
     fn parse_false() {
-        check("false;", expect![[r#"
+        check(
+            "false;",
+            expect![[r#"
             Parse {
                 stmts: [
                     Statement {
@@ -131,12 +136,15 @@ mod tests {
                         {},
                     ],
                 },
-            }"#]]);
+            }"#]],
+        );
     }
 
     #[test]
     fn parse_null() {
-        check("null;", expect![[r#"
+        check(
+            "null;",
+            expect![[r#"
             Parse {
                 stmts: [
                     Statement {
@@ -161,12 +169,15 @@ mod tests {
                         {},
                     ],
                 },
-            }"#]]);
+            }"#]],
+        );
     }
 
     #[test]
     fn parse_integer() {
-        check("5;", expect![[r#"
+        check(
+            "5;",
+            expect![[r#"
             Parse {
                 stmts: [
                     Statement {
@@ -193,13 +204,15 @@ mod tests {
                         {},
                     ],
                 },
-            }"#]]);
+            }"#]],
+        );
     }
 
     #[test]
     fn parse_float() {
         check(
-            "1.23;", expect![[r#"
+            "1.23;",
+            expect![[r#"
                 Parse {
                     stmts: [
                         Statement {
@@ -226,7 +239,7 @@ mod tests {
                             {},
                         ],
                     },
-                }"#]]
+                }"#]],
         );
     }
 

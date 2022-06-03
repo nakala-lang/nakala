@@ -1,4 +1,7 @@
-use crate::{error::RuntimeError, val::{Value, Class}};
+use crate::{
+    error::RuntimeError,
+    val::{Class, Value},
+};
 use std::collections::HashMap;
 
 pub type InstanceId = usize;
@@ -18,11 +21,7 @@ impl Instance {
             fields.insert(key, value);
         }
 
-        Self {
-            id,
-            class,
-            fields
-        }
+        Self { id, class, fields }
     }
 
     pub fn get_property(&self, name: &String) -> Result<Value, RuntimeError> {
