@@ -148,6 +148,8 @@ fn eval_binary_expr(
             Op::Sub => lhs.sub(op, &rhs),
             Op::Mul => lhs.mul(op, &rhs),
             Op::Div => lhs.div(op, &rhs),
+            Op::Equals => lhs.eq(&rhs),
+            Op::NotEquals => lhs.neq(&rhs),
             Op::LessThanEquals => lhs.lte(op, &rhs),
             Op::GreaterThan => lhs.gt(op, &rhs),
             Op::Or | Op::And => {

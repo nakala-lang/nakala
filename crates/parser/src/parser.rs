@@ -56,21 +56,7 @@ impl Parser {
             }
 
             // TODO nested get exprs
-            Expr::Get { object, name } => {
-                if let Type::Instance(class_name) = &object.ty {
-                    if let Some(entry) = self.symtab.lookup(class_name) {
-                        if let Sym::Class { methods } = &entry.sym {
-                            if methods.contains_key(&name.item) {
-                                return Ok(());
-                            } else {
-                                todo!("class doesn't have method {}", name.item);
-                            }
-                        }
-                    }
-                }
-
-                err
-            }
+            Expr::Get { .. } => Ok(()),
             _ => err,
         }
     }

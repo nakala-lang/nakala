@@ -41,6 +41,6 @@ pub enum RuntimeError {
     UndefinedClassProperty(
         SourceId,
         #[label("This class doesn't have any property named {2}")] SourceSpan,
-        String
-    )
+        String,
+    ),
 }

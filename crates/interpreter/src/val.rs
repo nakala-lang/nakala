@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cmp::Ordering, collections::HashMap};
 
 use ast::{
     expr::{Expr, Expression},
@@ -26,16 +26,72 @@ pub struct Class {
     pub methods: HashMap<String, Value>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Val {
     Bool(bool),
     Int(i64),
     Float(f64),
     String(String),
-    Null,
     Function(Function),
     Class(Class),
     Instance { id: InstanceId, name: String },
+    Null,
+}
+
+impl PartialOrd for Val {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match (self, other) {
+            (Val::Bool(lhs), rhs) => match rhs {
+                Val::Bool(rhs) => lhs.partial_cmp(rhs),
+                Val::Int(..) => Some(Ordering::Less),
+                Val::Float(..) => Some(Ordering::Less),
+                Val::String(..) => Some(Ordering::Less),
+                Val::Function(..) => Some(Ordering::Less),
+                Val::Class(..) => Some(Ordering::Less),
+                Val::Instance { .. } => Some(Ordering::Less),
+                Val::Null => Some(Ordering::Less),
+            },
+            (Val::Int(lhs), rhs) => match rhs {
+                Val::Bool(..) => Some(Ordering::Greater),
+                Val::Int(rhs) => lhs.partial_cmp(rhs),
+                Val::Float(..) => Some(Ordering::Less),
+                Val::String(..) => Some(Ordering::Less),
+                Val::Function(..) => Some(Ordering::Less),
+                Val::Class(..) => Some(Ordering::Less),
+                Val::Instance { .. } => Some(Ordering::Less),
+                Val::Null => Some(Ordering::Less),
+            },
+            // others
+            (Val::Instance { id: lhs, .. }, rhs) => match rhs {
+                Val::Bool(..) => Some(Ordering::Greater),
+                Val::Int(..) => Some(Ordering::Greater),
+                Val::Float(..) => Some(Ordering::Greater),
+                Val::String(..) => Some(Ordering::Greater),
+                Val::Function(..) => Some(Ordering::Greater),
+                Val::Class(..) => Some(Ordering::Greater),
+                Val::Instance { id: rhs, .. } => lhs.partial_cmp(rhs),
+                Val::Null => Some(Ordering::Less),
+            },
+            (Val::Null, rhs) => match rhs {
+                Val::Bool(..) => Some(Ordering::Greater),
+                Val::Int(..) => Some(Ordering::Greater),
+                Val::Float(..) => Some(Ordering::Greater),
+                Val::String(..) => Some(Ordering::Greater),
+                Val::Function(..) => Some(Ordering::Greater),
+                Val::Class(..) => Some(Ordering::Greater),
+                Val::Instance { .. } => Some(Ordering::Greater),
+                Val::Null => Some(Ordering::Equal),
+            },
+            _ => todo!("PartialOrd for {:?} and {:?}", self, other),
+        }
+    }
+}
+
+impl PartialEq for Val {
+    fn eq(&self, other: &Self) -> bool {
+        print!("{:?}", self.partial_cmp(other));
+        self.partial_cmp(other).map_or(false, Ordering::is_eq)
+    }
 }
 
 impl std::fmt::Display for Val {
@@ -166,6 +222,16 @@ impl Value {
                 span,
                 ty: Type::String,
             }),
+            (Val::Int(lhs), Val::String(rhs)) => Ok(Value {
+                val: Val::String(format!("{}{}", lhs, rhs)),
+                span,
+                ty: Type::String,
+            }),
+            (Val::String(lhs), Val::Int(rhs)) => Ok(Value {
+                val: Val::String(format!("{}{}", lhs, rhs)),
+                span,
+                ty: Type::String,
+            }),
             _ => Err(RuntimeError::UnsupportedOperation(
                 self.span.source_id,
                 op.span.into(),
@@ -269,6 +335,33 @@ impl Value {
                 rhs.ty.clone(),
             )),
         }
+    }
+
+    pub fn eq(&self, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        let val = matches!(self.val.partial_cmp(&rhs.val), Some(Ordering::Equal));
+
+        Ok(Value {
+            val: Val::Bool(val),
+            span,
+            ty: Type::Bool,
+        })
+    }
+
+    pub fn neq(&self, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        let val = match self.val.partial_cmp(&rhs.val) {
+            Some(ordering) => !matches!(ordering, Ordering::Equal),
+            None => false,
+        };
+
+        Ok(Value {
+            val: Val::Bool(val),
+            span,
+            ty: Type::Bool,
+        })
     }
 
     pub fn lte(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
