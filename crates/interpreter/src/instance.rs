@@ -28,7 +28,11 @@ impl Instance {
         if let Some(entry) = self.fields.get(name) {
             Ok(entry.clone())
         } else {
-            todo!("undefined property on instance");
+            Err(RuntimeError::UndefinedClassProperty(
+                self.class.class.name.span.source_id,
+                self.class.class.name.span.into(),
+                name.to_string(),
+            ))
         }
     }
 

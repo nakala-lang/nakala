@@ -35,4 +35,12 @@ pub enum RuntimeError {
         #[label("{5}")] SourceSpan,
         Type,
     ),
+
+    #[error("Undefined class property")]
+    #[diagnostic(code(nak_runtime::undefined_class_property))]
+    UndefinedClassProperty(
+        SourceId,
+        #[label("This class doesn't have any property named {2}")] SourceSpan,
+        String
+    )
 }
