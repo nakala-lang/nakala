@@ -43,6 +43,7 @@ pub enum Expr {
         name: Spanned<String>,
         rhs: Box<Expression>,
     },
+    This,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -23,6 +23,7 @@ pub(crate) fn eval_expr(
         Expr::Logical { .. } => eval_logical_expr(expr, env, scope),
         Expr::Get { .. } => eval_get_expr(expr, env, scope),
         Expr::Set { .. } => eval_set_expr(expr, env, scope),
+        Expr::This => eval_this_expr(expr, env, scope),
         _ => todo!("{:#?} nyi", expr),
     }
 }
@@ -76,7 +77,7 @@ fn eval_call_expr(
 
         match val.val {
             Val::Function(func) => eval_func_call(func, paren, args, env, scope),
-            Val::Class { .. } => eval_class_instantiation(val, env),
+            Val::Class { .. } => eval_class_instantiation(val, paren, args, env, scope),
             _ => panic!("ICE: can only call functions"),
         }
     } else {
@@ -111,9 +112,23 @@ fn eval_func_call(
     }
 }
 
-fn eval_class_instantiation(val: Value, env: &mut Environment) -> Result<Value, RuntimeError> {
+fn eval_class_instantiation(
+    val: Value,
+    paren: Span,
+    args: Vec<Expression>,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<Value, RuntimeError> {
     if let Val::Class(class) = val.val {
-        Ok(env.new_instance(class, val.span))
+        let val = env.new_instance(class, val.span);
+        let instance = env.get_instance(val.as_instance()?)?;
+        if let Ok(mut constructor) = instance.get_property("constructor") {
+            // bind this and execute constructor
+            constructor.bind_this(env, val.clone())?;
+            eval_func_call(constructor.as_function()?, paren, args, env, scope)?;
+        };
+
+        Ok(val)
     } else {
         panic!("ICE: eval_class_instantiation should only be called with Val::Class");
     }
@@ -154,7 +169,14 @@ fn eval_get_expr(
         let obj = eval_expr(*object, env, scope)?;
 
         let instance = env.get_instance(obj.as_instance()?)?;
-        instance.get_property(&name.item)
+
+        // If property is a function, bind 'this'
+        let mut prop = instance.get_property(&name.item)?;
+        if let Val::Function(..) = prop.val {
+            prop.bind_this(env, obj)?;
+        }
+
+        Ok(prop)
     } else {
         panic!("ICE: eval_get_expr should only be called with Expr::Get");
     }
@@ -212,5 +234,22 @@ fn eval_logical_expr(
         }
     } else {
         panic!("ICE: eval_logical_expr should only be called with Expr::Logical");
+    }
+}
+
+fn eval_this_expr(
+    expr: Expression,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<Value, RuntimeError> {
+    if let Expr::This = expr.expr {
+        let t: Spanned<String> = Spanned {
+            item: String::from("this"),
+            span: expr.span,
+        };
+
+        env.get(scope, &t)
+    } else {
+        panic!("ICE: eval_this_expr should only be called with Expr::This");
     }
 }

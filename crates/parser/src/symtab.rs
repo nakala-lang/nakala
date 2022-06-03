@@ -15,9 +15,15 @@ pub enum Sym {
     Class { methods: HashMap<String, Symbol> },
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SymbolTable {
     inner: Vec<HashMap<String, Symbol>>,
+}
+
+impl Default for SymbolTable {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SymbolTable {

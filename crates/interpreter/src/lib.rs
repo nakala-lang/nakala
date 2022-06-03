@@ -116,7 +116,12 @@ fn eval_class_decl(
         // make sure we don't define anything that collides with the class name
         env.define(scope, class_name.item.clone(), Value::null())?;
 
-        let val = Value::from_class(stmt, scope);
+        let new_scope = env.begin_scope();
+
+        // We have to define it manually, but we will bind 'this' on the instance
+        env.define(new_scope, String::from("this"), Value::null())?;
+
+        let val = Value::from_class(stmt, new_scope);
 
         env.assign(scope, class_name, val)?;
 

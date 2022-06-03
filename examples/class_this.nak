@@ -1,0 +1,13 @@
+class Person {
+  constructor(first: string, last: string) {
+    this.first = first;
+    this.last = last;
+  }
+
+  greet() {
+    print "Hi, my name is " + this.first + " " + this.last;
+  }
+}
+
+let me = Person("Reagan", "McFarland");
+me.greet();

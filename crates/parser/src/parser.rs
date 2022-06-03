@@ -824,12 +824,6 @@ impl Parser {
         // Example: someInstance.foo()
 
         self.is_callable(&callee)?;
-        //if !matches!(callee.expr, Expr::Variable(..) | Expr::Get { .. }) {
-        //    return Err(ParseError::UncallableExpression(
-        //        self.source.id,
-        //        callee.span.into(),
-        //    ));
-        //}
 
         let mut ty = callee.ty.clone();
         if let Type::Class(class_name) = ty {
@@ -907,6 +901,11 @@ impl Parser {
                 expr: Expr::Null,
                 span: token.span,
                 ty: Type::Null,
+            }),
+            TokenKind::This => Ok(Expression {
+                expr: Expr::This,
+                span: token_span,
+                ty: Type::Any,
             }),
             TokenKind::LeftParen => {
                 let span = token.span;

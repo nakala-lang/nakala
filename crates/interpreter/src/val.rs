@@ -8,7 +8,11 @@ use ast::{
 };
 use meta::Span;
 
-use crate::{env::ScopeId, error::RuntimeError, instance::InstanceId};
+use crate::{
+    env::{Environment, ScopeId},
+    error::RuntimeError,
+    instance::InstanceId,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Function {
@@ -156,6 +160,11 @@ impl Value {
                 val: Val::Int(lhs + rhs),
                 span,
                 ty: Type::Int,
+            }),
+            (Val::String(lhs), Val::String(rhs)) => Ok(Value {
+                val: Val::String(format!("{}{}", lhs, rhs)),
+                span,
+                ty: Type::String,
             }),
             _ => Err(RuntimeError::UnsupportedOperation(
                 self.span.source_id,
@@ -326,6 +335,7 @@ impl Value {
             _ => Err(RuntimeError::UnexpectedValueType(
                 self.span.source_id,
                 Type::Bool,
+                format!("{}", self.val),
                 self.span.into(),
             )),
         }
@@ -337,8 +347,40 @@ impl Value {
             _ => Err(RuntimeError::UnexpectedValueType(
                 self.span.source_id,
                 Type::Instance(String::from("any")),
+                format!("{}", self.val),
                 self.span.into(),
             )),
+        }
+    }
+
+    pub fn as_function(&self) -> Result<Function, RuntimeError> {
+        match &self.val {
+            Val::Function(func) => Ok(func.clone()),
+            _ => Err(RuntimeError::UnexpectedValueType(
+                self.span.source_id,
+                Type::Instance(String::from("any")),
+                format!("{}", self.val),
+                self.span.into(),
+            )),
+        }
+    }
+
+    pub fn bind_this(
+        &mut self,
+        env: &mut Environment,
+        instance: Value,
+    ) -> Result<(), RuntimeError> {
+        if let Val::Function(ref mut func) = self.val {
+            if let Val::Instance { .. } = instance.val {
+                let binded_scope = env.begin_scope_with_closure(func.closure);
+                env.define(binded_scope, String::from("this"), instance)?;
+                func.closure = binded_scope;
+                Ok(())
+            } else {
+                panic!("Can only bind instance's on functions");
+            }
+        } else {
+            panic!("Can only use 'bind_this' on Val::Function");
         }
     }
 }

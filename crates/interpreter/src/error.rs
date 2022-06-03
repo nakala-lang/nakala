@@ -16,11 +16,12 @@ pub enum RuntimeError {
     #[diagnostic(code(nak_runtime::unknown_variable))]
     UndefinedVariable(SourceId, #[label("Undefined variable")] SourceSpan),
 
-    #[error("Expected {1}, got non {1} value instead")]
+    #[error("Expected {1}, got {2} value instead")]
     #[diagnostic(code(nak_runtime::unexpected_value))]
     UnexpectedValueType(
         SourceId,
         Type,
+        String,
         #[label("This value is not of type {1}")] SourceSpan,
     ),
 
