@@ -177,6 +177,80 @@ impl Value {
                 span,
                 ty: Type::Int,
             }),
+            (Val::Int(lhs), Val::Float(rhs)) => Ok(Value {
+                val: Val::Float(*lhs as f64 - *rhs),
+                span,
+                ty: Type::Float
+            }),
+            (Val::Float(lhs), Val::Int(rhs)) => Ok(Value {
+                val: Val::Float(*lhs - *rhs as f64),
+                span,
+                ty: Type::Float
+            }),
+            _ => Err(RuntimeError::UnsupportedOperation(
+                self.span.source_id,
+                op.span.into(),
+                self.span.into(),
+                self.ty.clone(),
+                rhs.span.into(),
+                rhs.ty.clone(),
+            )),
+        }
+    }
+
+    pub fn mul(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        match (&self.val, &rhs.val) {
+            (Val::Int(lhs), Val::Int(rhs)) => Ok(Value {
+                val: Val::Int(lhs * rhs),
+                span,
+                ty: Type::Int,
+            }),
+            (Val::Int(lhs), Val::Float(rhs)) => Ok(Value {
+                val: Val::Float(*lhs as f64 * *rhs),
+                span,
+                ty: Type::Float,
+            }),
+            (Val::Float(lhs), Val::Int(rhs)) => Ok(Value {
+                val: Val::Float(*lhs * *rhs as f64),
+                span,
+                ty: Type::Float,
+            }),
+            _ => Err(RuntimeError::UnsupportedOperation(
+                self.span.source_id,
+                op.span.into(),
+                self.span.into(),
+                self.ty.clone(),
+                rhs.span.into(),
+                rhs.ty.clone(),
+            )),
+        }
+    }
+
+    pub fn div(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        match (&self.val, &rhs.val) {
+            (Val::Int(lhs), Val::Int(rhs)) => {
+                if *rhs != 0 {
+                    if lhs % rhs == 0 {
+                        Ok(Value {
+                            val: Val::Int(lhs / rhs),
+                            span,
+                            ty: Type::Int,
+                        })
+                    } else {
+                        Ok(Value {
+                            val: Val::Float((*lhs as f64) / (*rhs as f64)),
+                            span,
+                            ty: Type::Float,
+                        })
+                    }
+                } else {
+                    todo!("divide by 0")
+                }
+            }
             _ => Err(RuntimeError::UnsupportedOperation(
                 self.span.source_id,
                 op.span.into(),

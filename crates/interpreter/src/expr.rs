@@ -132,6 +132,8 @@ fn eval_binary_expr(
         match op.op {
             Op::Add => lhs.add(op, &rhs),
             Op::Sub => lhs.sub(op, &rhs),
+            Op::Mul => lhs.mul(op, &rhs),
+            Op::Div => lhs.div(op, &rhs),
             Op::LessThanEquals => lhs.lte(op, &rhs),
             Op::GreaterThan => lhs.gt(op, &rhs),
             Op::Or | Op::And => {
