@@ -1,220 +1,67 @@
-use crate::expr::{CodeBlock, Expr};
-use syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use crate::{
+    expr::Expression,
+    ty::{Type, TypeExpression},
+};
+use lexer::Token;
+use meta::{Span, Spanned};
 
-#[derive(Debug)]
-pub enum Stmt {
-    VariableDef(VariableDef),
-    Expr(Expr),
-    FunctionDef(FunctionDef),
-    VariableAssign(VariableAssign),
-    If(If),
-    ElseIf(ElseIf),
-    Else(Else),
-    Return(Return),
-    ClassDef(ClassDef),
-    ForLoop(ForLoop),
+#[derive(Debug, Clone, PartialEq)]
+pub struct Binding {
+    pub name: Spanned<String>,
+    pub ty: Type,
 }
 
-impl Stmt {
-    pub fn cast(node: SyntaxNode) -> Option<Self> {
-        let result = match node.kind() {
-            SyntaxKind::VariableDef => Self::VariableDef(VariableDef(node)),
-            SyntaxKind::FunctionDef => Self::FunctionDef(FunctionDef(node)),
-            SyntaxKind::VariableAssign => Self::VariableAssign(VariableAssign(node)),
-            SyntaxKind::If => Self::If(If(node)),
-            SyntaxKind::ElseIf => Self::ElseIf(ElseIf(node)),
-            SyntaxKind::Else => Self::Else(Else(node)),
-            SyntaxKind::Return => Self::Return(Return(node)),
-            SyntaxKind::ClassDef => Self::ClassDef(ClassDef(node)),
-            SyntaxKind::ForLoop => Self::ForLoop(ForLoop(node)),
-            _ => Self::Expr(Expr::cast(node)?),
-        };
-
-        Some(result)
-    }
-}
-
-#[derive(Debug)]
-pub struct VariableDef(SyntaxNode);
-
-impl VariableDef {
-    pub fn name(&self) -> Option<SyntaxToken> {
-        self.0
-            .children_with_tokens()
-            .filter_map(SyntaxElement::into_token)
-            .find(|token| token.kind() == SyntaxKind::Ident)
-    }
-
-    pub fn value(&self) -> Option<Expr> {
-        self.0.children().find_map(Expr::cast)
-    }
-}
-
-#[derive(Debug)]
-pub struct FunctionDef(pub(crate) SyntaxNode);
-
-impl FunctionDef {
-    pub fn name(&self) -> Option<SyntaxToken> {
-        self.0
-            .children_with_tokens()
-            .filter_map(SyntaxElement::into_token)
-            .find(|token| token.kind() == SyntaxKind::Ident)
-    }
-
-    pub fn param_ident_list(&self) -> Vec<SyntaxToken> {
-        self.0
-            .children()
-            .find(|node| node.kind() == SyntaxKind::ParamIdentList)
-            .map_or(vec![], |n| {
-                n.children_with_tokens()
-                    .filter_map(SyntaxElement::into_token)
-                    .filter(|token| token.kind() == SyntaxKind::Ident)
-                    .collect()
-            })
-    }
-
-    pub fn body(&self) -> Option<CodeBlock> {
-        self.0
-            .children()
-            .find(|t| t.kind() == SyntaxKind::CodeBlock)
-            .map(CodeBlock)
-    }
-}
-#[derive(Debug)]
-pub struct VariableAssign(SyntaxNode);
-
-impl VariableAssign {
-    pub fn name(&self) -> Option<SyntaxToken> {
-        self.0.first_token()
-    }
-
-    pub fn value(&self) -> Option<Expr> {
-        self.0.children().find_map(Expr::cast)
-    }
-}
-
-#[derive(Debug)]
-pub struct If(SyntaxNode);
-
-impl If {
-    pub fn expr(&self) -> Option<Expr> {
-        self.0.children().find_map(Expr::cast)
-    }
-
-    pub fn body(&self) -> Option<CodeBlock> {
-        self.0
-            .children()
-            .find(|t| t.kind() == SyntaxKind::CodeBlock)
-            .map(CodeBlock)
-    }
-
-    pub fn else_branch(&self) -> Option<ElseBranch> {
-        let else_node = self
-            .0
-            .children()
-            .find(|t| t.kind() == SyntaxKind::Else)
-            .map(Else);
-
-        let else_if_node = self
-            .0
-            .children()
-            .find(|t| t.kind() == SyntaxKind::ElseIf)
-            .map(ElseIf);
-
-        if let Some(else_stmt) = else_node {
-            Some(ElseBranch::Else(else_stmt))
-        } else {
-            else_if_node.map(ElseBranch::ElseIf)
+impl From<&Token> for Binding {
+    fn from(token: &Token) -> Self {
+        Self {
+            name: Spanned {
+                item: token.text.to_string(),
+                span: token.span,
+            },
+            ty: Type::Any,
         }
     }
 }
 
-#[derive(Debug)]
-pub struct ElseIf(SyntaxNode);
-
-impl ElseIf {
-    pub fn if_stmt(&self) -> Option<If> {
-        self.0
-            .children()
-            .find(|t| t.kind() == SyntaxKind::If)
-            .map(If)
-    }
+#[derive(Debug, Clone, PartialEq)]
+pub struct Function {
+    pub name: Spanned<String>,
+    pub params: Vec<Binding>,
+    pub body: Box<Statement>,
+    pub return_ty: TypeExpression,
 }
 
-#[derive(Debug)]
-pub struct Else(SyntaxNode);
-
-impl Else {
-    pub fn body(&self) -> Option<crate::expr::CodeBlock> {
-        self.0
-            .children()
-            .find(|t| t.kind() == SyntaxKind::CodeBlock)
-            .map(crate::expr::CodeBlock)
-    }
+#[derive(Debug, Clone, PartialEq)]
+pub struct Class {
+    pub name: Spanned<String>,
+    pub methods: Vec<Statement>,
 }
 
-#[derive(Debug)]
-pub enum ElseBranch {
-    Else(Else),
-    ElseIf(ElseIf),
+#[derive(Debug, Clone, PartialEq)]
+pub enum Stmt {
+    Expr(Expression),
+    Function(Function),
+    Class(Class),
+    Return(Option<Expression>),
+    Print(Expression),
+    Variable {
+        name: Binding,
+        expr: Option<Expression>,
+    },
+    Block(Vec<Statement>),
+    If {
+        cond: Expression,
+        body: Box<Statement>,
+        else_branch: Option<Box<Statement>>,
+    },
+    Until {
+        cond: Expression,
+        body: Box<Statement>,
+    },
 }
 
-#[derive(Debug)]
-pub struct Return(SyntaxNode);
-
-impl Return {
-    pub fn value(&self) -> Option<Expr> {
-        self.0.children().find_map(Expr::cast)
-    }
-}
-
-#[derive(Debug)]
-pub struct ClassDef(SyntaxNode);
-
-impl ClassDef {
-    pub fn name(&self) -> Option<SyntaxToken> {
-        self.0
-            .children_with_tokens()
-            .filter_map(SyntaxElement::into_token)
-            .find(|token| token.kind() == SyntaxKind::Ident)
-    }
-
-    pub fn fields(&self) -> Vec<SyntaxToken> {
-        self.0
-            .children()
-            .filter(|t| t.kind() == SyntaxKind::ClassField)
-            .filter_map(|t| t.first_token())
-            .collect()
-    }
-
-    pub fn methods(&self) -> Vec<FunctionDef> {
-        self.0
-            .children()
-            .filter(|token| token.kind() == SyntaxKind::ClassMethod)
-            .map(FunctionDef)
-            .collect()
-    }
-}
-
-#[derive(Debug)]
-pub struct ForLoop(SyntaxNode);
-
-impl ForLoop {
-    pub fn item(&self) -> Option<SyntaxToken> {
-        self.0
-            .children_with_tokens()
-            .filter_map(SyntaxElement::into_token)
-            .find(|token| token.kind() == SyntaxKind::Ident)
-    }
-
-    pub fn collection(&self) -> Option<Expr> {
-        self.0.children().find_map(Expr::cast)
-    }
-
-    pub fn body(&self) -> Option<CodeBlock> {
-        self.0
-            .children()
-            .find(|t| t.kind() == SyntaxKind::CodeBlock)
-            .map(crate::expr::CodeBlock)
-    }
+#[derive(Debug, Clone, PartialEq)]
+pub struct Statement {
+    pub stmt: Stmt,
+    pub span: Span,
 }

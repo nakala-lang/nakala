@@ -1,0 +1,36 @@
+if true {
+  print "inside if";
+}
+
+if false {
+  print "SHOULDNT BE HERE";
+} else {
+  print "inside else";
+}
+
+if false {
+   print "SHOULDNT BE HERE";
+} else if false {
+  print "SHOULDNT BE HERE";
+} else if true {
+  print "inside chained else if";
+}
+
+// Logical expressions short circuit
+if true and false {
+  print "21: SHOULDNT BE HERE";
+}
+
+func foo() -> int {
+  print "SHORTCIRCUIT FAILED";
+  ret 5;
+}
+
+// Since we short circuit 'and' statements, this shouldn't
+if false and foo() {
+  print "SHOULDNT BE HERE";
+}
+
+if false or foo() {
+  print "inside or";
+}

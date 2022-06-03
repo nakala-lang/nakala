@@ -1,9 +1,0 @@
-# Define variables with `let`
-let a = 200 + (5 * (100 + 4))
-
-# Variables are copied by value, not reference
-let b = a
-
-# Assign values to existing variables
-a = a * 10
-

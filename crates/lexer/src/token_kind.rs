@@ -1,127 +1,112 @@
 use logos::Logos;
 use std::fmt;
 
-#[derive(Debug, Copy, Clone, PartialEq, Logos)]
+#[derive(Logos, Debug, Copy, Clone, PartialEq)]
 pub enum TokenKind {
-    #[regex("[ \n]+")]
+    #[regex(r"[\s\t\n\f]+")]
     Whitespace,
+    #[regex(r"//.*")]
+    Comment,
 
-    #[token("fn")]
-    FnKw,
-
-    #[token("call")]
-    CallKw,
-
-    #[token("let")]
-    LetKw,
-
-    #[token("if")]
-    IfKw,
-
-    #[token("else")]
-    ElseKw,
-
-    #[token("ret")]
-    RetKw,
-
-    #[token("class")]
-    ClassKw,
-
-    #[token("new")]
-    NewKw,
-
-    #[token("for")]
-    ForKw,
-
-    #[token("in")]
-    InKw,
-
-    #[token("fields")]
-    FieldsKw,
-
-    #[regex("[A-Za-z][A-Za-z0-9_]*")]
-    Ident,
-
-    #[regex("[0-9]+")]
-    Number,
-
-    #[regex(r#""[^"]*""#)]
-    String,
-
-    #[regex("true|false")]
-    Boolean,
-
+    // Single-character tokens
+    #[token("(")]
+    LeftParen,
+    #[token(")")]
+    RightParen,
+    #[token("{")]
+    LeftBrace,
+    #[token("}")]
+    RightBrace,
+    #[token(",")]
+    Comma,
     #[token(".")]
     Dot,
-
-    #[token("+")]
-    Plus,
-
     #[token("-")]
     Minus,
-
+    #[token("+")]
+    Plus,
+    #[token(";")]
+    Semicolon,
+    #[token(":")]
+    Colon,
+    #[token("/")]
+    Slash,
     #[token("*")]
     Star,
 
-    #[token("/")]
-    Slash,
-
+    // One or more character tokens
+    #[token("!")]
+    Bang,
+    #[token("!=")]
+    BangEqual,
     #[token("=")]
-    Equals,
-
-    #[token("{")]
-    LBrace,
-
-    #[token("}")]
-    RBrace,
-
-    #[token("[")]
-    LBracket,
-
-    #[token("]")]
-    RBracket,
-
-    #[token("(")]
-    LParen,
-
-    #[token(")")]
-    RParen,
-
-    #[token(">")]
-    GreaterThan,
-
-    #[token(">=")]
-    GreaterThanOrEqual,
-
-    #[token("<")]
-    LessThan,
-
-    #[token("<=")]
-    LessThanOrEqual,
-
-    #[token("and")]
-    AndKw,
-
-    #[token("or")]
-    OrKw,
-
-    #[token("not")]
-    NotKw,
-
+    Equal,
     #[token("==")]
-    ComparisonEquals,
+    EqualEqual,
+    #[token(">")]
+    Greater,
+    #[token(">=")]
+    GreaterEqual,
+    #[token("<")]
+    Less,
+    #[token("<=")]
+    LessEqual,
+    #[token("->")]
+    Arrow,
 
-    #[token(",")]
-    Comma,
+    // Literals
+    #[regex("[A-Za-z_][A-Za-z0-9_]*")]
+    Ident,
+    #[regex(r#""[^"]*""#)]
+    String,
+    #[regex("[0-9]+")]
+    Int,
+    #[regex(r#"[0-9]+\.[0-9]+"#)]
+    Float,
 
-    #[token(";")]
-    SemiColon,
+    // Keywords
+    #[token("and")]
+    And,
+    #[token("class")]
+    Class,
+    #[token("else")]
+    Else,
+    #[token("false")]
+    False,
+    #[token("func")]
+    Func,
+    #[token("if")]
+    If,
+    #[token("null")]
+    Null,
+    #[token("or")]
+    Or,
+    #[token("print")]
+    Print,
+    #[token("ret")]
+    Ret,
+    #[token("super")]
+    Super,
+    #[token("this")]
+    This,
+    #[token("true")]
+    True,
+    #[token("let")]
+    Let,
+    #[token("until")]
+    Until,
 
-    #[regex("#.*")]
-    Comment,
-
-    #[token(":")]
-    Colon,
+    // Types
+    #[token("int")]
+    TypeInt,
+    #[token("float")]
+    TypeFloat,
+    #[token("bool")]
+    TypeBool,
+    #[token("string")]
+    TypeString,
+    #[token("any")]
+    TypeAny,
 
     #[error]
     Error,
@@ -137,46 +122,64 @@ impl fmt::Display for TokenKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             Self::Whitespace => "whitespace",
-            Self::FnKw => "fn",
-            Self::CallKw => "call",
-            Self::LetKw => "let",
-            Self::IfKw => "if",
-            Self::ElseKw => "else",
-            Self::RetKw => "ret",
-            Self::ClassKw => "class",
-            Self::NewKw => "new",
-            Self::ForKw => "for",
-            Self::InKw => "in",
-            Self::FieldsKw => "fields",
-            Self::Ident => "identifier",
-            Self::Number => "number",
-            Self::String => "string",
-            Self::Boolean => "boolean",
-            Self::Dot => ".",
-            Self::Plus => "+",
-            Self::Minus => "-",
-            Self::Star => "*",
-            Self::Slash => "/",
-            Self::Equals => "=",
-            Self::LParen => "(",
-            Self::RParen => ")",
-            Self::LBrace => "{",
-            Self::RBrace => "}",
-            Self::LBracket => "[",
-            Self::RBracket => "]",
-            Self::GreaterThan => ">",
-            Self::GreaterThanOrEqual => ">=",
-            Self::LessThan => "<",
-            Self::LessThanOrEqual => "<=",
-            Self::AndKw => "and",
-            Self::OrKw => "or",
-            Self::NotKw => "not",
-            Self::ComparisonEquals => "==",
-            Self::Comma => ",",
-            Self::SemiColon => ";",
             Self::Comment => "comment",
+
+            // Single-character tokens
+            Self::LeftParen => "(",
+            Self::RightParen => ")",
+            Self::LeftBrace => "{",
+            Self::RightBrace => "}",
+            Self::Comma => ",",
+            Self::Dot => ".",
+            Self::Minus => "-",
+            Self::Plus => "+",
+            Self::Semicolon => ";",
             Self::Colon => ":",
-            Self::Error => "an unrecognized token",
+            Self::Slash => "/",
+            Self::Star => "*",
+
+            // One or more character tokens
+            Self::Bang => "!",
+            Self::BangEqual => "!=",
+            Self::Equal => "=",
+            Self::EqualEqual => "==",
+            Self::Greater => ">",
+            Self::GreaterEqual => ">=",
+            Self::Less => "<",
+            Self::LessEqual => "<=",
+            Self::Arrow => "->",
+
+            // Literals
+            Self::Ident => "ident",
+            Self::String => "string",
+            Self::Int => "int",
+            Self::Float => "float",
+
+            // Keywords
+            Self::And => "and",
+            Self::Class => "class",
+            Self::Else => "else",
+            Self::False => "false",
+            Self::Func => "func",
+            Self::If => "if",
+            Self::Null => "null",
+            Self::Or => "or",
+            Self::Print => "print",
+            Self::Ret => "ret",
+            Self::Super => "super",
+            Self::This => "this",
+            Self::True => "true",
+            Self::Let => "let",
+            Self::Until => "until",
+
+            // Types
+            Self::TypeInt => "int",
+            Self::TypeFloat => "float",
+            Self::TypeBool => "bool",
+            Self::TypeString => "string",
+            Self::TypeAny => "any",
+
+            Self::Error => "error",
         })
     }
 }
@@ -187,211 +190,61 @@ mod tests {
     use crate::Lexer;
 
     fn check(input: &str, kind: TokenKind) {
-        let mut lexer = Lexer::new(input);
+        let mut lexer = Lexer::new(0, input);
 
         let token = lexer.next().unwrap();
         assert_eq!(token.kind, kind);
         assert_eq!(token.text, input);
+        assert_eq!(lexer.next(), None);
     }
 
     #[test]
     fn lex_spaces_and_newlines() {
-        check("  \n", TokenKind::Whitespace);
+        check("   \n", TokenKind::Whitespace);
     }
 
     #[test]
-    fn lex_spaces() {
-        check("   ", TokenKind::Whitespace);
+    fn lex_tabs_and_spaces() {
+        check("\t ", TokenKind::Whitespace);
+        check(" \t", TokenKind::Whitespace);
     }
 
     #[test]
-    fn lex_fn_keyword() {
-        check("fn", TokenKind::FnKw);
+    fn lex_comment() {
+        check("// this is a comment", TokenKind::Comment);
     }
 
     #[test]
-    fn lex_call_keyword() {
-        check("call", TokenKind::CallKw);
+    fn lex_comment_excluding_next_line() {
+        let mut lexer = Lexer::new(
+            0,
+            r"//this is a comment
++",
+        );
+
+        let token = lexer.next().unwrap();
+        assert_eq!(token.kind, TokenKind::Comment);
+        assert_eq!(token.text, "//this is a comment");
     }
 
     #[test]
-    fn lex_let_keyword() {
-        check("let", TokenKind::LetKw);
+    fn lex_left_paren() {
+        check("(", TokenKind::LeftParen);
     }
 
     #[test]
-    fn lex_if_keyword() {
-        check("if", TokenKind::IfKw);
-    }
-
-    #[test]
-    fn lex_else_keyword() {
-        check("else", TokenKind::ElseKw);
-    }
-
-    #[test]
-    fn lex_ret_keyword() {
-        check("ret", TokenKind::RetKw);
-    }
-
-    #[test]
-    fn lex_class_keyword() {
-        check("class", TokenKind::ClassKw);
-    }
-
-    #[test]
-    fn lex_new_keyword() {
-        check("new", TokenKind::NewKw);
-    }
-
-    #[test]
-    fn lex_for_keyword() {
-        check("for", TokenKind::ForKw);
-    }
-
-    #[test]
-    fn lex_in_keyword() {
-        check("in", TokenKind::InKw);
-    }
-
-    #[test]
-    fn lex_fields_keyword() {
-        check("fields", TokenKind::FieldsKw);
-    }
-
-    #[test]
-    fn lex_alphabetic_identifier() {
-        check("abcd", TokenKind::Ident);
-    }
-
-    #[test]
-    fn lex_alphanumeric_identifier() {
-        check("ab123cde456", TokenKind::Ident);
-    }
-
-    #[test]
-    fn lex_mixed_case_identifier() {
-        check("ABCdef", TokenKind::Ident);
-    }
-
-    #[test]
-    fn lex_single_char_identifier() {
-        check("x", TokenKind::Ident);
-    }
-
-    #[test]
-    fn lex_number() {
-        check("123456", TokenKind::Number);
-    }
-
-    #[test]
-    fn lex_false_boolean() {
-        check("false", TokenKind::Boolean);
-    }
-
-    #[test]
-    fn lex_true_boolean() {
-        check("true", TokenKind::Boolean);
-    }
-
-    #[test]
-    fn lex_dot() {
-        check(".", TokenKind::Dot);
-    }
-
-    #[test]
-    fn lex_plus() {
-        check("+", TokenKind::Plus);
-    }
-
-    #[test]
-    fn lex_minus() {
-        check("-", TokenKind::Minus);
-    }
-
-    #[test]
-    fn lex_star() {
-        check("*", TokenKind::Star);
-    }
-
-    #[test]
-    fn lex_slash() {
-        check("/", TokenKind::Slash);
-    }
-
-    #[test]
-    fn lex_equals() {
-        check("=", TokenKind::Equals);
+    fn lex_right_paren() {
+        check(")", TokenKind::RightParen);
     }
 
     #[test]
     fn lex_left_brace() {
-        check("{", TokenKind::LBrace);
+        check("{", TokenKind::LeftBrace);
     }
 
     #[test]
     fn lex_right_brace() {
-        check("}", TokenKind::RBrace);
-    }
-
-    #[test]
-    fn lex_left_bracket() {
-        check("[", TokenKind::LBracket);
-    }
-
-    #[test]
-    fn lex_right_bracket() {
-        check("]", TokenKind::RBracket);
-    }
-
-    #[test]
-    fn lex_left_parenthesis() {
-        check("(", TokenKind::LParen);
-    }
-
-    #[test]
-    fn lex_right_parenthesis() {
-        check(")", TokenKind::RParen);
-    }
-
-    #[test]
-    fn lex_greater_than() {
-        check(">", TokenKind::GreaterThan);
-    }
-
-    #[test]
-    fn lex_greater_than_or_equals() {
-        check(">=", TokenKind::GreaterThanOrEqual);
-    }
-
-    #[test]
-    fn lex_less_than() {
-        check("<", TokenKind::LessThan);
-    }
-
-    #[test]
-    fn lex_less_than_or_equals() {
-        check("<=", TokenKind::LessThanOrEqual);
-    }
-
-    #[test]
-    fn lex_and_keyword() {
-        check("and", TokenKind::AndKw);
-    }
-
-    #[test]
-    fn lex_or_keyword() {
-        check("or", TokenKind::OrKw);
-    }
-
-    #[test]
-    fn lex_not_keyword() {
-        check("not", TokenKind::NotKw);
-    }
-
-    #[test]
-    fn lex_comparison_equals() {
-        check("==", TokenKind::ComparisonEquals);
+        check("}", TokenKind::RightBrace);
     }
 
     #[test]
@@ -400,12 +253,225 @@ mod tests {
     }
 
     #[test]
-    fn lex_semi_colon() {
-        check(";", TokenKind::SemiColon);
+    fn lex_dot() {
+        check(".", TokenKind::Dot);
     }
 
     #[test]
-    fn lex_comment() {
-        check("# foo", TokenKind::Comment);
+    fn lex_minus() {
+        check("-", TokenKind::Minus);
+    }
+
+    #[test]
+    fn lex_plus() {
+        check("+", TokenKind::Plus);
+    }
+
+    #[test]
+    fn lex_semicolon() {
+        check(";", TokenKind::Semicolon);
+    }
+
+    #[test]
+    fn lex_colon() {
+        check(":", TokenKind::Colon);
+    }
+
+    #[test]
+    fn lex_slash() {
+        check("/", TokenKind::Slash);
+    }
+
+    #[test]
+    fn lex_star() {
+        check("*", TokenKind::Star);
+    }
+
+    #[test]
+    fn lex_bang() {
+        check("!", TokenKind::Bang);
+    }
+
+    #[test]
+    fn lex_bang_equal() {
+        check("!=", TokenKind::BangEqual);
+    }
+
+    #[test]
+    fn lex_equal() {
+        check("=", TokenKind::Equal);
+    }
+
+    #[test]
+    fn lex_equal_equal() {
+        check("==", TokenKind::EqualEqual);
+    }
+
+    #[test]
+    fn lex_greater() {
+        check(">", TokenKind::Greater);
+    }
+
+    #[test]
+    fn lex_greater_equal() {
+        check(">=", TokenKind::GreaterEqual);
+    }
+
+    #[test]
+    fn lex_less() {
+        check("<", TokenKind::Less);
+    }
+
+    #[test]
+    fn lex_less_equal() {
+        check("<=", TokenKind::LessEqual);
+    }
+
+    #[test]
+    fn lex_simple_ident() {
+        check("foo123", TokenKind::Ident);
+    }
+
+    #[test]
+    fn lex_weird_ident() {
+        check("A_91238i291_sdfa", TokenKind::Ident);
+    }
+
+    #[test]
+    fn lex_leading_underscore_ident() {
+        check("_foo", TokenKind::Ident);
+    }
+
+    #[test]
+    fn lex_simple_string() {
+        check(r#""foobar""#, TokenKind::String);
+    }
+
+    #[test]
+    fn lex_weird_string() {
+        check(
+            r#""jfsdkaljf asdk kfjsd akfjsda asd fiasd""#,
+            TokenKind::String,
+        );
+    }
+
+    #[test]
+    fn lex_integer() {
+        check("1", TokenKind::Int);
+    }
+
+    #[test]
+    fn lex_float() {
+        check("123.4", TokenKind::Float);
+    }
+
+    #[test]
+    fn lex_zero_leading_float() {
+        check("0.123", TokenKind::Float);
+    }
+
+    #[test]
+    fn lex_and() {
+        check("and", TokenKind::And);
+    }
+
+    #[test]
+    fn lex_class() {
+        check("class", TokenKind::Class);
+    }
+
+    #[test]
+    fn lex_else() {
+        check("else", TokenKind::Else);
+    }
+
+    #[test]
+    fn lex_false() {
+        check("false", TokenKind::False);
+    }
+
+    #[test]
+    fn lex_func() {
+        check("func", TokenKind::Func);
+    }
+
+    #[test]
+    fn lex_if() {
+        check("if", TokenKind::If);
+    }
+
+    #[test]
+    fn lex_null() {
+        check("null", TokenKind::Null);
+    }
+
+    #[test]
+    fn lex_or() {
+        check("or", TokenKind::Or);
+    }
+
+    #[test]
+    fn lex_print() {
+        check("print", TokenKind::Print);
+    }
+
+    #[test]
+    fn lex_ret() {
+        check("ret", TokenKind::Ret);
+    }
+
+    #[test]
+    fn lex_super() {
+        check("super", TokenKind::Super);
+    }
+
+    #[test]
+    fn lex_this() {
+        check("this", TokenKind::This);
+    }
+
+    #[test]
+    fn lex_true() {
+        check("true", TokenKind::True);
+    }
+
+    #[test]
+    fn lex_let() {
+        check("let", TokenKind::Let);
+    }
+
+    #[test]
+    fn lex_until() {
+        check("until", TokenKind::Until);
+    }
+
+    #[test]
+    fn lex_type_int() {
+        check("int", TokenKind::TypeInt);
+    }
+
+    #[test]
+    fn lex_type_float() {
+        check("float", TokenKind::TypeFloat);
+    }
+
+    #[test]
+    fn lex_type_bool() {
+        check("bool", TokenKind::TypeBool);
+    }
+
+    #[test]
+    fn lex_type_string() {
+        check("string", TokenKind::TypeString);
+    }
+
+    #[test]
+    fn lex_type_any() {
+        check("any", TokenKind::TypeAny);
+    }
+
+    #[test]
+    fn lex_arrow() {
+        check("->", TokenKind::Arrow);
     }
 }

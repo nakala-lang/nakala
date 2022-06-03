@@ -1,45 +1,57 @@
 use logos::Logos;
-use std::convert::TryFrom;
+use meta::{SourceId, Span, Spanned};
 use std::ops::Range as StdRange;
-use text_size::{TextRange, TextSize};
 
 mod token_kind;
 pub use token_kind::TokenKind;
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct Token {
+    pub kind: TokenKind,
+    pub text: String,
+    pub span: Span,
+}
+
+impl From<&Token> for Spanned<String> {
+    fn from(token: &Token) -> Self {
+        Spanned {
+            item: token.text.clone(),
+            span: token.span,
+        }
+    }
+}
+
 pub struct Lexer<'a> {
+    source_id: SourceId,
     inner: logos::Lexer<'a, TokenKind>,
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(input: &'a str) -> Self {
+    pub fn new(source_id: SourceId, input: &'a str) -> Self {
         Self {
+            source_id,
             inner: TokenKind::lexer(input),
         }
     }
 }
 
 impl<'a> Iterator for Lexer<'a> {
-    type Item = Token<'a>;
+    type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
         let kind = self.inner.next()?;
         let text = self.inner.slice();
 
-        let range = {
+        let span = {
             let StdRange { start, end } = self.inner.span();
-            let start = TextSize::try_from(start).unwrap();
-            let end = TextSize::try_from(end).unwrap();
 
-            TextRange::new(start, end)
+            Span::new(self.source_id, start, end)
         };
 
-        Some(Self::Item { kind, text, range })
+        Some(Self::Item {
+            kind,
+            text: text.into(),
+            span,
+        })
     }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Token<'a> {
-    pub kind: TokenKind,
-    pub text: &'a str,
-    pub range: TextRange,
 }

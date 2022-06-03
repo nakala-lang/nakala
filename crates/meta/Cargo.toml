@@ -1,10 +1,9 @@
 [package]
-name = "ast"
+name = "meta"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lexer = { path = "../lexer" }
-meta = { path = "../meta" }
+miette = "4.7.0"

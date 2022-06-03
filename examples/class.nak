@@ -1,0 +1,29 @@
+class Calculator {
+  add(a: int, b: int) -> int {
+    ret a + b;
+  }
+
+  add5(a: int) -> int {
+    ret a + 5;
+  }
+
+  callWith10(a: any) {
+    ret a(10);
+  }
+}
+
+func addTwoThings(a: int, b: int) -> int {
+  print "WRONG ONE!";
+  ret a + b;
+}
+
+let calculator = Calculator();
+print calculator;
+
+calculator.x = 10;
+print calculator.x;
+
+let result = calculator.add(1,2);
+print result;
+
+print calculator.callWith10(calculator.add5);

@@ -1,18 +1,29 @@
-use lexer::{Token, TokenKind};
-use text_size::TextRange;
+use lexer::{Lexer, Token, TokenKind};
+use meta::SourceId;
+use miette::{MietteSpanContents, NamedSource, SourceCode, SourceSpan};
 
-#[derive(Clone)]
-pub(crate) struct Source<'t, 'input> {
-    tokens: &'t [Token<'input>],
+#[derive(Debug, Clone)]
+pub struct Source {
+    pub id: SourceId,
+    raw: String,
+    name: String,
+    tokens: Vec<Token>,
     cursor: usize,
 }
 
-impl<'t, 'input> Source<'t, 'input> {
-    pub(crate) fn new(tokens: &'t [Token<'input>]) -> Self {
-        Self { tokens, cursor: 0 }
+impl Source {
+    pub fn new(id: SourceId, raw: String, name: String) -> Self {
+        let tokens: Vec<_> = Lexer::new(id, &raw).collect();
+        Self {
+            id,
+            raw,
+            name,
+            tokens,
+            cursor: 0,
+        }
     }
 
-    pub(crate) fn next_token(&mut self) -> Option<&'t Token<'input>> {
+    pub fn next_token(&mut self) -> Option<&Token> {
         self.eat_trivia();
 
         let token = self.tokens.get(self.cursor)?;
@@ -21,18 +32,18 @@ impl<'t, 'input> Source<'t, 'input> {
         Some(token)
     }
 
-    pub(crate) fn peek_kind(&mut self) -> Option<TokenKind> {
+    pub fn peek_kind(&mut self) -> Option<TokenKind> {
         self.eat_trivia();
         self.peek_kind_raw()
     }
 
-    pub(crate) fn peek_token(&mut self) -> Option<&Token> {
-        self.eat_trivia();
-        self.peek_token_raw()
+    pub fn eof(&self) -> SourceSpan {
+        (self.raw.len() - 1, 0).into()
     }
 
-    pub(crate) fn last_token_range(&self) -> Option<TextRange> {
-        self.tokens.last().map(|Token { range, .. }| *range)
+    pub fn at_end(&mut self) -> bool {
+        self.eat_trivia();
+        self.peek_token_raw().is_none()
     }
 
     fn eat_trivia(&mut self) {
@@ -51,5 +62,35 @@ impl<'t, 'input> Source<'t, 'input> {
 
     fn peek_token_raw(&self) -> Option<&Token> {
         self.tokens.get(self.cursor)
+    }
+}
+
+impl SourceCode for Source {
+    fn read_span<'a>(
+        &'a self,
+        span: &miette::SourceSpan,
+        context_lines_before: usize,
+        context_lines_after: usize,
+    ) -> Result<Box<dyn miette::SpanContents<'a> + 'a>, miette::MietteError> {
+        let contents = self
+            .raw
+            .read_span(span, context_lines_before, context_lines_after)?;
+        Ok(Box::new(MietteSpanContents::new_named(
+            self.name.clone(),
+            contents.data(),
+            *contents.span(),
+            contents.line(),
+            contents.column(),
+            contents.line_count(),
+        )))
+    }
+}
+
+impl From<&Source> for NamedSource {
+    fn from(source: &Source) -> Self {
+        let name = source.name.clone();
+        let input = source.raw.clone();
+
+        NamedSource::new(name, input)
     }
 }

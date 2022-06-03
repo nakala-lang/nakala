@@ -1,19 +1,12 @@
 [package]
 name = "nakala"
-version = "0.2.0"
-authors = ["Reagan McFarland <reagan.mcfarland1059@gmail.com>"]
-edition = "2018"
+version = "0.1.0"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-parser = {path = "../parser"}
-ast = {path = "../ast"}
-hir = {path = "../hir"}
-engine = {path = "../engine"}
-clap = "2.33.3"
-reedline = { git = "https://github.com/jntrnr/reedline.git" }
-nu-ansi-term = "0.34"
-
-[dev-dependencies]
-assert_cmd = "1.0.3"
+parser = { path = "../parser" } 
+interpreter = { path = "../interpreter" } 
+miette = { version = "4.7.0", features = ["fancy"] }
+reedline = "0.5.0"
