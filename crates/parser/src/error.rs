@@ -1,7 +1,7 @@
 use ast::ty::Type;
 use lexer::TokenKind;
 use meta::SourceId;
-use miette::{Diagnostic, NamedSource, SourceSpan};
+use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
 
 #[derive(Error, Diagnostic, Debug)]

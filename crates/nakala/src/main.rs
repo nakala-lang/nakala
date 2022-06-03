@@ -7,7 +7,7 @@ use std::{fs::read_to_string, path::Path};
 fn main() -> Result<()> {
     let args = parse_arguments();
 
-    if args.input_files.len() == 0 {
+    if args.input_files.is_empty() {
         repl(args)
     } else {
         if args.input_files.len() > 1 {

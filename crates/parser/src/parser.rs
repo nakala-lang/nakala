@@ -25,7 +25,7 @@ impl Parser {
     pub fn new(source: Source, symtab: Option<SymbolTable>) -> Self {
         Self {
             source,
-            symtab: symtab.unwrap_or(SymbolTable::new()),
+            symtab: symtab.unwrap_or_default(),
         }
     }
 
@@ -44,10 +44,10 @@ impl Parser {
 
         match &callee.expr {
             Expr::Variable(name) => {
-                if let Some(entry) = self.symtab.lookup(&name) {
-                    if matches!(entry.ty, Type::Any) {
-                        return Ok(());
-                    } else if matches!(entry.sym, Sym::Function { .. } | Sym::Class { .. }) {
+                if let Some(entry) = self.symtab.lookup(name) {
+                    if matches!(entry.ty, Type::Any)
+                        || matches!(entry.sym, Sym::Function { .. } | Sym::Class { .. })
+                    {
                         return Ok(());
                     }
                 }
@@ -58,7 +58,7 @@ impl Parser {
             // TODO nested get exprs
             Expr::Get { object, name } => {
                 if let Type::Instance(class_name) = &object.ty {
-                    if let Some(entry) = self.symtab.lookup(&class_name) {
+                    if let Some(entry) = self.symtab.lookup(class_name) {
                         if let Sym::Class { methods } = &entry.sym {
                             if methods.contains_key(&name.item) {
                                 return Ok(());
@@ -546,7 +546,7 @@ impl Parser {
                                 expr.span.into(),
                                 entry.ty.clone(),
                                 rhs.span.into(),
-                                rhs.ty.clone(),
+                                rhs.ty,
                             ))
                         }
                     } else {
@@ -736,7 +736,7 @@ impl Parser {
                     self.source.id,
                     op.span.into(),
                     rhs.span.into(),
-                    rhs.ty.clone(),
+                    rhs.ty,
                 ));
             }
 
@@ -745,7 +745,7 @@ impl Parser {
                     self.source.id,
                     op.span.into(),
                     rhs.span.into(),
-                    rhs.ty.clone(),
+                    rhs.ty,
                 ));
             }
 
@@ -838,7 +838,7 @@ impl Parser {
         }
 
         Ok(Expression {
-            span: Span::combine(&[callee.span.clone(), paren]),
+            span: Span::combine(&[callee.span, paren]),
             ty,
             expr: Expr::Call {
                 callee: Box::new(callee),
@@ -863,10 +863,7 @@ impl Parser {
         }
 
         Ok(Binding {
-            name: Spanned {
-                item: name.clone(),
-                span,
-            },
+            name: Spanned { item: name, span },
             ty,
         })
     }

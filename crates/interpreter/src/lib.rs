@@ -4,16 +4,13 @@ mod expr;
 mod instance;
 pub mod val;
 
-use std::collections::HashMap;
-
 use crate::env::{Environment, ScopeId};
 use crate::error::RuntimeError;
 use crate::expr::eval_expr;
-use ast::{expr::*, op::*, stmt::*, ty::*};
+use ast::stmt::*;
 use meta::trace;
-use parser::type_check::type_compatible;
 use parser::Parse;
-use val::{Val, Value};
+use val::Value;
 
 pub fn interpret(parse: Parse, env: Option<&mut Environment>) -> miette::Result<()> {
     let mut new_env = Environment::new();
@@ -146,10 +143,8 @@ fn eval_if_stmt(
 
         if cond.as_bool()? {
             eval_block(*body, env, scope)?;
-        } else {
-            if let Some(else_branch) = else_branch {
-                eval_stmt(*else_branch, env, new_scope)?;
-            }
+        } else if let Some(else_branch) = else_branch {
+            eval_stmt(*else_branch, env, new_scope)?;
         }
 
         env.delete_scope(new_scope);

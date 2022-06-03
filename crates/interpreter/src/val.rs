@@ -1,4 +1,4 @@
-use std::{collections::HashMap, iter::from_fn};
+use std::collections::HashMap;
 
 use ast::{
     expr::{Expr, Expression},
@@ -45,11 +45,11 @@ impl std::fmt::Display for Val {
             Self::Function(func) => {
                 format!("{} (closure {})", func.func.name.item.clone(), func.closure)
             }
-            Self::Class(class) => format!("{}", class.class.name.item),
+            Self::Class(class) => class.class.name.item.to_string(),
             Self::Instance { id, name } => format!("{} instance (id {})", name.clone(), id),
         };
 
-        f.write_str(format!("{}", msg).as_str())
+        f.write_str(&msg)
     }
 }
 
@@ -294,7 +294,7 @@ impl Value {
         }
     }
 
-    pub fn and(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+    pub fn and(&self, _op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
         let span = Span::combine(&[self.span, rhs.span]);
 
         let lhs = self.as_bool()?;
@@ -307,7 +307,7 @@ impl Value {
         })
     }
 
-    pub fn or(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+    pub fn or(&self, _op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
         let span = Span::combine(&[self.span, rhs.span]);
 
         let lhs = self.as_bool()?;

@@ -4,7 +4,7 @@ use crate::{
     eval_block,
     val::{Function, Val, Value},
 };
-use ast::{expr::*, op::Op, ty::Type};
+use ast::{expr::*, op::Op};
 use meta::{Span, Spanned};
 
 pub(crate) fn eval_expr(
@@ -86,7 +86,7 @@ fn eval_call_expr(
 
 fn eval_func_call(
     function: Function,
-    paren: Span,
+    _paren: Span,
     args: Vec<Expression>,
     env: &mut Environment,
     scope: ScopeId,

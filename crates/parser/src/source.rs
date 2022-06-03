@@ -86,10 +86,10 @@ impl SourceCode for Source {
     }
 }
 
-impl Into<NamedSource> for &Source {
-    fn into(self) -> NamedSource {
-        let name = self.name.clone();
-        let input = self.raw.clone().to_string();
+impl From<&Source> for NamedSource {
+    fn from(source: &Source) -> Self {
+        let name = source.name.clone();
+        let input = source.raw.clone();
 
         NamedSource::new(name, input)
     }

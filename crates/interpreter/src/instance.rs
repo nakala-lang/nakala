@@ -24,9 +24,9 @@ impl Instance {
         Self { id, class, fields }
     }
 
-    pub fn get_property(&self, name: &String) -> Result<Value, RuntimeError> {
+    pub fn get_property(&self, name: &str) -> Result<Value, RuntimeError> {
         if let Some(entry) = self.fields.get(name) {
-            return Ok(entry.clone());
+            Ok(entry.clone())
         } else {
             todo!("undefined property on instance");
         }

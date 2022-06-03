@@ -12,11 +12,11 @@ pub struct Token {
     pub span: Span,
 }
 
-impl Into<Spanned<String>> for &Token {
-    fn into(self) -> Spanned<String> {
+impl From<&Token> for Spanned<String> {
+    fn from(token: &Token) -> Self {
         Spanned {
-            item: self.text.clone(),
-            span: self.span,
+            item: token.text.clone(),
+            span: token.span,
         }
     }
 }

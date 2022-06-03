@@ -15,7 +15,7 @@ pub enum Sym {
     Class { methods: HashMap<String, Symbol> },
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct SymbolTable {
     inner: Vec<HashMap<String, Symbol>>,
 }
@@ -38,7 +38,7 @@ impl SymbolTable {
             other
                 .inner
                 .into_iter()
-                .nth(0)
+                .next()
                 .expect("symtabs must have atleast one level"),
         );
     }
@@ -61,7 +61,7 @@ impl SymbolTable {
         }
     }
 
-    pub fn lookup(&self, name: &String) -> Option<&Symbol> {
+    pub fn lookup(&self, name: &str) -> Option<&Symbol> {
         for map in self.inner.iter().rev() {
             if let Some(entry) = map.get(name) {
                 return Some(entry);
@@ -71,7 +71,7 @@ impl SymbolTable {
         None
     }
 
-    pub fn lookup_mut(&mut self, name: &String) -> Option<&mut Symbol> {
+    pub fn lookup_mut(&mut self, name: &str) -> Option<&mut Symbol> {
         for map in self.inner.iter_mut().rev() {
             if let Some(entry) = map.get_mut(name) {
                 return Some(entry);

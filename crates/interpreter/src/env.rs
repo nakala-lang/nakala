@@ -1,4 +1,4 @@
-use ast::{stmt::Class, ty::Type};
+use ast::ty::Type;
 use meta::{trace, Span, Spanned};
 
 use crate::{
@@ -6,11 +6,11 @@ use crate::{
     instance::{Instance, InstanceId},
     val::{self, Val, Value},
 };
-use std::{collections::HashMap, fmt::Debug};
+use std::collections::{hash_map::Entry, HashMap};
 
 pub type ScopeId = usize;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Default)]
 pub struct Environment {
     pub scopes: Vec<Scope>,
     next_scope_id: ScopeId,
@@ -30,7 +30,7 @@ impl Environment {
 
     pub fn new_instance(&mut self, class: val::Class, span: Span) -> Value {
         let id = self.next_instance_id;
-        self.next_instance_id = self.next_instance_id + 1;
+        self.next_instance_id += 1;
 
         let name = class.class.name.item.clone();
 
@@ -60,7 +60,7 @@ impl Environment {
 
     fn _begin_scope(&mut self, closure: Option<ScopeId>) -> ScopeId {
         let id = self.next_scope_id;
-        self.next_scope_id = self.next_scope_id + 1;
+        self.next_scope_id += 1;
 
         let enclosing_id = closure.unwrap_or_else(|| {
             id.checked_sub(1)
@@ -207,23 +207,23 @@ impl Scope {
     }
 
     pub fn assign(&mut self, name: Spanned<String>, val: Value) -> Result<(), RuntimeError> {
-        if self.values.contains_key(&name.item) {
-            self.values.insert(name.item, val);
-            return Ok(());
+        if let Entry::Occupied(mut e) = self.values.entry(name.item) {
+            e.insert(val);
+            Ok(())
+        } else {
+            Err(RuntimeError::UndefinedVariable(
+                name.span.source_id,
+                name.span.into(),
+            ))
         }
-
-        Err(RuntimeError::UndefinedVariable(
-            name.span.source_id,
-            name.span.into(),
-        ))
     }
 
     pub fn define(&mut self, name: String, val: Value) -> Result<(), RuntimeError> {
-        if self.values.contains_key(&name) {
-            todo!("can't define var that already exists");
-        } else {
-            self.values.insert(name, val);
+        if let Entry::Vacant(e) = self.values.entry(name) {
+            e.insert(val);
             Ok(())
+        } else {
+            todo!("can't define var that already exists");
         }
     }
 }

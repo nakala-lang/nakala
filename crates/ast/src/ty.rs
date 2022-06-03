@@ -31,6 +31,6 @@ impl std::fmt::Display for Type {
             Self::Any => String::from("any"),
         };
 
-        f.write_str(format!("{}", msg).as_str())
+        f.write_str(&msg)
     }
 }
