@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::error::RuntimeError;
 
-use super::{Value, class::Class};
+use super::{class::Class, Value};
 
 pub type InstanceId = usize;
 

@@ -1,7 +1,7 @@
 use crate::{
     env::{Environment, ScopeId},
     error::RuntimeError,
-    value::{Val, Value, Callable},
+    value::{Callable, Val, Value},
 };
 use ast::{expr::*, op::Op};
 use meta::{Span, Spanned};
@@ -66,12 +66,7 @@ fn eval_call_expr(
     env: &mut Environment,
     scope: ScopeId,
 ) -> Result<Value, RuntimeError> {
-    if let Expr::Call {
-        callee,
-        args,
-        ..
-    } = expr.expr
-    {
+    if let Expr::Call { callee, args, .. } = expr.expr {
         let val = eval_expr(*callee, env, scope)?;
 
         match val.val {

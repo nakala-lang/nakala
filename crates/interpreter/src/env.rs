@@ -1,7 +1,10 @@
 use ast::{stmt::Function, ty::Type};
 use meta::{trace, Span, Spanned};
 
-use crate::{error::RuntimeError, value::{self, Instance, InstanceId, Val, Value, Builtin}};
+use crate::{
+    error::RuntimeError,
+    value::{self, Builtin, Instance, InstanceId, Val, Value},
+};
 use std::collections::{hash_map::Entry, HashMap};
 
 pub type ScopeId = usize;
@@ -30,11 +33,15 @@ impl Environment {
 
     fn define_builtins(&mut self, builtins: Vec<Builtin>) -> Result<(), RuntimeError> {
         for builtin in builtins {
-            self.define(0, builtin.name.clone(), Value {
-                val: Val::Builtin(builtin),
-                span: Span::garbage(),
-                ty: Type::Any
-            })?;
+            self.define(
+                0,
+                builtin.name.clone(),
+                Value {
+                    val: Val::Builtin(builtin),
+                    span: Span::garbage(),
+                    ty: Type::Any,
+                },
+            )?;
         }
 
         Ok(())

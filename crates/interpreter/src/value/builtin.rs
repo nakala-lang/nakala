@@ -1,6 +1,13 @@
-use ast::{expr::Expression, ty::{Type, type_compatible}};
+use ast::{
+    expr::Expression,
+    ty::{type_compatible, Type},
+};
 
-use crate::{env::{Environment, ScopeId}, error::RuntimeError, expr::eval_expr};
+use crate::{
+    env::{Environment, ScopeId},
+    error::RuntimeError,
+    expr::eval_expr,
+};
 
 use super::{Callable, Value};
 
@@ -8,7 +15,7 @@ use super::{Callable, Value};
 pub struct Builtin {
     pub name: String,
     pub params: Vec<Type>,
-    pub handler: fn(Vec<Value>) -> Value
+    pub handler: fn(Vec<Value>) -> Value,
 }
 
 impl Clone for Builtin {
@@ -16,7 +23,7 @@ impl Clone for Builtin {
         Self {
             name: self.name.clone(),
             params: self.params.clone(),
-            handler: self.handler
+            handler: self.handler,
         }
     }
 }
@@ -38,7 +45,12 @@ impl Callable for Builtin {
         self.params.len()
     }
 
-    fn call(&self, args: Vec<Expression>, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError> {
+    fn call(
+        &self,
+        args: Vec<Expression>,
+        env: &mut Environment,
+        scope: ScopeId,
+    ) -> Result<Value, RuntimeError> {
         if self.arity() != args.len() {
             todo!("builtin parity mismatch");
         }

@@ -10,7 +10,7 @@ use ast::{
     expr::{Expr, Expression},
     op::{Op, Operator},
     stmt::{Binding, Class, Function, Statement, Stmt},
-    ty::{Type, TypeExpression, result_type, type_compatible},
+    ty::{result_type, type_compatible, Type, TypeExpression},
 };
 use lexer::{Token, TokenKind};
 use meta::{trace, Span, Spanned};
@@ -22,10 +22,7 @@ pub struct Parser {
 
 impl Parser {
     pub fn new(source: Source, symtab: SymbolTable) -> Self {
-        Self {
-            source,
-            symtab
-        }
+        Self { source, symtab }
     }
 
     pub fn parse(mut self) -> miette::Result<Parse> {

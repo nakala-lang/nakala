@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use super::{Function, InstanceId, class::Class, builtin::Builtin};
+use super::{builtin::Builtin, class::Class, Function, InstanceId};
 
 #[derive(Debug, Clone)]
 pub enum Val {

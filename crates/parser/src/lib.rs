@@ -6,7 +6,7 @@ mod symtab;
 use crate::parser::Parser;
 use crate::source::Source;
 use ast::stmt::Statement;
-pub use symtab::{SymbolTable, Symbol, Sym};
+pub use symtab::{Sym, Symbol, SymbolTable};
 
 #[derive(Debug, PartialEq)]
 pub struct Parse {
@@ -30,7 +30,10 @@ mod tests {
     }
 
     fn check(actual: &str, expected: Expect) {
-        let result = format!("{:#?}", parse(actual.into(), SymbolTable::new(vec![])).unwrap());
+        let result = format!(
+            "{:#?}",
+            parse(actual.into(), SymbolTable::new(vec![])).unwrap()
+        );
         expected.assert_eq(result.as_str())
     }
 

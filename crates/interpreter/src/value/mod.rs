@@ -1,24 +1,37 @@
-mod val;
+mod builtin;
 mod class;
 mod function;
 mod instance;
-mod builtin;
+mod val;
 
 use std::{cmp::Ordering, collections::HashMap};
 
-use ast::{expr::{Expr, Expression}, op::Operator, stmt::{Statement, Stmt}, ty::Type};
+use ast::{
+    expr::{Expr, Expression},
+    op::Operator,
+    stmt::{Statement, Stmt},
+    ty::Type,
+};
+pub use builtin::*;
+pub use class::*;
+pub use function::*;
+pub use instance::*;
 use meta::Span;
 pub use val::*;
-pub use function::*;
-pub use class::*;
-pub use instance::*;
-pub use builtin::*;
 
-use crate::{env::{Environment, ScopeId}, error::RuntimeError};
+use crate::{
+    env::{Environment, ScopeId},
+    error::RuntimeError,
+};
 
 pub trait Callable {
     fn arity(&self) -> usize;
-    fn call(&self, args: Vec<Expression>, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError>;
+    fn call(
+        &self,
+        args: Vec<Expression>,
+        env: &mut Environment,
+        scope: ScopeId,
+    ) -> Result<Value, RuntimeError>;
 }
 
 #[derive(Debug, Clone, PartialEq)]

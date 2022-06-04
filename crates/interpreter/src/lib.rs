@@ -10,7 +10,7 @@ use ast::stmt::*;
 use meta::trace;
 use parser::Parse;
 
-pub use crate::value::{Value, Builtin};
+pub use crate::value::{Builtin, Value};
 
 pub fn interpret(parse: Parse, env: &mut Environment) -> miette::Result<()> {
     for _stmt in parse.stmts {

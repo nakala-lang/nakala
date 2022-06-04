@@ -1,6 +1,9 @@
 use meta::Span;
 
-use crate::{expr::Expression, op::{Operator, Op}};
+use crate::{
+    expr::Expression,
+    op::{Op, Operator},
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type {

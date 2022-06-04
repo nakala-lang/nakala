@@ -1,7 +1,7 @@
-use interpreter::{Builtin, Value, env::Environment, interpret};
-use miette::Result;
-use parser::{Sym, Symbol, SymbolTable, parse, source::Source};
 use ast::ty::Type;
+use interpreter::{env::Environment, interpret, Builtin, Value};
+use miette::Result;
+use parser::{parse, source::Source, Sym, Symbol, SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};
 use std::{fs::read_to_string, path::Path};
 
@@ -75,25 +75,24 @@ fn get_builtins() -> (Vec<Builtin>, Vec<Symbol>) {
 
     // print
     fn print(vals: Vec<Value>) -> Value {
-        println!("{}", vals.first().expect("parity mismatch didn't catch builtin"));
+        println!(
+            "{}",
+            vals.first().expect("parity mismatch didn't catch builtin")
+        );
 
         Value::null()
     }
     builtins.push(Builtin {
         name: String::from("print"),
         params: vec![Type::Any],
-        handler: print
+        handler: print,
     });
     builtin_symbols.push(Symbol {
         name: String::from("print"),
-        sym: Sym::Function {
-            arity: 1
-        },
-        ty: Type::Null
+        sym: Sym::Function { arity: 1 },
+        ty: Type::Null,
     });
 
-    
-    
     (builtins, builtin_symbols)
 }
 
