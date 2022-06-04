@@ -14,8 +14,8 @@ pub use instance::*;
 
 use crate::{env::{Environment, ScopeId}, error::RuntimeError};
 
-trait Callable {
-    fn call(&self, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError>;
+pub trait Callable {
+    fn call(&self, args: Vec<Expression>, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError>;
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -1,4 +1,8 @@
-use crate::{env::{Environment, ScopeId}, error::RuntimeError, eval_block, value::{Function, Val, Value}};
+use crate::{
+    env::{Environment, ScopeId},
+    error::RuntimeError,
+    value::{Val, Value, Callable},
+};
 use ast::{expr::*, op::Op};
 use meta::{Span, Spanned};
 
@@ -64,68 +68,19 @@ fn eval_call_expr(
 ) -> Result<Value, RuntimeError> {
     if let Expr::Call {
         callee,
-        paren,
         args,
+        ..
     } = expr.expr
     {
         let val = eval_expr(*callee, env, scope)?;
 
         match val.val {
-            Val::Function(func) => eval_func_call(func, paren, args, env, scope),
-            Val::Class { .. } => eval_class_instantiation(val, paren, args, env, scope),
+            Val::Function(func) => func.call(args, env, scope),
+            Val::Class(class) => class.call(args, env, scope),
             _ => panic!("ICE: can only call functions"),
         }
     } else {
         panic!("ICE: eval_call expr should only be called with Expr::Call");
-    }
-}
-
-fn eval_func_call(
-    function: Function,
-    _paren: Span,
-    args: Vec<Expression>,
-    env: &mut Environment,
-    scope: ScopeId,
-) -> Result<Value, RuntimeError> {
-    let params = function.func.params;
-    if params.len() != args.len() {
-        todo!("parity mismatch");
-    }
-
-    let new_scope = env.begin_scope(function.closure);
-
-    for (param, arg) in params.into_iter().zip(args.into_iter()) {
-        let val = eval_expr(arg, env, scope)?;
-        env.define(new_scope, param.name.item.clone(), val)?;
-    }
-
-    match eval_block(*function.func.body, env, new_scope) {
-        Ok(()) => Ok(Value::null()),
-        Err(RuntimeError::EarlyReturn(val)) => Ok(val),
-
-        Err(other) => Err(other),
-    }
-}
-
-fn eval_class_instantiation(
-    val: Value,
-    paren: Span,
-    args: Vec<Expression>,
-    env: &mut Environment,
-    scope: ScopeId,
-) -> Result<Value, RuntimeError> {
-    if let Val::Class(class) = val.val {
-        let val = env.new_instance(class, val.span);
-        let instance = env.get_instance(val.as_instance()?)?;
-        if let Ok(mut constructor) = instance.get_property("constructor") {
-            // bind this and execute constructor
-            constructor.bind_this(env, val.clone())?;
-            eval_func_call(constructor.as_function()?, paren, args, env, scope)?;
-        };
-
-        Ok(val)
-    } else {
-        panic!("ICE: eval_class_instantiation should only be called with Val::Class");
     }
 }
 
