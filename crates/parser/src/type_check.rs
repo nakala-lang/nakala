@@ -24,6 +24,8 @@ pub fn result_type(lhs: &Expression, op: &Operator, rhs: &Expression) -> Option<
             (Type::Float, Type::Int) => Some(Type::Float),
             (Type::Float, Type::Float) => Some(Type::Float),
             (Type::String, Type::String) => Some(Type::String),
+            (Type::String, Type::Int) => Some(Type::String),
+            (Type::Int, Type::String) => Some(Type::String),
 
             (Type::Null, _) => None,
             (_, Type::Null) => None,

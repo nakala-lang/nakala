@@ -45,8 +45,8 @@ fn eval_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(
         }
         Stmt::Function(..) => eval_func_decl(stmt, env, scope)?,
         Stmt::Class(..) => eval_class_decl(stmt, env, scope)?,
-        Stmt::If { .. } => eval_if_stmt(stmt, env, scope)?,
-        _ => todo!("{:#?} nyi", stmt),
+        Stmt::If { .. } => eval_if(stmt, env, scope)?,
+        Stmt::Until { .. } => eval_until(stmt, env, scope)?,
     }
 
     Ok(())
@@ -131,11 +131,7 @@ fn eval_class_decl(
     }
 }
 
-fn eval_if_stmt(
-    stmt: Statement,
-    env: &mut Environment,
-    scope: ScopeId,
-) -> Result<(), RuntimeError> {
+fn eval_if(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
     if let Stmt::If {
         cond,
         body,
@@ -156,6 +152,26 @@ fn eval_if_stmt(
 
         Ok(())
     } else {
-        panic!("ICE: eval_if_stmt should only be called with Stmt::If");
+        panic!("ICE: eval_if should only be called with Stmt::If");
+    }
+}
+
+fn eval_until(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
+    if let Stmt::Until { cond, body } = stmt.stmt {
+        let new_scope = env.begin_scope();
+        loop {
+            let cond = eval_expr(cond.clone(), env, scope)?;
+            if cond.as_bool()? {
+                break;
+            } else {
+                eval_stmt(*body.clone(), env, new_scope)?;
+            }
+        }
+
+        env.delete_scope(new_scope);
+
+        Ok(())
+    } else {
+        panic!("ICE: eval_until should only be called with Stmt::Until");
     }
 }

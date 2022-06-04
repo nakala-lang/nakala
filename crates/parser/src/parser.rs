@@ -406,9 +406,7 @@ impl Parser {
         trace!("parse_until_stmt");
         let until_token_span = self.expect(TokenKind::Until)?.span;
 
-        self.expect(TokenKind::LeftParen)?;
         let cond = self.expr()?;
-        self.expect(TokenKind::RightParen)?;
 
         let body = self.stmt()?;
 
