@@ -1,8 +1,8 @@
-use crate::{
-    error::RuntimeError,
-    val::{Class, Value},
-};
 use std::collections::HashMap;
+
+use crate::error::RuntimeError;
+
+use super::{Value, class::Class};
 
 pub type InstanceId = usize;
 

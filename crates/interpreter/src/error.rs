@@ -3,7 +3,7 @@ use meta::SourceId;
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
 
-use crate::val::Value;
+use crate::value::Value;
 
 #[derive(Error, Diagnostic, Debug)]
 pub enum RuntimeError {

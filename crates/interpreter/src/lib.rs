@@ -1,8 +1,7 @@
 pub mod env;
 pub mod error;
 mod expr;
-mod instance;
-pub mod val;
+mod value;
 
 use crate::env::{Environment, ScopeId};
 use crate::error::RuntimeError;
@@ -10,7 +9,7 @@ use crate::expr::eval_expr;
 use ast::stmt::*;
 use meta::trace;
 use parser::Parse;
-use val::Value;
+use value::Value;
 
 pub fn interpret(parse: Parse, env: Option<&mut Environment>) -> miette::Result<()> {
     let mut new_env = Environment::new();

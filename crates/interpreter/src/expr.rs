@@ -1,9 +1,4 @@
-use crate::{
-    env::{Environment, ScopeId},
-    error::RuntimeError,
-    eval_block,
-    val::{Function, Val, Value},
-};
+use crate::{env::{Environment, ScopeId}, error::RuntimeError, eval_block, value::{Function, Val, Value}};
 use ast::{expr::*, op::Op};
 use meta::{Span, Spanned};
 
