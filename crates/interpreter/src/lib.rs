@@ -140,10 +140,10 @@ fn eval_if(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(),
     {
         let cond = eval_expr(cond, env, scope)?;
 
-        let new_scope = env.begin_scope();
+        let new_scope = env.begin_scope_with_closure(scope);
 
         if cond.as_bool()? {
-            eval_block(*body, env, scope)?;
+            eval_block(*body, env, new_scope)?;
         } else if let Some(else_branch) = else_branch {
             eval_stmt(*else_branch, env, new_scope)?;
         }
@@ -158,17 +158,17 @@ fn eval_if(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(),
 
 fn eval_until(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
     if let Stmt::Until { cond, body } = stmt.stmt {
-        let new_scope = env.begin_scope();
         loop {
-            let cond = eval_expr(cond.clone(), env, scope)?;
+            let new_scope = env.begin_scope_with_closure(scope);
+            let cond = eval_expr(cond.clone(), env, new_scope)?;
             if cond.as_bool()? {
                 break;
             } else {
                 eval_stmt(*body.clone(), env, new_scope)?;
             }
-        }
 
-        env.delete_scope(new_scope);
+            env.delete_scope(new_scope);
+        }
 
         Ok(())
     } else {

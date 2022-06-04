@@ -61,6 +61,17 @@ impl PartialOrd for Val {
                 Val::Instance { .. } => Some(Ordering::Less),
                 Val::Null => Some(Ordering::Less),
             },
+            // float,
+            (Val::String(lhs), rhs) => match rhs {
+                Val::Bool(..) => Some(Ordering::Greater),
+                Val::Int(..) => Some(Ordering::Greater),
+                Val::Float(..) => Some(Ordering::Greater),
+                Val::String(rhs) => lhs.partial_cmp(rhs),
+                Val::Function(..) => Some(Ordering::Less),
+                Val::Class(..) => Some(Ordering::Less),
+                Val::Instance { .. } => Some(Ordering::Less),
+                Val::Null => Some(Ordering::Less),
+            },
             // others
             (Val::Instance { id: lhs, .. }, rhs) => match rhs {
                 Val::Bool(..) => Some(Ordering::Greater),
