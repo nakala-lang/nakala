@@ -32,6 +32,7 @@ Nakala only has two core values:
 - [ ] Standard library
 - [ ] Playground website
 - [ ] Editor tooling
+  - [x] [vim](https://github.com/nakala-lang/nakala.vim)
 - [ ] Compiler (maybe WASM?)
 - [ ] Self hosted
 
