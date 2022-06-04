@@ -77,7 +77,8 @@ fn eval_call_expr(
         match val.val {
             Val::Function(func) => func.call(args, env, scope),
             Val::Class(class) => class.call(args, env, scope),
-            _ => panic!("ICE: can only call functions"),
+            Val::Builtin(builtin) => builtin.call(args, env, scope),
+            _ => panic!("ICE: can only call t"),
         }
     } else {
         panic!("ICE: eval_call expr should only be called with Expr::Call");

@@ -81,8 +81,6 @@ pub enum TokenKind {
     Null,
     #[token("or")]
     Or,
-    #[token("print")]
-    Print,
     #[token("ret")]
     Ret,
     #[token("super")]
@@ -164,7 +162,6 @@ impl fmt::Display for TokenKind {
             Self::If => "if",
             Self::Null => "null",
             Self::Or => "or",
-            Self::Print => "print",
             Self::Ret => "ret",
             Self::Super => "super",
             Self::This => "this",
@@ -408,11 +405,6 @@ mod tests {
     #[test]
     fn lex_or() {
         check("or", TokenKind::Or);
-    }
-
-    #[test]
-    fn lex_print() {
-        check("print", TokenKind::Print);
     }
 
     #[test]

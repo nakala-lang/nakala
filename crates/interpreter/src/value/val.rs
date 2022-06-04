@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use super::{Function, InstanceId, class::Class};
+use super::{Function, InstanceId, class::Class, builtin::Builtin};
 
 #[derive(Debug, Clone)]
 pub enum Val {
@@ -9,6 +9,7 @@ pub enum Val {
     Float(f64),
     String(String),
     Function(Function),
+    Builtin(Builtin),
     Class(Class),
     Instance { id: InstanceId, name: String },
     Null,
@@ -23,6 +24,7 @@ impl PartialOrd for Val {
                 Val::Float(..) => Some(Ordering::Less),
                 Val::String(..) => Some(Ordering::Less),
                 Val::Function(..) => Some(Ordering::Less),
+                Val::Builtin(..) => Some(Ordering::Less),
                 Val::Class(..) => Some(Ordering::Less),
                 Val::Instance { .. } => Some(Ordering::Less),
                 Val::Null => Some(Ordering::Less),
@@ -33,6 +35,7 @@ impl PartialOrd for Val {
                 Val::Float(..) => Some(Ordering::Less),
                 Val::String(..) => Some(Ordering::Less),
                 Val::Function(..) => Some(Ordering::Less),
+                Val::Builtin(..) => Some(Ordering::Less),
                 Val::Class(..) => Some(Ordering::Less),
                 Val::Instance { .. } => Some(Ordering::Less),
                 Val::Null => Some(Ordering::Less),
@@ -44,6 +47,7 @@ impl PartialOrd for Val {
                 Val::Float(..) => Some(Ordering::Greater),
                 Val::String(rhs) => lhs.partial_cmp(rhs),
                 Val::Function(..) => Some(Ordering::Less),
+                Val::Builtin(..) => Some(Ordering::Less),
                 Val::Class(..) => Some(Ordering::Less),
                 Val::Instance { .. } => Some(Ordering::Less),
                 Val::Null => Some(Ordering::Less),
@@ -55,6 +59,7 @@ impl PartialOrd for Val {
                 Val::Float(..) => Some(Ordering::Greater),
                 Val::String(..) => Some(Ordering::Greater),
                 Val::Function(..) => Some(Ordering::Greater),
+                Val::Builtin(..) => Some(Ordering::Less),
                 Val::Class(..) => Some(Ordering::Greater),
                 Val::Instance { id: rhs, .. } => lhs.partial_cmp(rhs),
                 Val::Null => Some(Ordering::Less),
@@ -65,6 +70,7 @@ impl PartialOrd for Val {
                 Val::Float(..) => Some(Ordering::Greater),
                 Val::String(..) => Some(Ordering::Greater),
                 Val::Function(..) => Some(Ordering::Greater),
+                Val::Builtin(..) => Some(Ordering::Less),
                 Val::Class(..) => Some(Ordering::Greater),
                 Val::Instance { .. } => Some(Ordering::Greater),
                 Val::Null => Some(Ordering::Equal),
@@ -92,6 +98,7 @@ impl std::fmt::Display for Val {
             Self::Function(func) => {
                 format!("{} (closure {})", func.func.name.item.clone(), func.closure)
             }
+            Self::Builtin(builtin) => format!("{}", builtin),
             Self::Class(class) => class.class.name.item.to_string(),
             Self::Instance { id, name } => format!("{} instance (id {})", name.clone(), id),
         };

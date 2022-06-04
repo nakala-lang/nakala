@@ -4,14 +4,13 @@ use crate::{
     error::ParseError,
     source::Source,
     symtab::{Sym, Symbol, SymbolTable},
-    type_check::{result_type, type_compatible},
     Parse,
 };
 use ast::{
     expr::{Expr, Expression},
     op::{Op, Operator},
     stmt::{Binding, Class, Function, Statement, Stmt},
-    ty::{Type, TypeExpression},
+    ty::{Type, TypeExpression, result_type, type_compatible},
 };
 use lexer::{Token, TokenKind};
 use meta::{trace, Span, Spanned};
@@ -22,10 +21,10 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn new(source: Source, symtab: Option<SymbolTable>) -> Self {
+    pub fn new(source: Source, symtab: SymbolTable) -> Self {
         Self {
             source,
-            symtab: symtab.unwrap_or_default(),
+            symtab
         }
     }
 
@@ -363,9 +362,7 @@ impl Parser {
 
     fn stmt(&mut self) -> Result<Statement, ParseError> {
         trace!("parse_stmt");
-        if self.at(TokenKind::Print) {
-            self.print_stmt()
-        } else if self.at(TokenKind::LeftBrace) {
+        if self.at(TokenKind::LeftBrace) {
             self.block(false)
         } else if self.at(TokenKind::If) {
             self.if_stmt()
@@ -467,18 +464,6 @@ impl Parser {
         Ok(Statement {
             stmt: Stmt::Block(stmts),
             span: Span::combine(&[left_brace_span, right_brace_span]),
-        })
-    }
-
-    fn print_stmt(&mut self) -> Result<Statement, ParseError> {
-        trace!("parse_print_stmt");
-        let print_token_span = self.expect(TokenKind::Print)?.span;
-
-        let expr = self.expr()?;
-        let semi = self.expect(TokenKind::Semicolon)?;
-        Ok(Statement {
-            span: Span::combine(&[print_token_span, semi.span]),
-            stmt: Stmt::Print(expr),
         })
     }
 

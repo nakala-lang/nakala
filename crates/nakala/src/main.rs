@@ -1,11 +1,17 @@
-use interpreter::{env::Environment, interpret};
+use interpreter::{Builtin, Value, env::Environment, interpret};
 use miette::Result;
-use parser::{parse, source::Source, SymbolTable};
+use parser::{Sym, Symbol, SymbolTable, parse, source::Source};
+use ast::ty::Type;
 use reedline::{DefaultPrompt, Reedline, Signal};
 use std::{fs::read_to_string, path::Path};
 
 fn main() -> Result<()> {
     let args = parse_arguments();
+
+    let (builtins, builtin_symbols) = get_builtins();
+
+    let mut env = Environment::new(builtins)?;
+    let symtab = SymbolTable::new(builtin_symbols);
 
     if args.input_files.is_empty() {
         repl(args)
@@ -15,14 +21,14 @@ fn main() -> Result<()> {
         }
 
         for source in args.input_files.into_iter() {
-            let parse = parse(source.clone(), None)
+            let parse = parse(source.clone(), symtab.clone())
                 .map_err(|error| error.with_source_code(source.clone()))?;
 
             if args.show_parse {
                 println!("{:#?}", parse);
             }
 
-            interpret(parse, None).map_err(|error| error.with_source_code(source))?;
+            interpret(parse, &mut env).map_err(|error| error.with_source_code(source))?;
         }
 
         Ok(())
@@ -33,8 +39,10 @@ fn repl(args: NakArguments) -> Result<()> {
     let mut line_editor = Reedline::create();
     let prompt = DefaultPrompt::default();
 
-    let mut symtab: Option<SymbolTable> = None;
-    let mut env = Environment::new();
+    let (builtins, builtin_symbols) = get_builtins();
+
+    let mut symtab = SymbolTable::new(builtin_symbols);
+    let mut env = Environment::new(builtins)?;
 
     loop {
         let sig = line_editor.read_line(&prompt).unwrap();
@@ -49,9 +57,9 @@ fn repl(args: NakArguments) -> Result<()> {
                     println!("{:#?}", parse);
                 }
 
-                symtab = Some(parse.symtab.clone());
+                symtab = parse.symtab.clone();
 
-                interpret(parse, Some(&mut env)).map_err(|error| error.with_source_code(source))?;
+                interpret(parse, &mut env).map_err(|error| error.with_source_code(source))?;
             }
             Signal::CtrlD | Signal::CtrlC => {
                 println!("\nAborted!");
@@ -59,6 +67,34 @@ fn repl(args: NakArguments) -> Result<()> {
             }
         }
     }
+}
+
+fn get_builtins() -> (Vec<Builtin>, Vec<Symbol>) {
+    let mut builtins = vec![];
+    let mut builtin_symbols = vec![];
+
+    // print
+    fn print(vals: Vec<Value>) -> Value {
+        println!("{}", vals.first().expect("parity mismatch didn't catch builtin"));
+
+        Value::null()
+    }
+    builtins.push(Builtin {
+        name: String::from("print"),
+        params: vec![Type::Any],
+        handler: print
+    });
+    builtin_symbols.push(Symbol {
+        name: String::from("print"),
+        sym: Sym::Function {
+            arity: 1
+        },
+        ty: Type::Null
+    });
+
+    
+    
+    (builtins, builtin_symbols)
 }
 
 #[derive(Debug)]

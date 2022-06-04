@@ -2,12 +2,11 @@ pub mod error;
 mod parser;
 pub mod source;
 mod symtab;
-pub mod type_check;
 
 use crate::parser::Parser;
 use crate::source::Source;
 use ast::stmt::Statement;
-pub use symtab::SymbolTable;
+pub use symtab::{SymbolTable, Symbol, Sym};
 
 #[derive(Debug, PartialEq)]
 pub struct Parse {
@@ -15,7 +14,7 @@ pub struct Parse {
     pub symtab: SymbolTable,
 }
 
-pub fn parse(source: Source, symtab: Option<SymbolTable>) -> miette::Result<Parse> {
+pub fn parse(source: Source, symtab: SymbolTable) -> miette::Result<Parse> {
     Parser::new(source, symtab).parse()
 }
 
@@ -31,7 +30,7 @@ mod tests {
     }
 
     fn check(actual: &str, expected: Expect) {
-        let result = format!("{:#?}", parse(actual.into(), None).unwrap());
+        let result = format!("{:#?}", parse(actual.into(), SymbolTable::new(vec![])).unwrap());
         expected.assert_eq(result.as_str())
     }
 

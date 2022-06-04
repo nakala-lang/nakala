@@ -2,6 +2,7 @@ mod val;
 mod class;
 mod function;
 mod instance;
+mod builtin;
 
 use std::{cmp::Ordering, collections::HashMap};
 
@@ -11,10 +12,12 @@ pub use val::*;
 pub use function::*;
 pub use class::*;
 pub use instance::*;
+pub use builtin::*;
 
 use crate::{env::{Environment, ScopeId}, error::RuntimeError};
 
 pub trait Callable {
+    fn arity(&self) -> usize;
     fn call(&self, args: Vec<Expression>, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError>;
 }
 

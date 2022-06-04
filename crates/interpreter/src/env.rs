@@ -1,7 +1,7 @@
-use ast::ty::Type;
+use ast::{stmt::Function, ty::Type};
 use meta::{trace, Span, Spanned};
 
-use crate::{error::RuntimeError, value::{self, Instance, InstanceId, Val, Value}};
+use crate::{error::RuntimeError, value::{self, Instance, InstanceId, Val, Value, Builtin}};
 use std::collections::{hash_map::Entry, HashMap};
 
 pub type ScopeId = usize;
@@ -15,7 +15,7 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn new() -> Self {
+    pub fn new(builtins: Vec<Builtin>) -> Result<Self, RuntimeError> {
         let mut env = Self {
             scopes: vec![Scope::new(0, None)],
             next_scope_id: 1,
@@ -23,13 +23,21 @@ impl Environment {
             next_instance_id: 0,
         };
 
-        env.define_globals();
+        env.define_builtins(builtins)?;
 
-        env
+        Ok(env)
     }
 
-    fn define_globals(&mut self) {
-        // time
+    fn define_builtins(&mut self, builtins: Vec<Builtin>) -> Result<(), RuntimeError> {
+        for builtin in builtins {
+            self.define(0, builtin.name.clone(), Value {
+                val: Val::Builtin(builtin),
+                span: Span::garbage(),
+                ty: Type::Any
+            })?;
+        }
+
+        Ok(())
     }
 
     pub fn new_instance(&mut self, class: value::Class, span: Span) -> Value {

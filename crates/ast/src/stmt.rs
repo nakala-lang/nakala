@@ -43,7 +43,6 @@ pub enum Stmt {
     Function(Function),
     Class(Class),
     Return(Option<Expression>),
-    Print(Expression),
     Variable {
         name: Binding,
         expr: Option<Expression>,

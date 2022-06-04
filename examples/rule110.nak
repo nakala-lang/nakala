@@ -65,7 +65,7 @@ list.set(LIST_SIZE - 1, 1);
 
 let iter = 0;
 until iter == LIST_SIZE {
-  print list.head.str();
+  print(list.head.str());
   iter = iter + 1;
   
   let new_list = List(LIST_SIZE);

@@ -9,12 +9,10 @@ use crate::expr::eval_expr;
 use ast::stmt::*;
 use meta::trace;
 use parser::Parse;
-use value::Value;
 
-pub fn interpret(parse: Parse, env: Option<&mut Environment>) -> miette::Result<()> {
-    let mut new_env = Environment::new();
-    let env = env.unwrap_or(&mut new_env);
+pub use crate::value::{Value, Builtin};
 
+pub fn interpret(parse: Parse, env: &mut Environment) -> miette::Result<()> {
     for _stmt in parse.stmts {
         eval_stmt(_stmt, env, 0)?;
     }
@@ -31,9 +29,6 @@ fn eval_stmt(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(
         }
         Stmt::Variable { .. } => {
             eval_variable(stmt, env, scope)?;
-        }
-        Stmt::Print(expr) => {
-            println!("{}", eval_expr(expr, env, scope)?);
         }
         Stmt::Block(..) => {
             eval_block(stmt, env, scope)?;

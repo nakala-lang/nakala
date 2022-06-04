@@ -20,16 +20,20 @@ pub struct SymbolTable {
     inner: Vec<HashMap<String, Symbol>>,
 }
 
-impl Default for SymbolTable {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl SymbolTable {
-    pub fn new() -> Self {
-        SymbolTable {
+    pub fn new(builtins: Vec<Symbol>) -> Self {
+        let mut symtab = SymbolTable {
             inner: vec![HashMap::default()],
+        };
+
+        symtab.define_builtins(builtins);
+
+        symtab
+    }
+
+    fn define_builtins(&mut self, builtins: Vec<Symbol>) {
+        for builtin in builtins {
+            self.insert(builtin);
         }
     }
 
