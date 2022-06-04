@@ -50,24 +50,11 @@ impl Environment {
             .expect("ICE: Called get instance on instance that doesn't exist"))
     }
 
-    pub fn begin_scope(&mut self) -> ScopeId {
-        self._begin_scope(None)
-    }
-
-    pub fn begin_scope_with_closure(&mut self, closure: ScopeId) -> ScopeId {
-        self._begin_scope(Some(closure))
-    }
-
-    fn _begin_scope(&mut self, closure: Option<ScopeId>) -> ScopeId {
+    pub fn begin_scope(&mut self, enclosing: ScopeId) -> ScopeId {
         let id = self.next_scope_id;
         self.next_scope_id += 1;
 
-        let enclosing_id = closure.unwrap_or_else(|| {
-            id.checked_sub(1)
-                .expect("ICE: called begin scope without global scope")
-        });
-
-        self.scopes.push(Scope::new(id, Some(enclosing_id)));
+        self.scopes.push(Scope::new(id, Some(enclosing)));
 
         trace!(format!("created scope {:?}", self.scopes.last().unwrap()));
 

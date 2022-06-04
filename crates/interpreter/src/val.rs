@@ -476,7 +476,7 @@ impl Value {
     ) -> Result<(), RuntimeError> {
         if let Val::Function(ref mut func) = self.val {
             if let Val::Instance { .. } = instance.val {
-                let binded_scope = env.begin_scope_with_closure(func.closure);
+                let binded_scope = env.begin_scope(func.closure);
                 env.define(binded_scope, String::from("this"), instance)?;
                 func.closure = binded_scope;
                 Ok(())

@@ -116,7 +116,7 @@ fn eval_class_decl(
         // make sure we don't define anything that collides with the class name
         env.define(scope, class_name.item.clone(), Value::null())?;
 
-        let new_scope = env.begin_scope();
+        let new_scope = env.begin_scope(scope);
 
         // We have to define it manually, but we will bind 'this' on the instance
         env.define(new_scope, String::from("this"), Value::null())?;
@@ -140,7 +140,7 @@ fn eval_if(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(),
     {
         let cond = eval_expr(cond, env, scope)?;
 
-        let new_scope = env.begin_scope_with_closure(scope);
+        let new_scope = env.begin_scope(scope);
 
         if cond.as_bool()? {
             eval_block(*body, env, new_scope)?;
@@ -159,7 +159,7 @@ fn eval_if(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(),
 fn eval_until(stmt: Statement, env: &mut Environment, scope: ScopeId) -> Result<(), RuntimeError> {
     if let Stmt::Until { cond, body } = stmt.stmt {
         loop {
-            let new_scope = env.begin_scope_with_closure(scope);
+            let new_scope = env.begin_scope(scope);
             let cond = eval_expr(cond.clone(), env, new_scope)?;
             if cond.as_bool()? {
                 break;
