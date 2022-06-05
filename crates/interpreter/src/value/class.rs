@@ -18,10 +18,7 @@ pub struct Class {
 
 impl Class {
     pub fn constructor(&self) -> Option<Value> {
-        match self.methods.get("constructor") {
-            Some(func) => Some(func.clone()),
-            None => None,
-        }
+        self.methods.get("constructor").cloned()
     }
 }
 

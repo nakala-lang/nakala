@@ -1,7 +1,7 @@
 use ast::ty::Type;
 use interpreter::{env::Environment, interpret, Builtin, Value};
 use miette::Result;
-use parser::{parse, source::Source, Sym, Symbol, SymbolTable};
+use parser::{parse, source::Source, SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};
 use std::{fs::read_to_string, path::Path};
 

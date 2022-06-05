@@ -40,7 +40,7 @@ impl Callable for Function {
         let new_scope = env.begin_scope(self.closure);
 
         let params = &self.func.params;
-        for (param, arg) in params.into_iter().zip(args.into_iter()) {
+        for (param, arg) in params.iter().zip(args.into_iter()) {
             let val = eval_expr(arg, env, scope)?;
             env.define(new_scope, param.name.item.clone(), val)?;
         }

@@ -77,7 +77,7 @@ impl Callable for Builtin {
 
         let mut vals = vec![];
         let params = &self.params;
-        for (param, arg) in params.into_iter().zip(args.into_iter()) {
+        for (param, arg) in params.iter().zip(args.into_iter()) {
             if !type_compatible(&arg.ty, param) {
                 todo!("runtime builtin type mismatch");
             }

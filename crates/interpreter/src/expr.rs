@@ -67,7 +67,7 @@ fn eval_call_expr(
     scope: ScopeId,
 ) -> Result<Value, RuntimeError> {
     if let Expr::Call { callee, args, .. } = expr.expr {
-        let callee_span = callee.span.clone();
+        let callee_span = callee.span;
         let val = eval_expr(*callee, env, scope)?;
 
         match val.val {
