@@ -13,6 +13,10 @@ pub enum TokenKind {
     LeftParen,
     #[token(")")]
     RightParen,
+    #[token("[")]
+    LeftBracket,
+    #[token("]")]
+    RightBracket,
     #[token("{")]
     LeftBrace,
     #[token("}")]
@@ -125,6 +129,8 @@ impl fmt::Display for TokenKind {
             // Single-character tokens
             Self::LeftParen => "(",
             Self::RightParen => ")",
+            Self::LeftBracket => "[",
+            Self::RightBracket => "]",
             Self::LeftBrace => "{",
             Self::RightBrace => "}",
             Self::Comma => ",",
@@ -232,6 +238,16 @@ mod tests {
     #[test]
     fn lex_right_paren() {
         check(")", TokenKind::RightParen);
+    }
+
+    #[test]
+    fn lex_left_bracket() {
+        check("[", TokenKind::LeftBracket);
+    }
+
+    #[test]
+    fn lex_right_bracket() {
+        check("]", TokenKind::RightBracket);
     }
 
     #[test]
