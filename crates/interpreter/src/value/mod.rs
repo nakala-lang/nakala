@@ -355,6 +355,18 @@ impl Value {
             )),
         }
     }
+    
+    pub fn as_int(&self) -> Result<i64, RuntimeError> {
+        match &self.val {
+            Val::Int(v) => Ok(*v),
+            _ => Err(RuntimeError::UnexpectedValueType(
+                self.span.source_id,
+                Type::Int,
+                format!("{}", self.val),
+                self.span.into(),
+            )),
+        }
+    }
 
     pub fn as_instance(&self) -> Result<InstanceId, RuntimeError> {
         match &self.val {

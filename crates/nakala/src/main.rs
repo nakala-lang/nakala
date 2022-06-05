@@ -86,7 +86,7 @@ fn get_builtins() -> Vec<Builtin> {
     fn print(vals: Vec<Value>) -> Value {
         println!(
             "{}",
-            vals.first().expect("parity mismatch didn't catch builtin")
+            vals.first().expect("arity mismatch didn't catch builtin")
         );
 
         Value::null()
@@ -95,6 +95,22 @@ fn get_builtins() -> Vec<Builtin> {
         name: String::from("print"),
         params: vec![Type::Any],
         handler: print,
+    });
+
+    // exit
+    fn exit(vals: Vec<Value>) -> Value {
+        let code = vals.first().expect("arity mismatch didn't catch builtin").as_int().expect("builtin didn't catch type mismatch");
+        
+        if let Ok(code) = i32::try_from(code) {
+            std::process::exit(code);
+        } else {
+            panic!("Exit code can't be bigger than i32");
+        }
+    }
+    builtins.push(Builtin {
+        name: String::from("exit"),
+        params: vec![Type::Int],
+        handler: exit
     });
 
     builtins
