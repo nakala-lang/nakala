@@ -46,7 +46,7 @@ impl Callable for Class {
                 callee_span.source_id,
                 callee_span.into(),
                 self.arity(),
-                args.len()
+                args.len(),
             ));
         }
 
@@ -55,7 +55,9 @@ impl Callable for Class {
         if let Ok(mut constructor) = instance.get_property("constructor") {
             // bind this and execute constructor
             constructor.bind_this(env, val.clone())?;
-            constructor.as_function()?.call(callee_span, args, env, scope)?;
+            constructor
+                .as_function()?
+                .call(callee_span, args, env, scope)?;
         }
 
         Ok(val)

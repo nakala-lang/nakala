@@ -13,9 +13,7 @@ pub enum RuntimeError {
     EarlyReturn(Value),
 
     #[error("Arity mismatch")]
-    #[diagnostic(
-        code(nak_runtime::arity_mismatch),
-    )]
+    #[diagnostic(code(nak_runtime::arity_mismatch))]
     ArityMismatch(
         SourceId,
         #[label("This function expects {2} arguments, but got {3}")] SourceSpan,

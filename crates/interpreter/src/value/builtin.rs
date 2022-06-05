@@ -24,8 +24,10 @@ impl Builtin {
     pub fn as_symbol(&self) -> Symbol {
         Symbol {
             name: self.name.clone(),
-            sym: Sym::Function { arity: self.params.len() },
-            ty: Type::Null
+            sym: Sym::Function {
+                arity: self.params.len(),
+            },
+            ty: Type::Null,
         }
     }
 }
@@ -69,8 +71,8 @@ impl Callable for Builtin {
                 callee_span.source_id,
                 callee_span.into(),
                 self.arity(),
-                args.len()
-            ))
+                args.len(),
+            ));
         }
 
         let mut vals = vec![];

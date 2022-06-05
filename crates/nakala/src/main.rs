@@ -9,7 +9,11 @@ fn main() -> Result<()> {
     let args = parse_arguments();
 
     let builtins = get_builtins();
-    let symbols = builtins.clone().into_iter().map(|b| b.as_symbol()).collect();
+    let symbols = builtins
+        .clone()
+        .into_iter()
+        .map(|b| b.as_symbol())
+        .collect();
 
     let mut env = Environment::new(builtins)?;
     let symtab = SymbolTable::new(symbols);
@@ -41,7 +45,11 @@ fn repl(args: NakArguments) -> Result<()> {
     let prompt = DefaultPrompt::default();
 
     let builtins = get_builtins();
-    let symbols = builtins.clone().into_iter().map(|b| b.as_symbol()).collect();
+    let symbols = builtins
+        .clone()
+        .into_iter()
+        .map(|b| b.as_symbol())
+        .collect();
 
     let mut env = Environment::new(builtins)?;
     let mut symtab = SymbolTable::new(symbols);

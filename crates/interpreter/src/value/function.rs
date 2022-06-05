@@ -33,7 +33,7 @@ impl Callable for Function {
                 callee_span.source_id,
                 callee_span.into(),
                 self.arity(),
-                args.len()
+                args.len(),
             ));
         }
 
