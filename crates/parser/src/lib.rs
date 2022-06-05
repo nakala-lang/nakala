@@ -51,6 +51,7 @@ mod tests {
                                         "foo",
                                     ),
                                     span: Span {
+                                        source_id: 0,
                                         start: 0,
                                         end: 5,
                                     },
@@ -58,6 +59,7 @@ mod tests {
                                 },
                             ),
                             span: Span {
+                                source_id: 0,
                                 start: 0,
                                 end: 6,
                             },
@@ -77,33 +79,35 @@ mod tests {
         check(
             "true;",
             expect![[r#"
-            Parse {
-                stmts: [
-                    Statement {
-                        stmt: Expr(
-                            Expression {
-                                expr: Bool(
-                                    true,
-                                ),
-                                span: Span {
-                                    start: 0,
-                                    end: 4,
+                Parse {
+                    stmts: [
+                        Statement {
+                            stmt: Expr(
+                                Expression {
+                                    expr: Bool(
+                                        true,
+                                    ),
+                                    span: Span {
+                                        source_id: 0,
+                                        start: 0,
+                                        end: 4,
+                                    },
+                                    ty: Bool,
                                 },
-                                ty: Bool,
+                            ),
+                            span: Span {
+                                source_id: 0,
+                                start: 0,
+                                end: 5,
                             },
-                        ),
-                        span: Span {
-                            start: 0,
-                            end: 5,
                         },
-                    },
-                ],
-                symtab: SymbolTable {
-                    inner: [
-                        {},
                     ],
-                },
-            }"#]],
+                    symtab: SymbolTable {
+                        inner: [
+                            {},
+                        ],
+                    },
+                }"#]],
         );
     }
 
@@ -112,33 +116,35 @@ mod tests {
         check(
             "false;",
             expect![[r#"
-            Parse {
-                stmts: [
-                    Statement {
-                        stmt: Expr(
-                            Expression {
-                                expr: Bool(
-                                    false,
-                                ),
-                                span: Span {
-                                    start: 0,
-                                    end: 5,
+                Parse {
+                    stmts: [
+                        Statement {
+                            stmt: Expr(
+                                Expression {
+                                    expr: Bool(
+                                        false,
+                                    ),
+                                    span: Span {
+                                        source_id: 0,
+                                        start: 0,
+                                        end: 5,
+                                    },
+                                    ty: Bool,
                                 },
-                                ty: Bool,
+                            ),
+                            span: Span {
+                                source_id: 0,
+                                start: 0,
+                                end: 6,
                             },
-                        ),
-                        span: Span {
-                            start: 0,
-                            end: 6,
                         },
-                    },
-                ],
-                symtab: SymbolTable {
-                    inner: [
-                        {},
                     ],
-                },
-            }"#]],
+                    symtab: SymbolTable {
+                        inner: [
+                            {},
+                        ],
+                    },
+                }"#]],
         );
     }
 
@@ -147,31 +153,33 @@ mod tests {
         check(
             "null;",
             expect![[r#"
-            Parse {
-                stmts: [
-                    Statement {
-                        stmt: Expr(
-                            Expression {
-                                expr: Null,
-                                span: Span {
-                                    start: 0,
-                                    end: 4,
+                Parse {
+                    stmts: [
+                        Statement {
+                            stmt: Expr(
+                                Expression {
+                                    expr: Null,
+                                    span: Span {
+                                        source_id: 0,
+                                        start: 0,
+                                        end: 4,
+                                    },
+                                    ty: Null,
                                 },
-                                ty: Null,
+                            ),
+                            span: Span {
+                                source_id: 0,
+                                start: 0,
+                                end: 5,
                             },
-                        ),
-                        span: Span {
-                            start: 0,
-                            end: 5,
                         },
-                    },
-                ],
-                symtab: SymbolTable {
-                    inner: [
-                        {},
                     ],
-                },
-            }"#]],
+                    symtab: SymbolTable {
+                        inner: [
+                            {},
+                        ],
+                    },
+                }"#]],
         );
     }
 
@@ -180,33 +188,35 @@ mod tests {
         check(
             "5;",
             expect![[r#"
-            Parse {
-                stmts: [
-                    Statement {
-                        stmt: Expr(
-                            Expression {
-                                expr: Int(
-                                    5,
-                                ),
-                                span: Span {
-                                    start: 0,
-                                    end: 1,
+                Parse {
+                    stmts: [
+                        Statement {
+                            stmt: Expr(
+                                Expression {
+                                    expr: Int(
+                                        5,
+                                    ),
+                                    span: Span {
+                                        source_id: 0,
+                                        start: 0,
+                                        end: 1,
+                                    },
+                                    ty: Int,
                                 },
-                                ty: Int,
+                            ),
+                            span: Span {
+                                source_id: 0,
+                                start: 0,
+                                end: 2,
                             },
-                        ),
-                        span: Span {
-                            start: 0,
-                            end: 2,
                         },
-                    },
-                ],
-                symtab: SymbolTable {
-                    inner: [
-                        {},
                     ],
-                },
-            }"#]],
+                    symtab: SymbolTable {
+                        inner: [
+                            {},
+                        ],
+                    },
+                }"#]],
         );
     }
 
@@ -224,6 +234,7 @@ mod tests {
                                         1.23,
                                     ),
                                     span: Span {
+                                        source_id: 0,
                                         start: 0,
                                         end: 4,
                                     },
@@ -231,6 +242,7 @@ mod tests {
                                 },
                             ),
                             span: Span {
+                                source_id: 0,
                                 start: 0,
                                 end: 5,
                             },
