@@ -1,4 +1,4 @@
-use ast::{stmt::Function, ty::Type};
+use ast::ty::Type;
 use meta::{trace, Span, Spanned};
 
 use crate::{
