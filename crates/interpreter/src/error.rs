@@ -12,6 +12,17 @@ pub enum RuntimeError {
     #[error("Early Return")]
     EarlyReturn(Value),
 
+    #[error("Arity mismatch")]
+    #[diagnostic(
+        code(nak_runtime::arity_mismatch),
+    )]
+    ArityMismatch(
+        SourceId,
+        #[label("This function expects {2} arguments, but got {3}")] SourceSpan,
+        usize,
+        usize,
+    ),
+
     #[error("Undefined variable")]
     #[diagnostic(code(nak_runtime::unknown_variable))]
     UndefinedVariable(SourceId, #[label("Undefined variable")] SourceSpan),

@@ -67,12 +67,13 @@ fn eval_call_expr(
     scope: ScopeId,
 ) -> Result<Value, RuntimeError> {
     if let Expr::Call { callee, args, .. } = expr.expr {
+        let callee_span = callee.span.clone();
         let val = eval_expr(*callee, env, scope)?;
 
         match val.val {
-            Val::Function(func) => func.call(args, env, scope),
-            Val::Class(class) => class.call(args, env, scope),
-            Val::Builtin(builtin) => builtin.call(args, env, scope),
+            Val::Function(func) => func.call(callee_span, args, env, scope),
+            Val::Class(class) => class.call(callee_span, args, env, scope),
+            Val::Builtin(builtin) => builtin.call(callee_span, args, env, scope),
             _ => panic!("ICE: can only call t"),
         }
     } else {

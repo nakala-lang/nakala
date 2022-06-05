@@ -28,6 +28,7 @@ pub trait Callable {
     fn arity(&self) -> usize;
     fn call(
         &self,
+        callee_span: Span,
         args: Vec<Expression>,
         env: &mut Environment,
         scope: ScopeId,

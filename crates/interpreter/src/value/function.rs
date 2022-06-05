@@ -1,4 +1,5 @@
 use ast::{expr::Expression, stmt::Function as AstFunction};
+use meta::Span;
 
 use crate::{
     env::{Environment, ScopeId},
@@ -22,12 +23,18 @@ impl Callable for Function {
 
     fn call(
         &self,
+        callee_span: Span,
         args: Vec<Expression>,
         env: &mut Environment,
         scope: ScopeId,
     ) -> Result<Value, RuntimeError> {
         if self.arity() != args.len() {
-            todo!("parity mismatch");
+            return Err(RuntimeError::ArityMismatch(
+                callee_span.source_id,
+                callee_span.into(),
+                self.arity(),
+                args.len()
+            ));
         }
 
         let new_scope = env.begin_scope(self.closure);

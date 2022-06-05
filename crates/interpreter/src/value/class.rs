@@ -36,16 +36,26 @@ impl Callable for Class {
 
     fn call(
         &self,
+        callee_span: Span,
         args: Vec<Expression>,
         env: &mut Environment,
         scope: ScopeId,
     ) -> Result<Value, RuntimeError> {
+        if self.arity() != args.len() {
+            return Err(RuntimeError::ArityMismatch(
+                callee_span.source_id,
+                callee_span.into(),
+                self.arity(),
+                args.len()
+            ));
+        }
+
         let val = env.new_instance(self.clone(), Span::garbage());
         let instance = env.get_instance(val.as_instance()?)?;
         if let Ok(mut constructor) = instance.get_property("constructor") {
             // bind this and execute constructor
             constructor.bind_this(env, val.clone())?;
-            constructor.as_function()?.call(args, env, scope)?;
+            constructor.as_function()?.call(callee_span, args, env, scope)?;
         }
 
         Ok(val)

@@ -2,6 +2,8 @@ use ast::{
     expr::Expression,
     ty::{type_compatible, Type},
 };
+use meta::Span;
+use parser::{Sym, Symbol};
 
 use crate::{
     env::{Environment, ScopeId},
@@ -16,6 +18,16 @@ pub struct Builtin {
     pub name: String,
     pub params: Vec<Type>,
     pub handler: fn(Vec<Value>) -> Value,
+}
+
+impl Builtin {
+    pub fn as_symbol(&self) -> Symbol {
+        Symbol {
+            name: self.name.clone(),
+            sym: Sym::Function { arity: self.params.len() },
+            ty: Type::Null
+        }
+    }
 }
 
 impl Clone for Builtin {
@@ -47,12 +59,18 @@ impl Callable for Builtin {
 
     fn call(
         &self,
+        callee_span: Span,
         args: Vec<Expression>,
         env: &mut Environment,
         scope: ScopeId,
     ) -> Result<Value, RuntimeError> {
         if self.arity() != args.len() {
-            todo!("builtin parity mismatch");
+            return Err(RuntimeError::ArityMismatch(
+                callee_span.source_id,
+                callee_span.into(),
+                self.arity(),
+                args.len()
+            ))
         }
 
         let mut vals = vec![];

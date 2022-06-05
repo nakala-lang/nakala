@@ -8,10 +8,11 @@ use std::{fs::read_to_string, path::Path};
 fn main() -> Result<()> {
     let args = parse_arguments();
 
-    let (builtins, builtin_symbols) = get_builtins();
+    let builtins = get_builtins();
+    let symbols = builtins.clone().into_iter().map(|b| b.as_symbol()).collect();
 
     let mut env = Environment::new(builtins)?;
-    let symtab = SymbolTable::new(builtin_symbols);
+    let symtab = SymbolTable::new(symbols);
 
     if args.input_files.is_empty() {
         repl(args)
@@ -39,10 +40,11 @@ fn repl(args: NakArguments) -> Result<()> {
     let mut line_editor = Reedline::create();
     let prompt = DefaultPrompt::default();
 
-    let (builtins, builtin_symbols) = get_builtins();
+    let builtins = get_builtins();
+    let symbols = builtins.clone().into_iter().map(|b| b.as_symbol()).collect();
 
-    let mut symtab = SymbolTable::new(builtin_symbols);
     let mut env = Environment::new(builtins)?;
+    let mut symtab = SymbolTable::new(symbols);
 
     loop {
         let sig = line_editor.read_line(&prompt).unwrap();
@@ -69,9 +71,8 @@ fn repl(args: NakArguments) -> Result<()> {
     }
 }
 
-fn get_builtins() -> (Vec<Builtin>, Vec<Symbol>) {
+fn get_builtins() -> Vec<Builtin> {
     let mut builtins = vec![];
-    let mut builtin_symbols = vec![];
 
     // print
     fn print(vals: Vec<Value>) -> Value {
@@ -87,13 +88,8 @@ fn get_builtins() -> (Vec<Builtin>, Vec<Symbol>) {
         params: vec![Type::Any],
         handler: print,
     });
-    builtin_symbols.push(Symbol {
-        name: String::from("print"),
-        sym: Sym::Function { arity: 1 },
-        ty: Type::Null,
-    });
 
-    (builtins, builtin_symbols)
+    builtins
 }
 
 #[derive(Debug)]
