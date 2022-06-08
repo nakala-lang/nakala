@@ -28,7 +28,7 @@ pub struct Function {
     pub name: Spanned<String>,
     pub params: Vec<Binding>,
     pub body: Box<Statement>,
-    pub return_ty: TypeExpression,
+    pub ty: TypeExpression,
 }
 
 #[derive(Debug, Clone, PartialEq)]

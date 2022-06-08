@@ -97,9 +97,9 @@ impl Value {
     pub fn from_function(stmt: Statement, closure: ScopeId) -> Self {
         if let Stmt::Function(func) = stmt.stmt {
             Value {
+                ty: func.ty.ty.clone(),
                 val: Val::Function(Function { func, closure }),
                 span: stmt.span,
-                ty: Type::Any, // TODO: function types
             }
         } else {
             panic!("ICE: from_function should only be called with Stmt::Function")
@@ -355,7 +355,7 @@ impl Value {
             )),
         }
     }
-    
+
     pub fn as_int(&self) -> Result<i64, RuntimeError> {
         match &self.val {
             Val::Int(v) => Ok(*v),

@@ -161,7 +161,7 @@ impl Parser {
                             sym: Sym::Function {
                                 arity: func.params.len(),
                             },
-                            ty: func.return_ty.ty,
+                            ty: func.ty.ty,
                         },
                     );
                 }
@@ -238,13 +238,22 @@ impl Parser {
             return_ty = self.ty()?;
         }
 
+        let func_type = Type::Function {
+            params: params
+                .clone()
+                .into_iter()
+                .map(|param| param.into())
+                .collect(),
+            returns: Box::new(return_ty.clone()),
+        };
+
         if !from_class_decl {
             self.symtab.insert(Symbol {
                 name: name.clone(),
                 sym: Sym::Function {
                     arity: params.len(),
                 },
-                ty: return_ty.ty.clone(),
+                ty: func_type.clone(),
             });
         }
 
@@ -307,10 +316,13 @@ impl Parser {
 
         Ok(Statement {
             stmt: Stmt::Function(Function {
+                ty: TypeExpression {
+                    ty: func_type,
+                    span: spanned_name.span,
+                },
                 name: spanned_name,
                 params,
                 body: Box::new(body),
-                return_ty,
             }),
             span: Span::combine(&[start_span, right_paren_span]),
         })

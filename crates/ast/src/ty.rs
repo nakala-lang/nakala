@@ -3,6 +3,7 @@ use meta::Span;
 use crate::{
     expr::Expression,
     op::{Op, Operator},
+    stmt::Binding,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -13,6 +14,10 @@ pub enum Type {
     String,
     Class(String),
     Instance(String),
+    Function {
+        params: Vec<TypeExpression>,
+        returns: Box<TypeExpression>,
+    },
     Null,
     Any,
 }
@@ -21,6 +26,15 @@ pub enum Type {
 pub struct TypeExpression {
     pub ty: Type,
     pub span: Span,
+}
+
+impl From<Binding> for TypeExpression {
+    fn from(binding: Binding) -> Self {
+        Self {
+            span: binding.name.span,
+            ty: binding.ty,
+        }
+    }
 }
 
 impl std::fmt::Display for Type {
@@ -32,6 +46,14 @@ impl std::fmt::Display for Type {
             Self::String => String::from("string"),
             Self::Class(name) => name.clone(),
             Self::Instance(name) => format!("instanceof {name}"),
+            Self::Function { params, returns } => format!(
+                "({}) -> {}",
+                params
+                    .into_iter()
+                    .map(|p| format!("{}", p.ty))
+                    .collect::<String>(),
+                format!("{}", returns.ty)
+            ),
             Self::Null => String::from("null"),
             Self::Any => String::from("any"),
         };

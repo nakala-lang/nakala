@@ -1,5 +1,5 @@
 use ast::ty::Type;
-use interpreter::{env::Environment, interpret, Builtin, Value};
+use interpreter::{env::Environment, interpret, Builtin, Val, Value};
 use miette::Result;
 use parser::{parse, source::Source, SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};
@@ -91,27 +91,65 @@ fn get_builtins() -> Vec<Builtin> {
 
         Value::null()
     }
-    builtins.push(Builtin {
-        name: String::from("print"),
-        params: vec![Type::Any],
-        handler: print,
-    });
+    builtins.push(Builtin::new(
+        String::from("print"),
+        vec![Type::Any],
+        None,
+        print,
+    ));
 
     // exit
     fn exit(vals: Vec<Value>) -> Value {
-        let code = vals.first().expect("arity mismatch didn't catch builtin").as_int().expect("builtin didn't catch type mismatch");
-        
+        let code = vals
+            .first()
+            .expect("arity mismatch didn't catch builtin")
+            .as_int()
+            .expect("builtin didn't catch type mismatch");
+
         if let Ok(code) = i32::try_from(code) {
             std::process::exit(code);
         } else {
             panic!("Exit code can't be bigger than i32");
         }
     }
-    builtins.push(Builtin {
-        name: String::from("exit"),
-        params: vec![Type::Int],
-        handler: exit
-    });
+    builtins.push(Builtin::new(
+        String::from("exit"),
+        vec![Type::Int],
+        None,
+        exit,
+    ));
+
+    // str
+    fn str(vals: Vec<Value>) -> Value {
+        let val = vals.first().expect("arity mismatch didn't catch builtin");
+        Value {
+            val: Val::String(format!("{}", val)),
+            span: val.span,
+            ty: Type::String,
+        }
+    }
+    builtins.push(Builtin::new(
+        String::from("str"),
+        vec![Type::String],
+        Some(Type::String),
+        str,
+    ));
+
+    // type
+    fn type_(vals: Vec<Value>) -> Value {
+        let val = vals.first().expect("arity mismatch didn't catch builtin");
+        Value {
+            val: Val::String(format!("{}", val.ty)),
+            ty: Type::String,
+            span: val.span,
+        }
+    }
+    builtins.push(Builtin::new(
+        String::from("type"),
+        vec![Type::Any],
+        Some(Type::String),
+        type_,
+    ));
 
     builtins
 }

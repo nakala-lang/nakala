@@ -1,4 +1,4 @@
-use ast::ty::Type;
+use ast::ty::{Type, TypeExpression};
 use meta::{trace, Span, Spanned};
 
 use crate::{
@@ -37,9 +37,9 @@ impl Environment {
                 0,
                 builtin.name.clone(),
                 Value {
+                    ty: builtin.ty.clone(),
                     val: Val::Builtin(builtin),
                     span: Span::garbage(),
-                    ty: Type::Any,
                 },
             )?;
         }
