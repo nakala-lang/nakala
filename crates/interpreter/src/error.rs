@@ -52,4 +52,17 @@ pub enum RuntimeError {
         #[label("This class doesn't have any property named {2}")] SourceSpan,
         String,
     ),
+
+    #[error("Incompatible types")]
+    #[diagnostic(
+        code(nak::incompatible_types),
+        help("This should have been caught by the parser")
+    )]
+    IncompatibleTypes(
+        SourceId,
+        #[label("Expects types compatible with {2}")] SourceSpan,
+        Type,
+        #[label("{4}")] SourceSpan,
+        Type,
+    ),
 }
