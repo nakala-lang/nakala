@@ -1,0 +1,149 @@
+class String {
+  constructor(inner: string) {
+    this.inner = inner;
+  }
+
+  str() -> string {
+    ret this.inner;
+  }
+}
+
+class Number {
+  constructor(inner: int) {
+    this.inner = inner;
+  }
+  
+  str() -> string {
+    ret str(this.inner);
+  }
+}
+
+class Node {
+  constructor(data: any, next) {
+    this.data = data;
+    this.next = next;
+  }
+
+  str() -> string {
+    ret this.data.str();
+  }
+}
+
+class List {
+  constructor() {
+    this.head = null;
+    this.size = 0;
+  }
+
+  add(data: any) {
+    let curr = this.head;
+
+    if curr == null {
+      this.head = Node(data, null);
+      ret;
+    }
+
+    let new_node = Node(data, null);
+    
+    until curr.next == null {
+      curr = curr.next;
+    } 
+
+    curr.next = new_node;
+        
+    this.size = this.size + 1;
+  }
+  
+  get(index: int) {
+    let curr = this.head;
+    until index == 0 {
+      index = index - 1;
+      curr = curr.next;
+    }
+
+    ret curr.data;
+  }
+
+  str() -> string {
+    let s = "";
+    let curr = this.head;
+      
+    until curr == null {
+      s = s + curr.data.str();
+      if curr.next != null {
+        s = s + ", ";
+      }
+
+      curr = curr.next;
+    }
+    
+    ret s;
+  }
+}
+
+let JSON_OBJECT = 0;
+let JSON_ARRAY = 1;
+let JSON_STRING = 2;
+let JSON_NUMBER = 3;
+let JSON_TRUE = 4;
+let JSON_FALSE = 5;
+let JSON_NULL = 6;
+
+class Member {
+  constructor(name: string, data: any) {
+    this.name = name;
+    this.data = data;
+  }
+
+  str() -> string {
+    ret this.name + ": " + this.data.str();
+  }
+}
+
+class JsonObject {
+  constructor() {
+    this.members = List();
+  }
+
+  add_member(member: Member) -> JsonObject {
+    this.members.add(member);
+    ret this;
+  }
+
+  str() -> string {
+    ret "{" + this.members.str() + "}";
+  }
+}
+
+class JsonValue {
+  constructor(type_: int, inner: any) {
+    this.type = type_;
+    this.inner = inner;
+  }
+
+  str() -> string {
+    ret this.inner.str();
+  }
+}
+
+class JsonParser {
+  constructor(input: string) {
+    this.input = input;
+  }
+
+  parse() {
+    let list = List();
+    
+    let obj = JsonObject()
+      .add_member(Member("name", JsonValue(JSON_STRING, String("Reagan"))))
+      .add_member(Member("age", JsonValue(JSON_NUMBER, Number(22))));
+    list.add(JsonValue(JSON_OBJECT, obj));
+    //list.add(JsonValue());
+    
+    print(list.str());
+  }
+}
+
+// { name: "Reagan", age: 22 }
+let parser = JsonParser("123");
+parser.parse();
