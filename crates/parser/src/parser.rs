@@ -806,7 +806,34 @@ impl Parser {
         self.is_callable(&callee)?;
 
         let ty = match &callee.ty {
-            Type::Class(class_name) => Type::Instance(class_name.to_string()),
+            Type::Class(class_name) => {
+                // Type check class constructor
+                let entry = self
+                    .symtab
+                    .lookup(class_name)
+                    .expect("ICE: parser should have checked if class was declared by this point");
+                if let Sym::Class { methods, .. } = &entry.sym {
+                    if let Some(constructor) = methods.get("constructor") {
+                        if let Type::Function { params, .. } = &constructor.ty {
+                            for (param, arg) in params.iter().zip(args.iter()) {
+                                if !type_compatible(&param.ty, &arg.ty) {
+                                    return Err(ParseError::IncompatibleTypes(
+                                        callee.span.source_id,
+                                        param.span.into(),
+                                        param.ty.clone(),
+                                        arg.span.into(),
+                                        arg.ty.clone(),
+                                    ));
+                                }
+                            }
+                        }
+                    }
+
+                    Type::Instance(class_name.to_string())
+                } else {
+                    panic!("ICE: callee symtab type and actual type are not the same");
+                }
+            }
             Type::Function { returns, .. } => returns.ty.clone(),
             _ => callee.ty.clone(),
         };
