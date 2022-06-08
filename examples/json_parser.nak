@@ -4,7 +4,7 @@ class String {
   }
 
   str() -> string {
-    ret this.inner;
+    ret "'" + this.inner + "'";
   }
 }
 
@@ -115,9 +115,23 @@ class JsonObject {
   }
 }
 
+class JsonArray {
+  constructor() {
+    this.items = List();
+  }
+
+  add_item(item: JsonValue) -> JsonArray {
+    this.items.add(item);
+    ret this;
+  }
+
+  str() -> string {
+    ret "[" + this.items.str() + "]";
+  }
+}
+
 class JsonValue {
-  constructor(type_: int, inner: any) {
-    this.type = type_;
+  constructor(inner: any) {
     this.inner = inner;
   }
 
@@ -135,15 +149,25 @@ class JsonParser {
     let list = List();
     
     let obj = JsonObject()
-      .add_member(Member("name", JsonValue(JSON_STRING, String("Reagan"))))
-      .add_member(Member("age", JsonValue(JSON_NUMBER, Number(22))));
-    list.add(JsonValue(JSON_OBJECT, obj));
+      .add_member(Member("name", JsonValue(String("Reagan"))))
+      .add_member(Member("age", JsonValue(Number(22))))
+      .add_member(Member("friends", JsonValue(
+        JsonArray()
+        .add_item(
+          JsonValue(
+            JsonObject()
+              .add_member(Member("name", JsonValue(String("Graham"))))
+              .add_member(Member("age", JsonValue(Number(15))))
+          )
+        )
+      )));
+    list.add(JsonValue(obj));
     //list.add(JsonValue());
     
     print(list.str());
   }
 }
 
-// { name: "Reagan", age: 22 }
+// { name: "Reagan", age: 22, friends [ { name: "Graham", age: 15 } ] }
 let parser = JsonParser("123");
 parser.parse();
