@@ -302,7 +302,7 @@ impl Parser {
             } else {
                 // If the body has no return statement, make sure there is no return type
                 // annotation on the function
-                if return_ty.ty != Type::Null {
+                if ! matches!(return_ty.ty, Type::Any | Type::Null) {
                     return Err(ParseError::FunctionHasIncompatibleReturnType(
                         self.source.id,
                         return_ty.span.into(),
