@@ -10,7 +10,7 @@ use ast::{
     expr::{Expr, Expression},
     op::Operator,
     stmt::{Statement, Stmt},
-    ty::Type,
+    ty::{Type, TypeExpression},
 };
 pub use builtin::*;
 pub use class::*;
@@ -385,7 +385,10 @@ impl Value {
             Val::Function(func) => Ok(func.clone()),
             _ => Err(RuntimeError::UnexpectedValueType(
                 self.span.source_id,
-                Type::Instance(String::from("any")),
+                Type::Function {
+                    params: vec![TypeExpression::any()],
+                    returns: Box::new(TypeExpression::any()),
+                },
                 format!("{}", self.val),
                 self.span.into(),
             )),

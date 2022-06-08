@@ -28,6 +28,15 @@ pub struct TypeExpression {
     pub span: Span,
 }
 
+impl TypeExpression {
+    pub fn any() -> Self {
+        Self {
+            ty: Type::Any,
+            span: Span::garbage()
+        }
+    }
+}
+
 impl From<Binding> for TypeExpression {
     fn from(binding: Binding) -> Self {
         Self {
