@@ -89,7 +89,7 @@ pub enum ParseError {
         code(nak::uncallable_expr),
         help("Only classes and functions are callable")
     )]
-    UncallableExpression(SourceId, #[label("This is uncallable")] SourceSpan),
+    UncallableExpression(SourceId, #[label("'{2}' is uncallable")] SourceSpan, Type),
 
     #[error("Only instances have properties")]
     #[diagnostic(code(nak::only_instances_have_properties))]

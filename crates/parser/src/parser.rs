@@ -36,13 +36,13 @@ impl Parser {
         let err = Err(ParseError::UncallableExpression(
             self.source.id,
             callee.span.into(),
+            callee.ty.clone()
         ));
 
         match &callee.expr {
             Expr::Variable(name) => {
                 if let Some(entry) = self.symtab.lookup(name) {
-                    if matches!(entry.ty, Type::Any)
-                        || matches!(entry.sym, Sym::Function { .. } | Sym::Class { .. })
+                    if matches!(entry.ty, Type::Any | Type::Function { .. } | Type::Class(..))
                     {
                         return Ok(());
                     }
@@ -852,6 +852,7 @@ impl Parser {
             TokenKind::TypeString => Type::String,
             TokenKind::Null => Type::Null,
             TokenKind::TypeAny => Type::Any,
+            TokenKind::Ident => Type::Instance(token.text.clone()),
             _ => return Err(ParseError::UnknownType(self.source.id, span.into())),
         };
 
