@@ -36,14 +36,16 @@ impl Parser {
         let err = Err(ParseError::UncallableExpression(
             self.source.id,
             callee.span.into(),
-            callee.ty.clone()
+            callee.ty.clone(),
         ));
 
         match &callee.expr {
             Expr::Variable(name) => {
                 if let Some(entry) = self.symtab.lookup(name) {
-                    if matches!(entry.ty, Type::Any | Type::Function { .. } | Type::Class(..))
-                    {
+                    if matches!(
+                        entry.ty,
+                        Type::Any | Type::Function { .. } | Type::Class(..)
+                    ) {
                         return Ok(());
                     }
                 }
@@ -302,7 +304,7 @@ impl Parser {
             } else {
                 // If the body has no return statement, make sure there is no return type
                 // annotation on the function
-                if ! matches!(return_ty.ty, Type::Any | Type::Null) {
+                if !matches!(return_ty.ty, Type::Any | Type::Null) {
                     return Err(ParseError::FunctionHasIncompatibleReturnType(
                         self.source.id,
                         return_ty.span.into(),
@@ -803,11 +805,11 @@ impl Parser {
 
         self.is_callable(&callee)?;
 
-        let mut ty = callee.ty.clone();
-        if let Type::Class(class_name) = ty {
-            // It's now an instance
-            ty = Type::Instance(class_name);
-        }
+        let ty = match &callee.ty {
+            Type::Class(class_name) => Type::Instance(class_name.to_string()),
+            Type::Function { returns, .. } => returns.ty.clone(),
+            _ => callee.ty.clone(),
+        };
 
         Ok(Expression {
             span: Span::combine(&[callee.span, paren]),
@@ -853,6 +855,36 @@ impl Parser {
             TokenKind::Null => Type::Null,
             TokenKind::TypeAny => Type::Any,
             TokenKind::Ident => Type::Instance(token.text.clone()),
+            TokenKind::LeftParen => {
+                // function type. Ex: (int, int) -> int
+                let mut params = Vec::new();
+                if !self.at(TokenKind::RightParen) {
+                    loop {
+                        let param = self.ty()?;
+                        params.push(param);
+
+                        if self.at(TokenKind::Comma) {
+                            self.bump()?;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                self.expect(TokenKind::RightParen)?;
+
+                // Function types must define return type
+                self.expect(TokenKind::Arrow)?;
+                let returns = self.ty()?;
+
+                return Ok(TypeExpression {
+                    span: Span::combine(&[span, returns.span]),
+                    ty: Type::Function {
+                        params,
+                        returns: Box::new(returns),
+                    },
+                });
+            }
             _ => return Err(ParseError::UnknownType(self.source.id, span.into())),
         };
 

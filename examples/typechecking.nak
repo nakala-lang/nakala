@@ -1,0 +1,24 @@
+class Bar {
+  foo() {
+    print("foo!");
+  }
+}
+
+func useBar(bar: Bar) {
+  print(bar);
+  bar.foo();
+}
+
+useBar(Bar());
+
+func myFunc(a: int, b: int) -> int {
+  ret a + b;
+}
+
+class Consumer {
+  consume(callee: (int, int) -> int, a: int, b: int) -> int {
+    ret callee(a,b);
+  }
+}
+
+print(Consumer().consume(myFunc, 1, 2));

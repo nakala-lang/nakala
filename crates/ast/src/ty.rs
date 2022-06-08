@@ -32,7 +32,7 @@ impl TypeExpression {
     pub fn any() -> Self {
         Self {
             ty: Type::Any,
-            span: Span::garbage()
+            span: Span::garbage(),
         }
     }
 }
@@ -60,7 +60,8 @@ impl std::fmt::Display for Type {
                 params
                     .into_iter()
                     .map(|p| format!("{}", p.ty))
-                    .collect::<String>(),
+                    .collect::<Vec<_>>()
+                    .join(", "),
                 format!("{}", returns.ty)
             ),
             Self::Null => String::from("null"),
