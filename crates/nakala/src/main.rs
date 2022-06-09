@@ -83,10 +83,12 @@ fn get_builtins() -> Vec<Builtin> {
     let mut builtins = vec![];
 
     // print
-    fn print(vals: Vec<Value>) -> Value {
+    fn print(vals: Vec<Value>, env: &mut Environment) -> Value {
         println!(
             "{}",
-            vals.first().expect("arity mismatch didn't catch builtin")
+            vals.first()
+                .expect("arity mismatch didn't catch builtin")
+                .to_string(env)
         );
 
         Value::null()
@@ -99,7 +101,7 @@ fn get_builtins() -> Vec<Builtin> {
     ));
 
     // exit
-    fn exit(vals: Vec<Value>) -> Value {
+    fn exit(vals: Vec<Value>, _: &mut Environment) -> Value {
         let code = vals
             .first()
             .expect("arity mismatch didn't catch builtin")
@@ -120,10 +122,10 @@ fn get_builtins() -> Vec<Builtin> {
     ));
 
     // str
-    fn str(vals: Vec<Value>) -> Value {
+    fn str(vals: Vec<Value>, env: &mut Environment) -> Value {
         let val = vals.first().expect("arity mismatch didn't catch builtin");
         Value {
-            val: Val::String(format!("{}", val)),
+            val: Val::String(format!("{}", val.to_string(env))),
             span: val.span,
             ty: Type::String,
         }
@@ -136,7 +138,7 @@ fn get_builtins() -> Vec<Builtin> {
     ));
 
     // type
-    fn type_(vals: Vec<Value>) -> Value {
+    fn type_(vals: Vec<Value>, _: &mut Environment) -> Value {
         let val = vals.first().expect("arity mismatch didn't catch builtin");
         Value {
             val: Val::String(format!("{}", val.ty)),
@@ -149,6 +151,21 @@ fn get_builtins() -> Vec<Builtin> {
         vec![Type::Any],
         Some(Type::String),
         type_,
+    ));
+
+    //len
+    fn len(vals: Vec<Value>, env: &mut Environment) -> Value {
+        let val = vals.first().expect("arity mismatch didn't catch builtin");
+        match val.val {
+            Val::List { id } => env.get_list(id).len(),
+            _ => todo!("len for {:?}", val),
+        }
+    }
+    builtins.push(Builtin::new(
+        String::from("len"),
+        vec![Type::Any],
+        Some(Type::Int),
+        len,
     ));
 
     builtins
