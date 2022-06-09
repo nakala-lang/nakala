@@ -1063,9 +1063,35 @@ impl Parser {
                 let mut exprs = vec![];
                 if !self.at(TokenKind::RightBracket) {
                     loop {
-                        exprs.push(self.expr()?);
+                        let expr = self.expr()?;
 
-                        if self.at(TokenKind::Comma) {
+                        // It's actually list shorthand expression
+                        if self.at(TokenKind::Semicolon) {
+                            self.bump()?;
+                            let count = self.expr()?;
+
+                            if !type_compatible(&count.ty, &Type::Int) {
+                                return Err(ParseError::ListShorthandCountMustBeInt(
+                                    count.span.source_id,
+                                    count.span.into(),
+                                ))
+                            }
+
+                            let end_span = self.expect(TokenKind::RightBracket)?.span;
+
+                            return Ok(Expression {
+                                ty: Type::List(Box::new(TypeExpression {
+                                    ty: expr.ty.clone(),
+                                    span: expr.span,
+                                })),
+                                expr: Expr::ListShorthand {
+                                    value: Box::new(expr),
+                                    count: Box::new(count),
+                                },
+                                span: Span::combine(&[start_span, end_span]),
+                            });
+                        } else if self.at(TokenKind::Comma) {
+                            exprs.push(self.expr()?);
                             self.bump()?;
                         } else {
                             break;

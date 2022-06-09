@@ -126,6 +126,13 @@ pub fn result_type(lhs: &Expression, op: &Operator, rhs: &Expression) -> Option<
             (Type::String, Type::String) => Some(Type::String),
             (Type::String, Type::Int) => Some(Type::String),
             (Type::Int, Type::String) => Some(Type::String),
+            (Type::List(lhs), Type::List(rhs)) => {
+                if type_compatible(&lhs.ty, &rhs.ty) {
+                    Some(Type::List(lhs.clone()))
+                } else {
+                    None
+                }
+            }
 
             (Type::Null, _) => None,
             (_, Type::Null) => None,

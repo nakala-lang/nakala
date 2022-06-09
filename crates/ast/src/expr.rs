@@ -53,6 +53,10 @@ pub enum Expr {
         rhs: Box<Expression>,
     },
     List(Vec<Expression>),
+    ListShorthand {
+        value: Box<Expression>,
+        count: Box<Expression>
+    },
     This,
 }
 

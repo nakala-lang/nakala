@@ -118,4 +118,11 @@ pub enum ParseError {
         SourceId,
         #[label("Cannot return from this scope")] SourceSpan,
     ),
+
+    #[error("List shorthand count must be of type int")]
+    #[diagnostic(code(nak::list_shorthand_count_must_be_int))]
+    ListShorthandCountMustBeInt(
+        SourceId,
+        #[label("This must be compatible with int")] SourceSpan
+    )
 }
