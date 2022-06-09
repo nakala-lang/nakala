@@ -1,0 +1,46 @@
+class Stack {
+  constructor() {
+    this.inner = [];
+  }
+
+  push(a: int) {
+    this.inner = this.inner + [a]; 
+  }
+
+  pop() -> int {
+    if len(this.inner) == 0 {
+      ret -1;
+    }
+    let item = this.inner[len(this.inner) - 1];
+    let copy = [0; len(this.inner) - 1];
+    let i = 0;
+    until i == len(copy) {
+      copy[i] = this.inner[i];
+      i = i + 1;
+    }
+    this.inner = copy;
+
+    ret item;
+  }
+
+  str() -> string {
+    ret this.inner;
+  }
+}
+
+let stack = Stack();
+
+let COUNT = 1000;
+let i = 0;
+until i == COUNT {
+  stack.push(i);
+  i = i + 1;
+}
+
+print(stack.str());
+until i == 0 {
+  stack.pop();
+  i = i - 1;
+}
+
+print(stack);
