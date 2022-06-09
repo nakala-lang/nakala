@@ -26,6 +26,7 @@ pub(crate) fn eval_expr(
         Expr::List(..) => eval_list_expr(expr, env, scope),
         Expr::IndexGet { .. } => eval_index_get_expr(expr, env, scope),
         Expr::IndexSet { .. } => eval_index_set_expr(expr, env, scope),
+        Expr::ListShorthand { .. } => eval_list_shorthand_expr(expr, env, scope),
         _ => todo!("{:#?} nyi", expr),
     }
 }
@@ -261,5 +262,22 @@ fn eval_index_set_expr(
         Ok(Value::null())
     } else {
         panic!("ICE: eval_index_set_expr should only be called with Expr::IndexSet");
+    }
+}
+
+fn eval_list_shorthand_expr(expr: Expression, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError> {
+    if let Expr::ListShorthand { value, count } = expr.expr {
+        let value = eval_expr(*value, env, scope)?;
+        let count = eval_expr(*count, env, scope)?.as_int()?;
+        
+        let mut vals: Vec<Value> = Vec::with_capacity(count.try_into().unwrap());
+        for _ in 0..count {
+            vals.push(value.clone());
+        }
+
+        
+        Ok(env.new_list(vals, value.ty.clone()))
+    } else {
+        panic!("ICE: eval_list_shorthand_expr should only be called with Expr::ListShorthand");
     }
 }
