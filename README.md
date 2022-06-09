@@ -24,16 +24,16 @@ Nakala only has two core values:
 
 - [x] Lexer
 - [x] Parser / AST
-- [ ] Type Checking
+- [x] Type Checking
   - [x] Basic types
-  - [ ] Advanced types
+  - [x] Advanced types (functions, classes)
   - [ ] Class inheritence
-- [ ] Interpreter
+- [x] Interpreter
 - [ ] Standard library
 - [ ] Playground website
 - [ ] Editor tooling
   - [x] [vim](https://github.com/nakala-lang/nakala.vim)
-- [ ] Compiler (maybe WASM?)
+- [ ] Compiler (maybe C++?)
 - [ ] Self hosted
 
 ### Contributing
