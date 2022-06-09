@@ -43,6 +43,15 @@ pub enum Expr {
         name: Spanned<String>,
         rhs: Box<Expression>,
     },
+    IndexGet {
+        lhs: Box<Expression>,
+        index: Box<Expression>
+    },
+    IndexSet {
+        lhs: Box<Expression>,
+        index: Box<Expression>,
+        rhs: Box<Expression>
+    },
     List(Vec<Expression>),
     This,
 }

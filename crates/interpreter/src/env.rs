@@ -1,13 +1,14 @@
-use ast::ty::{Type, TypeExpression};
+use ast::ty::Type;
 use meta::{trace, Span, Spanned};
 
 use crate::{
     error::RuntimeError,
-    value::{self, Builtin, Instance, InstanceId, Val, Value},
+    value::{self, Builtin, Instance, InstanceId, List, Val, Value},
 };
 use std::collections::{hash_map::Entry, HashMap};
 
 pub type ScopeId = usize;
+pub type ListId = usize;
 
 #[derive(Clone, PartialEq, Default)]
 pub struct Environment {
@@ -15,6 +16,8 @@ pub struct Environment {
     next_scope_id: ScopeId,
     instances: Vec<Instance>,
     next_instance_id: InstanceId,
+    lists: Vec<List>,
+    next_list_id: ListId,
 }
 
 impl Environment {
@@ -24,6 +27,8 @@ impl Environment {
             next_scope_id: 1,
             instances: vec![],
             next_instance_id: 0,
+            lists: vec![],
+            next_list_id: 0,
         };
 
         env.define_builtins(builtins)?;
@@ -67,6 +72,26 @@ impl Environment {
             .instances
             .get_mut(instance_id)
             .expect("ICE: Called get instance on instance that doesn't exist"))
+    }
+
+    pub fn new_list(&mut self, vals: Vec<Value>, ty: Type) -> Value {
+        let id = self.next_list_id;
+        self.next_list_id += 1;
+
+        self.lists.push(List::new(id, vals));
+
+        Value {
+            ty,
+            span: Span::garbage(),
+            val: Val::List { id },
+        }
+    }
+
+    pub fn get_list(&mut self, list_id: ListId) -> &mut List {
+        self
+            .lists
+            .get_mut(list_id)
+            .expect("ICE: Called get_list on list that doesn't exist")
     }
 
     pub fn begin_scope(&mut self, enclosing: ScopeId) -> ScopeId {

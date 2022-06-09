@@ -3,6 +3,7 @@ mod class;
 mod function;
 mod instance;
 mod val;
+mod list;
 
 use std::{cmp::Ordering, collections::HashMap};
 
@@ -16,6 +17,7 @@ pub use builtin::*;
 pub use class::*;
 pub use function::*;
 pub use instance::*;
+pub use list::*;
 use meta::Span;
 pub use val::*;
 
@@ -35,17 +37,16 @@ pub trait Callable {
     ) -> Result<Value, RuntimeError>;
 }
 
+pub trait Indexible {
+    fn get(&self, index: usize) -> Result<Value, RuntimeError>;
+    fn set(&mut self, index: usize, val: Value) -> Result<(), RuntimeError>;
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Value {
     pub val: Val,
     pub span: Span,
     pub ty: Type,
-}
-
-impl std::fmt::Display for Value {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(format!("{}", self.val).as_str())
-    }
 }
 
 impl From<Expression> for Value {
@@ -412,5 +413,9 @@ impl Value {
         } else {
             panic!("Can only use 'bind_this' on Val::Function");
         }
+    }
+
+    pub fn to_string(&self, env: &mut Environment) -> String {
+        self.val.to_string(env)
     }
 }

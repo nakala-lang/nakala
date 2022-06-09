@@ -1,0 +1,21 @@
+class Mapper {
+  constructor(f: (int) -> any) {
+    this.f = f;
+  }
+
+  map(vals: [int]) -> [any] {
+    let i = 0;
+    until i == len(vals) {
+      vals[i] = this.f(vals[i]);
+      i = i + 1;
+    }
+
+    ret vals;
+  }
+}
+
+let arr = [1,2,3,4,5];
+func add5(x: int) -> string {
+  ret x + 5;
+}
+print(Mapper(add5).map(arr));

@@ -1,7 +1,7 @@
 use crate::{
     env::{Environment, ScopeId},
     error::RuntimeError,
-    value::{Callable, Val, Value},
+    value::{Callable, Indexible, Val, Value},
 };
 use ast::{expr::*, op::Op};
 use meta::{Span, Spanned};
@@ -24,6 +24,8 @@ pub(crate) fn eval_expr(
         Expr::Set { .. } => eval_set_expr(expr, env, scope),
         Expr::This => eval_this_expr(expr, env, scope),
         Expr::List(..) => eval_list_expr(expr, env, scope),
+        Expr::IndexGet { .. } => eval_index_get_expr(expr, env, scope),
+        Expr::IndexSet { .. } => eval_index_set_expr(expr, env, scope),
         _ => todo!("{:#?} nyi", expr),
     }
 }
@@ -218,5 +220,46 @@ fn eval_list_expr(
         Ok(env.new_list(vals, expr.ty.clone()))
     } else {
         panic!("ICE: eval_list_expr should only be called with Expr::List");
+    }
+}
+
+fn eval_index_get_expr(
+    expr: Expression,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<Value, RuntimeError> {
+    if let Expr::IndexGet { lhs, index } = expr.expr {
+        let lhs = eval_expr(*lhs, env, scope)?;
+        let index = eval_expr(*index, env, scope)?;
+
+        match lhs.val {
+            Val::List { id } => env.get_list(id).get(index.as_int()?.try_into().unwrap()),
+            _ => panic!("ICE: can only index Lists"),
+        }
+    } else {
+        panic!("ICE: eval_index_get_expr should only be called with Expr::Index");
+    }
+}
+
+fn eval_index_set_expr(
+    expr: Expression,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<Value, RuntimeError> {
+    if let Expr::IndexSet { lhs, index, rhs } = expr.expr {
+        let lhs = eval_expr(*lhs, env, scope)?;
+        let index = eval_expr(*index, env, scope)?;
+        let rhs = eval_expr(*rhs, env, scope)?;
+
+        let lhs = match lhs.val {
+            Val::List { id } => env.get_list(id),
+            _ => panic!("ICE: can only index Lists"),
+        };
+
+        lhs.set(index.as_int()?.try_into().unwrap(), rhs)?;
+
+        Ok(Value::null())
+    } else {
+        panic!("ICE: eval_index_set_expr should only be called with Expr::IndexSet");
     }
 }

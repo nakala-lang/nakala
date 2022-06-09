@@ -555,6 +555,15 @@ impl Parser {
                     },
                     ty: Type::Null,
                 }),
+                Expr::IndexGet { lhs, index } => Ok(Expression {
+                    span: Span::combine(&[expr.span, rhs.span]),
+                    expr: Expr::IndexSet {
+                        lhs,
+                        index,
+                        rhs: Box::new(rhs)
+                    },
+                    ty: Type::Null
+                }),
                 _ => Err(ParseError::InvalidAssignmentTarget(
                     error_source,
                     eq_span.into(),
