@@ -1,5 +1,5 @@
 use ast::ty::Type;
-use interpreter::{Builtin, Val, Value, env::Environment, error::RuntimeError, interpret};
+use interpreter::{env::Environment, error::RuntimeError, interpret, Builtin, Val, Value};
 use miette::Result;
 use parser::{parse, source::Source, SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};

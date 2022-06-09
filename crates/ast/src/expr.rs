@@ -55,7 +55,7 @@ pub enum Expr {
     List(Vec<Expression>),
     ListShorthand {
         value: Box<Expression>,
-        count: Box<Expression>
+        count: Box<Expression>,
     },
     This,
 }

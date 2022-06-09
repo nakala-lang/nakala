@@ -131,7 +131,12 @@ impl Value {
         }
     }
 
-    pub fn add(&self, env: &mut Environment, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+    pub fn add(
+        &self,
+        env: &mut Environment,
+        op: Operator,
+        rhs: &Value,
+    ) -> Result<Value, RuntimeError> {
         let span = Span::combine(&[self.span, rhs.span]);
 
         match (&self.val, &rhs.val) {

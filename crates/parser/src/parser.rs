@@ -1074,7 +1074,7 @@ impl Parser {
                                 return Err(ParseError::ListShorthandCountMustBeInt(
                                     count.span.source_id,
                                     count.span.into(),
-                                ))
+                                ));
                             }
 
                             let end_span = self.expect(TokenKind::RightBracket)?.span;

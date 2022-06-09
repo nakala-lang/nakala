@@ -265,17 +265,20 @@ fn eval_index_set_expr(
     }
 }
 
-fn eval_list_shorthand_expr(expr: Expression, env: &mut Environment, scope: ScopeId) -> Result<Value, RuntimeError> {
+fn eval_list_shorthand_expr(
+    expr: Expression,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<Value, RuntimeError> {
     if let Expr::ListShorthand { value, count } = expr.expr {
         let value = eval_expr(*value, env, scope)?;
         let count = eval_expr(*count, env, scope)?.as_int()?;
-        
+
         let mut vals: Vec<Value> = Vec::with_capacity(count.try_into().unwrap());
         for _ in 0..count {
             vals.push(value.clone());
         }
 
-        
         Ok(env.new_list(vals, value.ty.clone()))
     } else {
         panic!("ICE: eval_list_shorthand_expr should only be called with Expr::ListShorthand");

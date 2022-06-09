@@ -123,6 +123,6 @@ pub enum ParseError {
     #[diagnostic(code(nak::list_shorthand_count_must_be_int))]
     ListShorthandCountMustBeInt(
         SourceId,
-        #[label("This must be compatible with int")] SourceSpan
-    )
+        #[label("This must be compatible with int")] SourceSpan,
+    ),
 }
