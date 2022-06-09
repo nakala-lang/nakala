@@ -1090,11 +1090,13 @@ impl Parser {
                                 },
                                 span: Span::combine(&[start_span, end_span]),
                             });
-                        } else if self.at(TokenKind::Comma) {
-                            exprs.push(self.expr()?);
-                            self.bump()?;
                         } else {
-                            break;
+                            exprs.push(expr);
+                            if self.at(TokenKind::Comma) {
+                                self.bump()?;
+                            } else {
+                                break;
+                            }
                         }
                     }
                 }
