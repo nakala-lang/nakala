@@ -77,6 +77,35 @@ pub fn type_compatible(lhs: &Type, rhs: &Type) -> bool {
         (Type::Int, Type::Float) => true,
         (Type::Float, Type::Int) => true,
         (Type::Null, _) => true,
+        (
+            Type::Function {
+                params: lhs_params,
+                returns: lhs_returns,
+            },
+            Type::Function {
+                params: rhs_params,
+                returns: rhs_returns,
+            },
+        ) => {
+            if lhs_params.len() != rhs_params.len() {
+                return false;
+            }
+
+            // params
+            for (lhs, rhs) in lhs_params.into_iter().zip(rhs_params.into_iter()) {
+                if !type_compatible(&lhs.ty, &rhs.ty) {
+                    return false;
+                }
+            }
+
+            // return type
+            if !type_compatible(&lhs_returns.ty, &rhs_returns.ty) {
+                return false;
+            }
+
+            true
+        }
+
         (Type::Any, _) => true,
         (_, Type::Any) => true,
 
