@@ -296,9 +296,18 @@ impl Parser {
                                 .symtab
                                 .lookup_mut(&name)
                                 .expect("ICE: couldn't find func symbol to update ret type");
-                            sym.ty = ret_expr.ty.clone();
+                            if let Type::Function { params, returns } = sym.ty.clone() {
+                                sym.ty = Type::Function {
+                                    params,
+                                    returns: Box::new(TypeExpression {
+                                        span: returns.span,
+                                        ty: return_ty.ty.clone()
+                                    })
+                                };
+                            } else {
+                                panic!("ICE: function type in symtab is not Type::Function");
+                            }
                         }
-                        return_ty.ty = ret_expr.ty.clone();
                     }
                 }
             } else {
