@@ -35,6 +35,10 @@ impl List {
             ty: Type::Int,
         }
     }
+
+    pub fn extend_with(&mut self, other: Self) {
+        self.values.extend(other.values);
+    }
 }
 
 impl Indexible for List {

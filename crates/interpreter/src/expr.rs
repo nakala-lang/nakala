@@ -94,7 +94,7 @@ fn eval_binary_expr(
         let rhs = eval_expr(*rhs, env, scope)?;
 
         match op.op {
-            Op::Add => lhs.add(op, &rhs),
+            Op::Add => lhs.add(env, op, &rhs),
             Op::Sub => lhs.sub(op, &rhs),
             Op::Mul => lhs.mul(op, &rhs),
             Op::Div => lhs.div(op, &rhs),

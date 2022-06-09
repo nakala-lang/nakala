@@ -131,7 +131,7 @@ impl Value {
         }
     }
 
-    pub fn add(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+    pub fn add(&self, env: &mut Environment, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
         let span = Span::combine(&[self.span, rhs.span]);
 
         match (&self.val, &rhs.val) {
@@ -155,6 +155,16 @@ impl Value {
                 span,
                 ty: Type::String,
             }),
+            (Val::List { id: lhs_id }, Val::List { id: rhs_id }) => {
+                // TODO shouldn't have to clone entire env every time
+                let mut cloned_env = env.clone();
+
+                let lhs = env.get_list(*lhs_id);
+                let rhs = cloned_env.get_list(*rhs_id);
+
+                lhs.extend_with(rhs.clone());
+                Ok(self.clone())
+            }
             _ => Err(RuntimeError::UnsupportedOperation(
                 self.span.source_id,
                 op.span.into(),
