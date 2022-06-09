@@ -41,7 +41,6 @@ impl Callable for Function {
 
         let params = &self.func.params;
         for (param, arg) in params.iter().zip(args.into_iter()) {
-
             // TODO try to move this to the parser
             if !type_compatible(&param.ty, &arg.ty) {
                 return Err(RuntimeError::IncompatibleTypes(
@@ -49,7 +48,7 @@ impl Callable for Function {
                     param.name.span.into(),
                     param.ty.clone(),
                     arg.span.into(),
-                    arg.ty.clone()
+                    arg.ty.clone(),
                 ));
             }
             let val = eval_expr(arg, env, scope)?;

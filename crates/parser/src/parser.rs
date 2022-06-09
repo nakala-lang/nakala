@@ -301,8 +301,8 @@ impl Parser {
                                     params,
                                     returns: Box::new(TypeExpression {
                                         span: returns.span,
-                                        ty: return_ty.ty.clone()
-                                    })
+                                        ty: return_ty.ty.clone(),
+                                    }),
                                 };
                             } else {
                                 panic!("ICE: function type in symtab is not Type::Function");
@@ -560,9 +560,9 @@ impl Parser {
                     expr: Expr::IndexSet {
                         lhs,
                         index,
-                        rhs: Box::new(rhs)
+                        rhs: Box::new(rhs),
                     },
-                    ty: Type::Null
+                    ty: Type::Null,
                 }),
                 _ => Err(ParseError::InvalidAssignmentTarget(
                     error_source,
@@ -775,8 +775,8 @@ impl Parser {
                 ty: Type::Any,
                 expr: Expr::IndexGet {
                     lhs: Box::new(expr),
-                    index: Box::new(index_expr)
-                }
+                    index: Box::new(index_expr),
+                },
             }
         }
 

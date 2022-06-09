@@ -88,8 +88,7 @@ impl Environment {
     }
 
     pub fn get_list(&mut self, list_id: ListId) -> &mut List {
-        self
-            .lists
+        self.lists
             .get_mut(list_id)
             .expect("ICE: Called get_list on list that doesn't exist")
     }

@@ -2,8 +2,8 @@ mod builtin;
 mod class;
 mod function;
 mod instance;
-mod val;
 mod list;
+mod val;
 
 use std::{cmp::Ordering, collections::HashMap};
 

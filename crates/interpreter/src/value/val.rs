@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 
-
 use crate::env::Environment;
 
 use super::{builtin::Builtin, class::Class, Function, InstanceId, ListId};
@@ -98,7 +97,7 @@ impl PartialEq for Val {
 
 impl std::fmt::Display for Val {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-       let msg = match self {
+        let msg = match self {
             Self::Bool(v) => v.to_string(),
             Self::Int(v) => v.to_string(),
             Self::Float(v) => v.to_string(),
@@ -113,13 +112,12 @@ impl std::fmt::Display for Val {
             Self::Instance { id, name } => format!("{} instance (id {})", name.clone(), id),
         };
 
-       f.write_str(msg.as_str())
+        f.write_str(msg.as_str())
     }
 }
 
 impl Val {
     pub fn to_string(&self, env: &mut Environment) -> String {
-        
         match self {
             Self::Bool(v) => v.to_string(),
             Self::Int(v) => v.to_string(),
@@ -129,7 +127,7 @@ impl Val {
                 let mut cloned_env = env.clone();
                 let list = cloned_env.get_list(*id);
                 list.to_string(env)
-            },
+            }
             Self::Null => String::from("null"),
             Self::Function(func) => {
                 format!("{} (closure {})", func.func.name.item.clone(), func.closure)
