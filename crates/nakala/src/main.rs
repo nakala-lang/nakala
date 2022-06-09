@@ -1,5 +1,5 @@
 use ast::ty::Type;
-use interpreter::{env::Environment, interpret, Builtin, Val, Value};
+use interpreter::{Builtin, Val, Value, env::Environment, error::RuntimeError, interpret};
 use miette::Result;
 use parser::{parse, source::Source, SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};
@@ -83,7 +83,7 @@ fn get_builtins() -> Vec<Builtin> {
     let mut builtins = vec![];
 
     // print
-    fn print(vals: Vec<Value>, env: &mut Environment) -> Value {
+    fn print(vals: Vec<Value>, env: &mut Environment) -> Result<Value, RuntimeError> {
         println!(
             "{}",
             vals.first()
@@ -91,7 +91,7 @@ fn get_builtins() -> Vec<Builtin> {
                 .to_string(env)
         );
 
-        Value::null()
+        Ok(Value::null())
     }
     builtins.push(Builtin::new(
         String::from("print"),
@@ -101,7 +101,7 @@ fn get_builtins() -> Vec<Builtin> {
     ));
 
     // exit
-    fn exit(vals: Vec<Value>, _: &mut Environment) -> Value {
+    fn exit(vals: Vec<Value>, _: &mut Environment) -> Result<Value, RuntimeError> {
         let code = vals
             .first()
             .expect("arity mismatch didn't catch builtin")
@@ -122,13 +122,13 @@ fn get_builtins() -> Vec<Builtin> {
     ));
 
     // str
-    fn str(vals: Vec<Value>, env: &mut Environment) -> Value {
+    fn str(vals: Vec<Value>, env: &mut Environment) -> Result<Value, RuntimeError> {
         let val = vals.first().expect("arity mismatch didn't catch builtin");
-        Value {
+        Ok(Value {
             val: Val::String(format!("{}", val.to_string(env))),
             span: val.span,
             ty: Type::String,
-        }
+        })
     }
     builtins.push(Builtin::new(
         String::from("str"),
@@ -138,13 +138,13 @@ fn get_builtins() -> Vec<Builtin> {
     ));
 
     // type
-    fn type_(vals: Vec<Value>, _: &mut Environment) -> Value {
+    fn type_(vals: Vec<Value>, _: &mut Environment) -> Result<Value, RuntimeError> {
         let val = vals.first().expect("arity mismatch didn't catch builtin");
-        Value {
+        Ok(Value {
             val: Val::String(format!("{}", val.ty)),
             ty: Type::String,
             span: val.span,
-        }
+        })
     }
     builtins.push(Builtin::new(
         String::from("type"),
@@ -154,11 +154,11 @@ fn get_builtins() -> Vec<Builtin> {
     ));
 
     //len
-    fn len(vals: Vec<Value>, env: &mut Environment) -> Value {
+    fn len(vals: Vec<Value>, env: &mut Environment) -> Result<Value, RuntimeError> {
         let val = vals.first().expect("arity mismatch didn't catch builtin");
         match val.val {
-            Val::List { id } => env.get_list(id).len(),
-            _ => todo!("len for {:?}", val),
+            Val::List { id } => Ok(env.get_list(id).len()),
+            _ => todo!(""),
         }
     }
     builtins.push(Builtin::new(

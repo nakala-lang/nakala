@@ -17,7 +17,7 @@ use super::{Callable, Value};
 pub struct Builtin {
     pub name: String,
     pub ty: Type,
-    pub handler: fn(Vec<Value>, &mut Environment) -> Value,
+    pub handler: fn(Vec<Value>, &mut Environment) -> Result<Value, RuntimeError>,
 }
 
 impl Builtin {
@@ -25,7 +25,7 @@ impl Builtin {
         name: String,
         params: Vec<Type>,
         returns: Option<Type>,
-        handler: fn(Vec<Value>, &mut Environment) -> Value,
+        handler: fn(Vec<Value>, &mut Environment) -> Result<Value, RuntimeError>,
     ) -> Self {
         Self {
             name,
@@ -118,7 +118,7 @@ impl Callable for Builtin {
                 vals.push(eval_expr(arg, env, scope)?);
             }
 
-            let mut val = (self.handler)(vals, env);
+            let mut val = (self.handler)(vals, env)?;
             val.span = Span::combine(&[callee_span, val.span]);
             Ok(val)
         } else {
