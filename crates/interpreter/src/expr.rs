@@ -23,6 +23,7 @@ pub(crate) fn eval_expr(
         Expr::Get { .. } => eval_get_expr(expr, env, scope),
         Expr::Set { .. } => eval_set_expr(expr, env, scope),
         Expr::This => eval_this_expr(expr, env, scope),
+        Expr::List(..) => eval_list_expr(expr, env, scope),
         _ => todo!("{:#?} nyi", expr),
     }
 }
@@ -200,5 +201,22 @@ fn eval_this_expr(
         env.get(scope, &t)
     } else {
         panic!("ICE: eval_this_expr should only be called with Expr::This");
+    }
+}
+
+fn eval_list_expr(
+    expr: Expression,
+    env: &mut Environment,
+    scope: ScopeId,
+) -> Result<Value, RuntimeError> {
+    if let Expr::List(list) = expr.expr {
+        let mut vals = vec![];
+        for val in list.into_iter() {
+            vals.push(eval_expr(val, env, scope)?);
+        }
+
+        Ok(env.new_list(vals, expr.ty.clone()))
+    } else {
+        panic!("ICE: eval_list_expr should only be called with Expr::List");
     }
 }

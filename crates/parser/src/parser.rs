@@ -747,8 +747,31 @@ impl Parser {
                 },
             })
         } else {
-            self.call()
+            self.index()
         }
+    }
+
+    fn index(&mut self) -> Result<Expression, ParseError> {
+        trace!("parse_index");
+        let mut expr = self.call()?;
+        if self.at(TokenKind::LeftBracket) {
+            self.bump()?;
+            let index_expr = self.expr()?;
+            let end_span = self.expect(TokenKind::RightBracket)?.span;
+
+            // TODO type checking for indices
+
+            expr = Expression {
+                span: Span::combine(&[expr.span, end_span]),
+                ty: Type::Any,
+                expr: Expr::IndexGet {
+                    lhs: Box::new(expr),
+                    index: Box::new(index_expr)
+                }
+            }
+        }
+
+        Ok(expr)
     }
 
     fn call(&mut self) -> Result<Expression, ParseError> {
@@ -891,6 +914,15 @@ impl Parser {
             TokenKind::Null => Type::Null,
             TokenKind::TypeAny => Type::Any,
             TokenKind::Ident => Type::Instance(token.text.clone()),
+            TokenKind::LeftBracket => {
+                // array types. Ex: [int]
+                let list_ty = self.ty()?;
+                let end_span = self.expect(TokenKind::RightBracket)?.span;
+                return Ok(TypeExpression {
+                    ty: Type::List(Box::new(list_ty)),
+                    span: Span::combine(&[span, end_span]),
+                });
+            }
             TokenKind::LeftParen => {
                 // function type. Ex: (int, int) -> int
                 let mut params = Vec::new();
@@ -1014,6 +1046,51 @@ impl Parser {
                     expr: Expr::String(token_text),
                     span: token.span,
                     ty: Type::String,
+                })
+            }
+            TokenKind::LeftBracket => {
+                let start_span = token.span;
+
+                let mut exprs = vec![];
+                if !self.at(TokenKind::RightBracket) {
+                    loop {
+                        exprs.push(self.expr()?);
+
+                        if self.at(TokenKind::Comma) {
+                            self.bump()?;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                let end_span = self.expect(TokenKind::RightBracket)?.span;
+
+                // We do type checking on the array after creating it because we need the span of
+                // the entire array for error messages
+                let mut list_ty = TypeExpression {
+                    ty: Type::Any,
+                    span: Span::combine(&[start_span, end_span]),
+                };
+                for expr in &exprs {
+                    if !type_compatible(&list_ty.ty, &expr.ty) {
+                        return Err(ParseError::IncompatibleTypes(
+                            expr.span.source_id,
+                            list_ty.span.into(),
+                            list_ty.ty,
+                            expr.span.into(),
+                            expr.ty.clone(),
+                        ));
+                    } else {
+                        // coerce list type
+                        list_ty.ty = expr.ty.clone();
+                    }
+                }
+
+                Ok(Expression {
+                    expr: Expr::List(exprs),
+                    span: Span::combine(&[start_span, end_span]),
+                    ty: Type::List(Box::new(list_ty)),
                 })
             }
             _ => Err(ParseError::ExpectedExpression(

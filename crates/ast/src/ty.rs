@@ -12,6 +12,7 @@ pub enum Type {
     Float,
     Bool,
     String,
+    List(Box<TypeExpression>),
     Class(String),
     Instance(String),
     Function {
@@ -53,6 +54,7 @@ impl std::fmt::Display for Type {
             Self::Float => String::from("float"),
             Self::Bool => String::from("bool"),
             Self::String => String::from("string"),
+            Self::List(ty) => format!("[{}]", ty.ty),
             Self::Class(name) => name.clone(),
             Self::Instance(name) => format!("instanceof {name}"),
             Self::Function { params, returns } => format!(
@@ -77,6 +79,7 @@ pub fn type_compatible(lhs: &Type, rhs: &Type) -> bool {
         (Type::Int, Type::Float) => true,
         (Type::Float, Type::Int) => true,
         (Type::Null, _) => true,
+        (Type::List(lhs), Type::List(rhs)) => type_compatible(&lhs.ty, &rhs.ty),
         (
             Type::Function {
                 params: lhs_params,
