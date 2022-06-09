@@ -15,7 +15,7 @@ class Mapper {
 }
 
 let arr = [1,2,3,4,5];
-func add5(x: int) -> string {
+func add5(x: int) -> int {
   ret x + 5;
 }
 print(Mapper(add5).map(arr));
