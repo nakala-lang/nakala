@@ -97,6 +97,8 @@ pub enum TokenKind {
     Until,
     #[token("static")]
     Static,
+    #[token("enum")]
+    Enum,
 
     // Types
     #[token("int")]
@@ -174,6 +176,7 @@ impl fmt::Display for TokenKind {
             Self::Let => "let",
             Self::Until => "until",
             Self::Static => "static",
+            Self::Enum => "enum",
 
             // Types
             Self::TypeInt => "int",
@@ -476,5 +479,15 @@ mod tests {
     #[test]
     fn lex_arrow() {
         check("->", TokenKind::Arrow);
+    }
+
+    #[test]
+    fn lex_static() {
+        check("static", TokenKind::Static);
+    }
+
+    #[test]
+    fn lex_enum() {
+        check("enum", TokenKind::Enum);
     }
 }
