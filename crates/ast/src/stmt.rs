@@ -35,6 +35,7 @@ pub struct Function {
 pub struct Class {
     pub name: Spanned<String>,
     pub methods: Vec<Statement>,
+    pub statics: Vec<Statement>
 }
 
 #[derive(Debug, Clone, PartialEq)]
