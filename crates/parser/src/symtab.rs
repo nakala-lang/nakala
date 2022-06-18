@@ -11,8 +11,13 @@ pub struct Symbol {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Sym {
     Variable,
-    Function { arity: usize },
-    Class { methods: HashMap<String, Symbol>, statics: HashMap<String, Symbol> },
+    Function {
+        arity: usize,
+    },
+    Class {
+        methods: HashMap<String, Symbol>,
+        statics: HashMap<String, Symbol>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]

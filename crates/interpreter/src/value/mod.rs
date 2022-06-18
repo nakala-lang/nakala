@@ -21,7 +21,12 @@ pub use list::*;
 use meta::Span;
 pub use val::*;
 
-use crate::{env::{Environment, ScopeId}, error::RuntimeError, eval_variable, expr::eval_expr};
+use crate::{
+    env::{Environment, ScopeId},
+    error::RuntimeError,
+    eval_variable,
+    expr::eval_expr,
+};
 
 pub trait Callable {
     fn arity(&self) -> usize;

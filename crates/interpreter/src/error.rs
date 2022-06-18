@@ -58,7 +58,7 @@ pub enum RuntimeError {
     UndefinedStaticClassProperty(
         SourceId,
         #[label("This class doesn't have any static properties named {2}")] SourceSpan,
-        String
+        String,
     ),
 
     #[error("Incompatible types")]
