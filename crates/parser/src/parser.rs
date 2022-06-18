@@ -133,9 +133,86 @@ impl Parser {
             self.func_decl(false)
         } else if self.at(TokenKind::Let) {
             self.var_decl()
+        } else if self.at(TokenKind::Enum) {
+            self.enum_decl()
         } else {
             self.stmt()
         }
+    }
+
+    // Enums are just syntactical sugar for static classes
+    fn enum_decl(&mut self) -> Result<Statement, ParseError> {
+        trace!("parse_enum_decl");
+        let enum_token_span = self.expect(TokenKind::Enum)?.span;
+        let name_token = self.expect(TokenKind::Ident)?;
+
+        let name = name_token.text.to_string();
+        let name_span = name_token.span;
+
+        self.expect(TokenKind::LeftBrace)?;
+
+        let mut statics = Vec::new();
+        let mut static_symbols = HashMap::default();
+
+        if !self.at(TokenKind::RightBrace) {
+            loop {
+                let enum_kind = self.expect(TokenKind::Ident)?;
+                let stmt = Statement {
+                    stmt: Stmt::Variable {
+                        name: Binding {
+                            name: enum_kind.into(),
+                            ty: Type::Int,
+                        },
+                        expr: Some(Expression {
+                            expr: Expr::Int(statics.len() as i64),
+                            span: Span::garbage(),
+                            ty: Type::Int,
+                        }),
+                    },
+                    span: enum_kind.span,
+                };
+
+                static_symbols.insert(
+                    enum_kind.text.clone().into(),
+                    Symbol {
+                        sym: Sym::Variable,
+                        name: enum_kind.text.clone().into(),
+                        ty: Type::Int,
+                    },
+                );
+
+                statics.push(stmt);
+
+                if self.at(TokenKind::Comma) {
+                    self.bump()?;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        self.symtab.insert(Symbol {
+            name: name.clone(),
+            ty: Type::Class(name.clone()),
+            sym: Sym::Class {
+                methods: HashMap::default(),
+                statics: static_symbols,
+            },
+        });
+
+        let right_brace = self.expect(TokenKind::RightBrace)?;
+
+        Ok(Statement {
+            span: Span::combine(&[enum_token_span, right_brace.span]),
+            stmt: Stmt::Class(Class {
+                name: Spanned {
+                    item: name,
+                    span: name_span,
+                },
+                methods: vec![],
+                statics,
+            }),
+        })
     }
 
     fn class_decl(&mut self) -> Result<Statement, ParseError> {
@@ -152,7 +229,7 @@ impl Parser {
         let mut method_symbols = HashMap::default();
 
         let mut statics = Vec::new();
-        let mut static_symbols: HashMap<String, Symbol> = HashMap::default();
+        let mut static_symbols = HashMap::default();
 
         while !self.source.at_end() && !self.at(TokenKind::RightBrace) {
             if self.at(TokenKind::Static) {
@@ -348,7 +425,7 @@ impl Parser {
                                     params,
                                     returns: Box::new(TypeExpression {
                                         span: returns.span,
-                                        ty: return_ty.ty
+                                        ty: return_ty.ty,
                                     }),
                                 };
                             } else {
