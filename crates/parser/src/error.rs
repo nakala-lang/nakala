@@ -93,7 +93,7 @@ pub enum ParseError {
 
     #[error("Only instances have properties")]
     #[diagnostic(code(nak::only_instances_have_properties))]
-    OnlyInstancesHaveProperties(
+    OnlyInstancesAndClassesHaveProperties(
         SourceId,
         #[label("Expected instance type, but got {2} instead")] SourceSpan,
         Type,

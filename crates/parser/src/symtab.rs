@@ -12,7 +12,7 @@ pub struct Symbol {
 pub enum Sym {
     Variable,
     Function { arity: usize },
-    Class { methods: HashMap<String, Symbol> },
+    Class { methods: HashMap<String, Symbol>, statics: HashMap<String, Symbol> },
 }
 
 #[derive(Debug, Clone, PartialEq)]

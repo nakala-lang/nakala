@@ -151,23 +151,68 @@ impl Parser {
         let mut methods = Vec::new();
         let mut method_symbols = HashMap::default();
 
+        let mut statics = Vec::new();
+        let mut static_symbols: HashMap<String, Symbol> = HashMap::default();
+
         while !self.source.at_end() && !self.at(TokenKind::RightBrace) {
-            let stmt = self.func_decl(true)?;
-            match stmt.clone().stmt {
-                Stmt::Function(func) => {
-                    methods.push(stmt);
-                    method_symbols.insert(
-                        func.name.item.clone(),
-                        Symbol {
-                            name: func.name.item.clone(),
-                            sym: Sym::Function {
-                                arity: func.params.len(),
-                            },
-                            ty: func.ty.ty,
-                        },
-                    );
+            if self.at(TokenKind::Static) {
+                let static_token_span = self.bump()?.span;
+                let binding = self.binding()?;
+
+                let mut ty = binding.ty.clone();
+                let mut expr = None;
+                if self.at(TokenKind::Equal) {
+                    self.bump()?;
+                    let val = self.expr()?;
+                    if !type_compatible(&ty, &val.ty) {
+                        return Err(ParseError::IncompatibleTypes(
+                            self.source.id,
+                            binding.name.span.into(),
+                            binding.ty,
+                            val.span.into(),
+                            val.ty,
+                        ));
+                    }
+
+                    ty = val.ty.clone();
+                    expr = Some(val);
                 }
-                _ => panic!("ICE: func_decl returned a stmt that wasnt a function"),
+
+                static_symbols.insert(
+                    binding.name.item.clone(),
+                    Symbol {
+                        sym: Sym::Variable,
+                        name: binding.name.item.clone(),
+                        ty,
+                    },
+                );
+
+                let semi_token = self.expect(TokenKind::Semicolon)?;
+                statics.push(Statement {
+                    span: Span::combine(&[static_token_span, semi_token.span]),
+                    stmt: Stmt::Variable {
+                        name: binding,
+                        expr,
+                    },
+                });
+            } else {
+                let stmt = self.func_decl(true)?;
+                match stmt.clone().stmt {
+                    Stmt::Function(func) => {
+                        methods.push(stmt);
+                        method_symbols.insert(
+                            func.name.item.clone(),
+                            Symbol {
+                                name: func.name.item.clone(),
+                                sym: Sym::Function {
+                                    arity: func.params.len(),
+                                },
+                                ty: func.ty.ty,
+                            },
+                        );
+                    }
+                    _ => panic!("ICE: func_decl returned a stmt that wasnt a function"),
+                }
             }
         }
 
@@ -176,6 +221,7 @@ impl Parser {
             ty: Type::Class(name.clone()),
             sym: Sym::Class {
                 methods: method_symbols,
+                statics: static_symbols,
             },
         });
 
@@ -189,6 +235,7 @@ impl Parser {
                     span: name_span,
                 },
                 methods,
+                statics,
             }),
         })
     }
@@ -795,9 +842,9 @@ impl Parser {
                 self.bump()?;
                 let name = self.expect(TokenKind::Ident)?;
 
-                // Can only use dot operator when left hand side is of type Instance
-                if !matches!(expr.ty, Type::Any | Type::Instance(..)) {
-                    return Err(ParseError::OnlyInstancesHaveProperties(
+                // Can only use dot operator when left hand side is of type Instance or Class
+                if !matches!(expr.ty, Type::Any | Type::Instance(..) | Type::Class(..)) {
+                    return Err(ParseError::OnlyInstancesAndClassesHaveProperties(
                         self.source.id,
                         expr.span.into(),
                         expr.ty,
