@@ -60,11 +60,11 @@ impl std::fmt::Display for Type {
             Self::Function { params, returns } => format!(
                 "({}) -> {}",
                 params
-                    .into_iter()
+                    .iter()
                     .map(|p| format!("{}", p.ty))
                     .collect::<Vec<_>>()
                     .join(", "),
-                format!("{}", returns.ty)
+                returns.ty
             ),
             Self::Null => String::from("null"),
             Self::Any => String::from("any"),
@@ -95,7 +95,7 @@ pub fn type_compatible(lhs: &Type, rhs: &Type) -> bool {
             }
 
             // params
-            for (lhs, rhs) in lhs_params.into_iter().zip(rhs_params.into_iter()) {
+            for (lhs, rhs) in lhs_params.iter().zip(rhs_params.iter()) {
                 if !type_compatible(&lhs.ty, &rhs.ty) {
                     return false;
                 }

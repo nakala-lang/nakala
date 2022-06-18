@@ -48,7 +48,7 @@ impl Callable for Function {
                     param.name.span.into(),
                     param.ty.clone(),
                     arg.span.into(),
-                    arg.ty.clone(),
+                    arg.ty
                 ));
             }
             let val = eval_expr(arg, env, scope)?;

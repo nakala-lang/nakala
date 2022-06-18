@@ -24,7 +24,6 @@ pub use val::*;
 use crate::{
     env::{Environment, ScopeId},
     error::RuntimeError,
-    eval_variable,
     expr::eval_expr,
 };
 

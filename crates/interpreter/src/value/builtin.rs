@@ -32,7 +32,6 @@ impl Builtin {
             handler,
             ty: Type::Function {
                 params: params
-                    .clone()
                     .into_iter()
                     .map(|t| TypeExpression {
                         ty: t,
@@ -41,7 +40,7 @@ impl Builtin {
                     .collect(),
                 returns: Box::new(TypeExpression {
                     span: Span::garbage(),
-                    ty: returns.clone().unwrap_or(Type::Null),
+                    ty: returns.unwrap_or(Type::Null),
                 }),
             },
         }

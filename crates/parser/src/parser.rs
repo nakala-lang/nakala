@@ -348,7 +348,7 @@ impl Parser {
                                     params,
                                     returns: Box::new(TypeExpression {
                                         span: returns.span,
-                                        ty: return_ty.ty.clone(),
+                                        ty: return_ty.ty
                                     }),
                                 };
                             } else {

@@ -125,7 +125,7 @@ fn get_builtins() -> Vec<Builtin> {
     fn str(vals: Vec<Value>, env: &mut Environment) -> Result<Value, RuntimeError> {
         let val = vals.first().expect("arity mismatch didn't catch builtin");
         Ok(Value {
-            val: Val::String(format!("{}", val.to_string(env))),
+            val: Val::String(val.to_string(env)),
             span: val.span,
             ty: Type::String,
         })

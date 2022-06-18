@@ -291,7 +291,7 @@ fn eval_list_shorthand_expr(
             vals.push(value.clone());
         }
 
-        Ok(env.new_list(vals, value.ty.clone()))
+        Ok(env.new_list(vals, value.ty))
     } else {
         panic!("ICE: eval_list_shorthand_expr should only be called with Expr::ListShorthand");
     }
