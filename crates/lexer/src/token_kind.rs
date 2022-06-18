@@ -87,8 +87,6 @@ pub enum TokenKind {
     Or,
     #[token("ret")]
     Ret,
-    #[token("super")]
-    Super,
     #[token("this")]
     This,
     #[token("true")]
@@ -97,6 +95,8 @@ pub enum TokenKind {
     Let,
     #[token("until")]
     Until,
+    #[token("static")]
+    Static,
 
     // Types
     #[token("int")]
@@ -169,11 +169,11 @@ impl fmt::Display for TokenKind {
             Self::Null => "null",
             Self::Or => "or",
             Self::Ret => "ret",
-            Self::Super => "super",
             Self::This => "this",
             Self::True => "true",
             Self::Let => "let",
             Self::Until => "until",
+            Self::Static => "static",
 
             // Types
             Self::TypeInt => "int",
@@ -426,11 +426,6 @@ mod tests {
     #[test]
     fn lex_ret() {
         check("ret", TokenKind::Ret);
-    }
-
-    #[test]
-    fn lex_super() {
-        check("super", TokenKind::Super);
     }
 
     #[test]
