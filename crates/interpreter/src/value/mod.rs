@@ -21,10 +21,7 @@ pub use list::*;
 use meta::Span;
 pub use val::*;
 
-use crate::{
-    env::{Environment, ScopeId},
-    error::RuntimeError,
-};
+use crate::{env::{Environment, ScopeId}, error::RuntimeError, eval_variable, expr::eval_expr};
 
 pub trait Callable {
     fn arity(&self) -> usize;
@@ -107,9 +104,15 @@ impl Value {
         }
     }
 
-    pub fn from_class(stmt: Statement, scope: ScopeId) -> Self {
+    pub fn from_class(
+        stmt: Statement,
+        env: &mut Environment,
+        scope: ScopeId,
+    ) -> Result<Self, RuntimeError> {
         if let Stmt::Class(class) = stmt.stmt {
             let mut methods: HashMap<String, Value> = HashMap::default();
+            let mut statics: HashMap<String, Value> = HashMap::default();
+
             for method_stmt in class.methods.clone() {
                 if let Stmt::Function(func) = &method_stmt.stmt {
                     let name = func.name.item.clone();
@@ -121,11 +124,31 @@ impl Value {
                 }
             }
 
-            Value {
-                ty: Type::Class(class.name.item.clone()),
-                val: Val::Class(Class { class, methods }),
-                span: stmt.span,
+            for static_stmt in class.statics.clone() {
+                if let Stmt::Variable { name, expr } = static_stmt.stmt {
+                    let name = name.name.item.clone();
+
+                    let mut val = Value::null();
+
+                    if let Some(expr) = expr {
+                        val = eval_expr(expr, env, scope)?;
+                    }
+
+                    statics.insert(name, val);
+                } else {
+                    panic!("ICE: class statics must be Stmt::Variable");
+                }
             }
+
+            Ok(Value {
+                ty: Type::Class(class.name.item.clone()),
+                val: Val::Class(Class {
+                    class,
+                    methods,
+                    statics,
+                }),
+                span: stmt.span,
+            })
         } else {
             panic!("ICE: from_class should onyl be called with Stmt::Class");
         }
@@ -405,6 +428,18 @@ impl Value {
                     params: vec![TypeExpression::any()],
                     returns: Box::new(TypeExpression::any()),
                 },
+                format!("{}", self.val),
+                self.span.into(),
+            )),
+        }
+    }
+
+    pub fn as_class(&self) -> Result<Class, RuntimeError> {
+        match &self.val {
+            Val::Class(class) => Ok(class.clone()),
+            _ => Err(RuntimeError::UnexpectedValueType(
+                self.span.source_id,
+                Type::Class(String::from("unkown")),
                 format!("{}", self.val),
                 self.span.into(),
             )),

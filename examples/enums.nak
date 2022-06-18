@@ -1,0 +1,19 @@
+class ValueType {
+  static String = 0;
+  static Number = 1;
+  static Object = 2;
+}
+
+print(ValueType.String);
+
+if ValueType.String != 0 {
+  print("Case 1 failed");
+}
+
+let t = ValueType;
+if t.String != ValueType.String {
+  print("Case 2 failed");
+}
+
+let inst = ValueType();
+print(inst.String);

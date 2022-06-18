@@ -14,6 +14,7 @@ use super::{Callable, Value};
 pub struct Class {
     pub class: AstClass,
     pub methods: HashMap<String, Value>,
+    pub statics: HashMap<String, Value>,
 }
 
 impl Class {

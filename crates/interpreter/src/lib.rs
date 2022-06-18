@@ -115,7 +115,7 @@ fn eval_class_decl(
         // We have to define it manually, but we will bind 'this' on the instance
         env.define(new_scope, String::from("this"), Value::null())?;
 
-        let val = Value::from_class(stmt, new_scope);
+        let val = Value::from_class(stmt, env, new_scope)?;
 
         env.assign(scope, class_name, val)?;
 

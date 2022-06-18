@@ -120,16 +120,28 @@ fn eval_get_expr(
 ) -> Result<Value, RuntimeError> {
     if let Expr::Get { object, name } = expr.expr {
         let obj = eval_expr(*object, env, scope)?;
+        if let Val::Instance { .. } = obj.val {
+            let instance = env.get_instance(obj.as_instance()?)?;
 
-        let instance = env.get_instance(obj.as_instance()?)?;
+            // If property is a function, bind 'this'
+            let mut prop = instance.get_property(&name.item)?;
+            if let Val::Function(..) = prop.val {
+                prop.bind_this(env, obj)?;
+            }
 
-        // If property is a function, bind 'this'
-        let mut prop = instance.get_property(&name.item)?;
-        if let Val::Function(..) = prop.val {
-            prop.bind_this(env, obj)?;
+            Ok(prop)
+        } else {
+            let class = obj.as_class()?;
+            if let Some(entry) = class.statics.get(&name.item) {
+                Ok(entry.clone())
+            } else {
+                Err(RuntimeError::UndefinedClassProperty(
+                    class.class.name.span.source_id,
+                    class.class.name.span.into(),
+                    name.item.to_string(),
+                ))
+            }
         }
-
-        Ok(prop)
     } else {
         panic!("ICE: eval_get_expr should only be called with Expr::Get");
     }

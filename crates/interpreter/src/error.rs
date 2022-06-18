@@ -53,6 +53,14 @@ pub enum RuntimeError {
         String,
     ),
 
+    #[error("Undefined static class property")]
+    #[diagnostic(code(nak_runtime::undefined_static_property))]
+    UndefinedStaticClassProperty(
+        SourceId,
+        #[label("This class doesn't have any static properties named {2}")] SourceSpan,
+        String
+    ),
+
     #[error("Incompatible types")]
     #[diagnostic(
         code(nak::incompatible_types),

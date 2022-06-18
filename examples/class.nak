@@ -1,3 +1,7 @@
+class Limits {
+  static INT_MAX = 32;
+}
+
 class Calculator {
   add(a: int, b: int) -> int {
     ret a + b;
@@ -10,20 +14,25 @@ class Calculator {
   callWith10(a: any) {
     ret a(10);
   }
-}
 
-func addTwoThings(a: int, b: int) -> int {
-  print "WRONG ONE!";
-  ret a + b;
+  int_is_in_bounds(a: int) -> bool {
+    ret a <= Limits.INT_MAX;
+  }
 }
 
 let calculator = Calculator();
-print calculator;
+print(calculator);
 
 calculator.x = 10;
-print calculator.x;
+print(calculator.x);
 
 let result = calculator.add(1,2);
-print result;
+print(result);
 
-print calculator.callWith10(calculator.add5);
+print(calculator.callWith10(calculator.add5));
+
+print("Next thing should be true:");
+print(calculator.int_is_in_bounds(10));
+
+print("Next thing should be false:");
+print(calculator.int_is_in_bounds(33));
