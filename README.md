@@ -26,8 +26,7 @@ Nakala only has two core values:
 - [x] Parser / AST
 - [x] Type Checking
   - [x] Basic types
-  - [x] Advanced types (functions, classes)
-  - [ ] Class inheritence
+  - [x] Advanced types (functions, classes, enums)
 - [x] Interpreter
 - [ ] Standard library
 - [ ] Playground website
