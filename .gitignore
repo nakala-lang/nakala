@@ -3,3 +3,5 @@ Cargo.lock
 .DS_Store
 *.mov
 ~/.config/nakala/history.txt
+out.cpp
+program
