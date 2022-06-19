@@ -1,5 +1,6 @@
 use ast::ty::Type;
 use interpreter::{env::Environment, error::RuntimeError, interpret, Builtin, Val, Value};
+use compiler::compile;
 use miette::Result;
 use parser::{parse, source::Source, SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};
@@ -18,7 +19,7 @@ fn main() -> Result<()> {
     let mut env = Environment::new(builtins)?;
     let symtab = SymbolTable::new(symbols);
 
-    if args.input_files.is_empty() {
+    if args.use_interpreter && args.input_files.is_empty() {
         repl(args)
     } else {
         if args.input_files.len() > 1 {
@@ -33,7 +34,12 @@ fn main() -> Result<()> {
                 println!("{:#?}", parse);
             }
 
-            interpret(parse, &mut env).map_err(|error| error.with_source_code(source))?;
+            if args.use_compiler {
+                let res = compile(parse).map_err(|error| error.with_source_code(source))?;
+                println!("{}", res);
+            } else {
+                interpret(parse, &mut env).map_err(|error| error.with_source_code(source))?;
+            }
         }
 
         Ok(())
@@ -174,6 +180,8 @@ fn get_builtins() -> Vec<Builtin> {
 #[derive(Debug)]
 struct NakArguments {
     input_files: Vec<Source>,
+    use_interpreter: bool,
+    use_compiler: bool,
     show_parse: bool,
 }
 
@@ -183,6 +191,7 @@ fn parse_arguments() -> NakArguments {
     let is_present = |flags: &[&str]| args.iter().any(|arg| flags.contains(&arg.as_str()));
 
     let show_parse = is_present(&["-p", "--show-parse"]);
+    let use_compiler = is_present(&["-c", "--compile"]);
 
     let mut next_file_id = 0;
     let input_files = args
@@ -204,6 +213,8 @@ fn parse_arguments() -> NakArguments {
 
     NakArguments {
         input_files,
+        use_interpreter: !use_compiler,
+        use_compiler,
         show_parse,
     }
 }

@@ -9,5 +9,6 @@ edition = "2021"
 parser = { path = "../parser" } 
 interpreter = { path = "../interpreter" } 
 ast = { path = "../ast" } 
+compiler = { path = "../compiler" }
 miette = { version = "4.7.0", features = ["fancy"] }
 reedline = "0.5.0"
