@@ -361,6 +361,22 @@ impl Value {
         }
     }
 
+    pub fn gte(&self, op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
+        let span = Span::combine(&[self.span, rhs.span]);
+
+        match (&self.val, &rhs.val) {
+            (Val::Int(lhs), Val::Int(rhs)) => Ok((lhs >= rhs, span).into()),
+            _ => Err(RuntimeError::UnsupportedOperation(
+                self.span.source_id,
+                op.span.into(),
+                self.span.into(),
+                self.ty.clone(),
+                rhs.span.into(),
+                rhs.ty.clone(),
+            )),
+        }
+    }
+
     pub fn and(&self, _op: Operator, rhs: &Value) -> Result<Value, RuntimeError> {
         let span = Span::combine(&[self.span, rhs.span]);
 

@@ -103,6 +103,7 @@ fn eval_binary_expr(
             Op::NotEquals => lhs.neq(&rhs),
             Op::LessThanEquals => lhs.lte(op, &rhs),
             Op::GreaterThan => lhs.gt(op, &rhs),
+            Op::GreaterThanEquals => lhs.gte(op, &rhs),
             Op::Or | Op::And => {
                 unreachable!("ICE: logical binary expressions should be parsed as such")
             }
