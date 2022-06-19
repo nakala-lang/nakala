@@ -36,6 +36,13 @@ impl TypeExpression {
             span: Span::garbage(),
         }
     }
+
+    pub fn string() -> Self {
+        Self {
+            ty: Type::String,
+            span: Span::garbage()
+        }
+    }
 }
 
 impl From<Binding> for TypeExpression {
