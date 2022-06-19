@@ -1,6 +1,7 @@
-use ast::ty::Type;
-use interpreter::{env::Environment, error::RuntimeError, interpret, Builtin, Val, Value};
+use ast::ty::{Type, TypeExpression};
 use compiler::compile;
+use interpreter::{env::Environment, error::RuntimeError, interpret, Builtin, Val, Value};
+use meta::Span;
 use miette::Result;
 use parser::{parse, source::Source, SymbolTable};
 use reedline::{DefaultPrompt, Reedline, Signal};
@@ -172,6 +173,34 @@ fn get_builtins() -> Vec<Builtin> {
         vec![Type::Any],
         Some(Type::Int),
         len,
+    ));
+
+    // chars
+    fn chars(vals: Vec<Value>, env: &mut Environment) -> Result<Value, RuntimeError> {
+        let val = vals.first().expect("arity mismatch didn't catch builtin");
+        match &val.val {
+            Val::String(s) => {
+                let new_list = env.new_list(
+                    s.chars()
+                        .map(|c| Value {
+                            span: Span::garbage(),
+                            ty: Type::String,
+                            val: Val::String(String::from(c)),
+                        })
+                        .collect(),
+                    Type::String,
+                );
+                Ok(new_list)
+            }
+            _ => unreachable!("ICE: buliltin typechecking failed"),
+        }
+    }
+
+    builtins.push(Builtin::new(
+        String::from("chars"),
+        vec![Type::String],
+        Some(Type::List(Box::new(TypeExpression::string()))),
+        chars
     ));
 
     builtins

@@ -10,5 +10,6 @@ parser = { path = "../parser" }
 interpreter = { path = "../interpreter" } 
 ast = { path = "../ast" } 
 compiler = { path = "../compiler" }
+meta = { path = "../meta" }
 miette = { version = "4.7.0", features = ["fancy"] }
 reedline = "0.5.0"
