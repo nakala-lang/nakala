@@ -1,0 +1,14 @@
+[package]
+name = "compiler"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+parser = { path = "../parser" }
+ast = { path = "../ast" }
+meta = { path = "../meta" }
+miette = { version = "4.7.0" }
+thiserror = "1.0.31"
+
