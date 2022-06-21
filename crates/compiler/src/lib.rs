@@ -1,6 +1,6 @@
 use ast::{
     expr::{Expr, Expression},
-    op::{Op, Operator},
+    op::{Operator},
     stmt::{Statement, Stmt},
 };
 use miette::Diagnostic;
