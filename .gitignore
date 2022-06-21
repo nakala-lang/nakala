@@ -5,3 +5,4 @@ Cargo.lock
 ~/.config/nakala/history.txt
 out.cpp
 program
+crates/wasm/site/node_modules/

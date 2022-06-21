@@ -1,0 +1,17 @@
+[package]
+name = "nakala_wasm"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+parser = { path = "../parser" } 
+interpreter = { path = "../interpreter" } 
+ast = { path = "../ast" } 
+miette = { version = "4.7.0", features = ["fancy"] }
+meta = { path = "../meta" }
+wasm-bindgen = "0.2"
