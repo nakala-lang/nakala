@@ -40,7 +40,7 @@ impl TypeExpression {
     pub fn string() -> Self {
         Self {
             ty: Type::String,
-            span: Span::garbage()
+            span: Span::garbage(),
         }
     }
 }

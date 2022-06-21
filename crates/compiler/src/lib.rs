@@ -1,12 +1,14 @@
-use ast::{expr::{Expression, Expr}, op::{Operator, Op}, stmt::{Statement, Stmt}};
+use ast::{
+    expr::{Expr, Expression},
+    op::{Op, Operator},
+    stmt::{Statement, Stmt},
+};
+use miette::Diagnostic;
 use parser::Parse;
 use thiserror::Error;
-use miette::Diagnostic;
 
 #[derive(Error, Debug, Diagnostic)]
-pub enum CompileError {
-
-}
+pub enum CompileError {}
 
 pub fn compile(parse: Parse) -> miette::Result<String> {
     let mut output = String::with_capacity(8192);
@@ -14,9 +16,9 @@ pub fn compile(parse: Parse) -> miette::Result<String> {
     output.push_str("int main(int argc, char** argv) {");
 
     for stmt in parse.stmts {
-       output.push_str(&stmt.codegen()?);
+        output.push_str(&stmt.codegen()?);
     }
-    
+
     output.push_str("}");
 
     Ok(output)
@@ -41,11 +43,9 @@ impl Codegen for Statement {
                 res.push_str(";");
 
                 Ok(res)
-            },
-            Stmt::Expr(expr) => {
-                Ok(format!("{};", expr.codegen()?))
             }
-            _ => todo!("codegen for {:?}", self)
+            Stmt::Expr(expr) => Ok(format!("{};", expr.codegen()?)),
+            _ => todo!("codegen for {:?}", self),
         }
     }
 }
@@ -63,16 +63,15 @@ impl Codegen for Expression {
                     // TODO - deal with builtins better
                     Expr::Variable(name) => {
                         if name == "print" {
-                            Ok(format!("std::cout << {}", args.get(0).unwrap().codegen()?)) 
+                            Ok(format!("std::cout << {}", args.get(0).unwrap().codegen()?))
                         } else {
                             todo!("codegen for non print")
                         }
                     }
-                    _ => todo!("callee codegen for {:?}", self)
+                    _ => todo!("callee codegen for {:?}", self),
                 }
-
             }
-            _ => todo!("codegen for {:?}", self)
+            _ => todo!("codegen for {:?}", self),
         }
     }
 }
@@ -80,7 +79,7 @@ impl Codegen for Expression {
 impl Codegen for Operator {
     fn codegen(&self) -> Result<String, CompileError> {
         match self.op {
-            _ => todo!("codegen for {:?}", self)
+            _ => todo!("codegen for {:?}", self),
         }
     }
 }
@@ -146,6 +145,4 @@ std::ostream &operator<<(std::ostream &Str, Value const &val) {
   Str << val.to_string() << std::endl;
   return Str;
 }"#);
-
-
 }

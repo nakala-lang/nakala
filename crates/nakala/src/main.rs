@@ -200,7 +200,7 @@ fn get_builtins() -> Vec<Builtin> {
         String::from("chars"),
         vec![Type::String],
         Some(Type::List(Box::new(TypeExpression::string()))),
-        chars
+        chars,
     ));
 
     builtins
