@@ -1,5 +1,5 @@
 use ast::ty::Type;
-use interpreter::{env::Environment, error::RuntimeError, interpret, Builtin, Value};
+use interpreter::{Builtin, Val, Value, env::Environment, error::RuntimeError, interpret};
 use parser::{parse, source::Source, SymbolTable};
 use wasm_bindgen::{prelude::*, JsValue};
 
@@ -7,18 +7,23 @@ static mut OUTPUT: String = String::new();
 
 #[wasm_bindgen]
 pub fn wasm_interpret(source: &str) -> JsValue {
+    // reset print output
+    unsafe {
+        OUTPUT = String::new();
+    }
+
     let mut builtins = vec![];
 
     fn print(vals: Vec<Value>, env: &mut Environment) -> Result<Value, RuntimeError> {
         // SAFETY: OUTPUT is only every appended to so we're fine here
         unsafe {
-            OUTPUT.push_str("\n");
             OUTPUT.push_str(&format!(
                 "{}",
                 vals.first()
                     .expect("arity mismatch didn't catch builtin")
                     .to_string(env)
             ));
+            OUTPUT.push_str("\n");
         }
         Ok(Value::null())
     }
@@ -27,6 +32,21 @@ pub fn wasm_interpret(source: &str) -> JsValue {
         vec![Type::Any],
         None,
         print,
+    ));
+
+    //len
+    fn len(vals: Vec<Value>, env: &mut Environment) -> Result<Value, RuntimeError> {
+        let val = vals.first().expect("arity mismatch didn't catch builtin");
+        match val.val {
+            Val::List { id } => Ok(env.get_list(id).len()),
+            _ => todo!(""),
+        }
+    }
+    builtins.push(Builtin::new(
+        String::from("len"),
+        vec![Type::Any],
+        Some(Type::Int),
+        len,
     ));
 
     let symbols = builtins
