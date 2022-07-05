@@ -3,30 +3,36 @@ use interpreter::{env::Environment, error::RuntimeError, interpret, Builtin, Val
 use parser::{parse, source::Source, SymbolTable};
 use wasm_bindgen::{prelude::*, JsValue};
 
+static mut OUTPUT: String = String::new();
+
 #[wasm_bindgen]
 pub fn wasm_interpret(source: &str) -> JsValue {
+    unsafe {
+        OUTPUT = String::new();
+    }
+
     match helper(source) {
-        Ok(val) => JsValue::null(),
-        Err(e) => {
-            output.push_str(&format!("{:?}", e));
-            JsValue::from_str(&output)
+        Ok(_) => unsafe { JsValue::from_str(&format!("[Finished]\n{}", OUTPUT)) },
+        Err(e) => unsafe {
+            OUTPUT.push_str(&format!("{:?}", e));
+            JsValue::from_str(&OUTPUT)
         },
     }
 }
 
 pub fn helper(source: &str) -> miette::Result<()> {
-    let mut output = String::new();
-
     let mut builtins = vec![];
 
     fn print(vals: Vec<Value>, env: &mut Environment) -> Result<Value, RuntimeError> {
-        output.push_str(&format!(
-            "{}",
-            vals.first()
-                .expect("arity mismatch didn't catch builtin")
-                .to_string(env)
-        ));
-        output.push_str("\n");
+        unsafe {
+            OUTPUT.push_str(&format!(
+                "{}",
+                vals.first()
+                    .expect("arity mismatch didn't catch builtin")
+                    .to_string(env)
+            ));
+            OUTPUT.push_str("\n");
+        }
         Ok(Value::null())
     }
     builtins.push(Builtin::new(
