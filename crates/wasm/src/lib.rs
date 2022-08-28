@@ -25,13 +25,12 @@ pub fn helper(source: &str) -> miette::Result<()> {
 
     fn print(vals: Vec<Value>, env: &mut Environment) -> Result<Value, RuntimeError> {
         unsafe {
-            OUTPUT.push_str(&format!(
-                "{}",
-                vals.first()
+            OUTPUT.push_str(
+                &vals.first()
                     .expect("arity mismatch didn't catch builtin")
                     .to_string(env)
-            ));
-            OUTPUT.push_str("\n");
+            );
+            OUTPUT.push('\n');
         }
         Ok(Value::null())
     }

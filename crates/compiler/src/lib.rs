@@ -19,7 +19,7 @@ pub fn compile(parse: Parse) -> miette::Result<String> {
         output.push_str(&stmt.codegen()?);
     }
 
-    output.push_str("}");
+    output.push('}');
 
     Ok(output)
 }
@@ -40,7 +40,7 @@ impl Codegen for Statement {
                     res.push_str("Value::null()");
                 }
 
-                res.push_str(";");
+                res.push(';');
 
                 Ok(res)
             }
@@ -57,7 +57,7 @@ impl Codegen for Expression {
             Expr::Int(v) => Ok(format!("Value((int64_t) {})", v)),
             Expr::Float(v) => Ok(format!("Value((float) {})", v)),
             Expr::String(v) => Ok(format!(r#"Value(std::string("{}"))"#, v)),
-            Expr::Variable(name) => Ok(format!("{}", name)),
+            Expr::Variable(name) => Ok(name.to_string()),
             Expr::Call { callee, args, .. } => {
                 match &callee.expr {
                     // TODO - deal with builtins better
@@ -78,9 +78,7 @@ impl Codegen for Expression {
 
 impl Codegen for Operator {
     fn codegen(&self) -> Result<String, CompileError> {
-        match self.op {
-            _ => todo!("codegen for {:?}", self),
-        }
+        todo!("codegen for {:?}", self)
     }
 }
 

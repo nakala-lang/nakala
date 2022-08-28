@@ -173,10 +173,10 @@ impl Parser {
                 };
 
                 static_symbols.insert(
-                    enum_kind.text.clone().into(),
+                    enum_kind.text.clone(),
                     Symbol {
                         sym: Sym::Variable,
-                        name: enum_kind.text.clone().into(),
+                        name: enum_kind.text.clone(),
                         ty: Type::Int,
                     },
                 );
