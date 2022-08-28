@@ -1,9 +1,10 @@
 use ast::ty::Type;
+use meta::Spanned;
 use std::{collections::HashMap, usize};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Symbol {
-    pub name: String,
+    pub name: Spanned<String>,
     pub sym: Sym,
     pub ty: Type,
 }
@@ -72,7 +73,7 @@ impl SymbolTable {
 
     pub fn insert(&mut self, sym: Symbol) {
         if let Some(map) = self.inner.last_mut() {
-            map.insert(sym.name.clone(), sym);
+            map.insert(sym.name.item.clone(), sym);
         }
     }
 

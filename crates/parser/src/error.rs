@@ -125,4 +125,13 @@ pub enum ParseError {
         SourceId,
         #[label("This must be compatible with int")] SourceSpan,
     ),
+
+    #[error("Cannot redeclare symbol {1}")]
+    #[diagnostic(code(nak::cannot_redeclare_symbol))]
+    CannotRedeclareSymbol(
+        SourceId,
+        String,
+        #[label("This identifier")] SourceSpan,
+        #[label("has been previously defined here")] SourceSpan
+    )
 }

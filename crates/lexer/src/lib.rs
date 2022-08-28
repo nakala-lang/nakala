@@ -21,6 +21,15 @@ impl From<&Token> for Spanned<String> {
     }
 }
 
+impl From<Token> for Spanned<String> {
+    fn from(token: Token) -> Self {
+        Spanned {
+            item: token.text.clone(),
+            span: token.span,
+        }
+    }
+}
+
 pub struct Lexer<'a> {
     source_id: SourceId,
     inner: logos::Lexer<'a, TokenKind>,

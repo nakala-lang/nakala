@@ -146,6 +146,8 @@ impl Parser {
         let enum_token_span = self.expect(TokenKind::Enum)?.span;
         let name_token = self.expect(TokenKind::Ident)?;
 
+        let spanned_name: Spanned<String> = name_token.into();
+
         let name = name_token.text.to_string();
         let name_span = name_token.span;
 
@@ -176,7 +178,7 @@ impl Parser {
                     enum_kind.text.clone(),
                     Symbol {
                         sym: Sym::Variable,
-                        name: enum_kind.text.clone(),
+                        name: enum_kind.into(),
                         ty: Type::Int,
                     },
                 );
@@ -192,7 +194,7 @@ impl Parser {
         }
 
         self.symtab.insert(Symbol {
-            name: name.clone(),
+            name: spanned_name,
             ty: Type::Class(name.clone()),
             sym: Sym::Class {
                 methods: HashMap::default(),
@@ -219,6 +221,7 @@ impl Parser {
         trace!("parse_class_decl");
         let class_token_span = self.expect(TokenKind::Class)?.span;
         let name_token = self.expect(TokenKind::Ident)?;
+        let spanned_name: Spanned<String> = name_token.into();
 
         let name = name_token.text.to_string();
         let name_span = name_token.span;
@@ -259,7 +262,7 @@ impl Parser {
                     binding.name.item.clone(),
                     Symbol {
                         sym: Sym::Variable,
-                        name: binding.name.item.clone(),
+                        name: binding.name.clone(),
                         ty,
                     },
                 );
@@ -280,7 +283,7 @@ impl Parser {
                         method_symbols.insert(
                             func.name.item.clone(),
                             Symbol {
-                                name: func.name.item.clone(),
+                                name: func.name.clone(),
                                 sym: Sym::Function {
                                     arity: func.params.len(),
                                 },
@@ -294,7 +297,7 @@ impl Parser {
         }
 
         self.symtab.insert(Symbol {
-            name: name.clone(),
+            name: spanned_name,
             ty: Type::Class(name.clone()),
             sym: Sym::Class {
                 methods: method_symbols,
@@ -375,7 +378,7 @@ impl Parser {
 
         if !from_class_decl {
             self.symtab.insert(Symbol {
-                name: name.clone(),
+                name: spanned_name.clone(),
                 sym: Sym::Function {
                     arity: params.len(),
                 },
@@ -387,7 +390,7 @@ impl Parser {
 
         params.iter().for_each(|param| {
             self.symtab.insert(Symbol {
-                name: param.name.item.clone(),
+                name: param.name.clone(),
                 sym: Sym::Variable,
                 ty: param.ty.clone(),
             })
@@ -490,7 +493,7 @@ impl Parser {
 
         self.symtab.insert(Symbol {
             sym: Sym::Variable,
-            name: binding.name.item.clone(),
+            name: binding.name.clone(),
             ty,
         });
 
@@ -1020,6 +1023,15 @@ impl Parser {
 
         let name = ident.text.to_string();
         let span = ident.span;
+
+        if let Some(sym) = self.symtab.lookup(&name) {
+            return Err(ParseError::CannotRedeclareSymbol(
+                self.source.id,
+                sym.name.item.clone(),
+                span.into(),
+                sym.name.span.into(),
+            ));
+        }
 
         let mut ty = Type::Any;
         if self.at(TokenKind::Colon) {

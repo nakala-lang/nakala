@@ -2,7 +2,7 @@ use ast::{
     expr::Expression,
     ty::{type_compatible, Type, TypeExpression},
 };
-use meta::Span;
+use meta::{Span, Spanned};
 use parser::{Sym, Symbol};
 
 use crate::{
@@ -49,7 +49,10 @@ impl Builtin {
     pub fn as_symbol(&self) -> Symbol {
         if let Type::Function { params, .. } = &self.ty {
             Symbol {
-                name: self.name.clone(),
+                name: Spanned {
+                    item: self.name.clone(),
+                    span: Span::garbage(),
+                },
                 sym: Sym::Function {
                     arity: params.len(),
                 },
