@@ -29,7 +29,7 @@ Nakala only has two core values:
   - [x] Advanced types (functions, classes, enums)
 - [x] Interpreter
 - [ ] Standard library
-- [ ] Playground website
+- [x] [Playground website](https://nakala-lang.github.io/website/)
 - [ ] Editor tooling
   - [x] [vim](https://github.com/nakala-lang/nakala.vim)
 - [ ] Compiler (maybe C++?)
